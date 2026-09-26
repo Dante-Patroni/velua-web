@@ -316,14 +316,18 @@ usan siempre por nombre:
   --color-tinta: #4A4066;          /* TEXTO, botones, pie */
   --color-texto-suave: #5B5178;    /* párrafos */
   --color-texto-tenue: #6B6188;    /* datos secundarios, deshabilitado */
-  --color-etiqueta: #7A6A3C;       /* versalitas y etiquetas */
+  --color-etiqueta: #6F6036;       /* versalitas y etiquetas. 5.16 sobre crema cálida */
 
   /* cálidos */
   --color-dorado: #DBB261;         /* acentos */
-  --color-dorado-hondo: #CA821F;   /* links de acción, ofertas, énfasis */
+  --color-dorado-hondo: #CA821F;   /* superficies, subrayados, badges. NO texto: 2.87 */
+  --color-dorado-texto: #985C14;   /* links de acción y énfasis. 4.98 sobre crema */
+
+  /* estados */
+  --color-error: #B03A2E;          /* campos inválidos y mensajes. 5.53 sobre crema */
 
   /* verdes */
-  --color-salvia: #8A9C50;         /* íconos */
+  --color-salvia: #7A8C44;         /* íconos. 3.41, mínimo para no-texto */
   --color-salvia-hondo: #47562B;   /* confirmaciones, stock disponible */
 
   /* tipografía */
@@ -336,6 +340,10 @@ usan siempre por nombre:
 y el mínimo legible es 4.5; el rosa está peor, en 2.0. Los dos sirven para el
 logo, los bordes y las superficies. El texto usa el tinta, que es el mismo tono
 llevado a una luminosidad que sí funciona: 8.36.
+
+**Lo mismo con el dorado.** El dorado hondo da 2.87 sobre la crema: sirve para
+superficies, subrayados y fondos de badge, no para letras. Un link de acción o
+un texto de oferta usa `dorado-texto`. Los errores usan `error`, nunca el dorado.
 
 **El violeta y el dorado son complementarios.** Eso se ve bien mientras uno domine
 la superficie y el otro aparezca en dosis chicas. En la práctica: crema domina,
