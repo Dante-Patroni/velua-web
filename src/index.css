@@ -21,14 +21,18 @@
   --color-tinta: #4A4066;
   --color-texto-suave: #5B5178;
   --color-texto-tenue: #6B6188;
-  --color-etiqueta: #7A6A3C;
+  --color-etiqueta: #6F6036;       /* 5.16 sobre crema cálida */
 
   /* cálidos */
   --color-dorado: #DBB261;
-  --color-dorado-hondo: #CA821F;
+  --color-dorado-hondo: #CA821F;   /* superficies y subrayados. Como texto da 2.87 */
+  --color-dorado-texto: #985C14;   /* links de acción y énfasis. 4.98 sobre crema */
+
+  /* estados */
+  --color-error: #B03A2E;          /* campos inválidos y mensajes. 5.53 sobre crema */
 
   /* verdes */
-  --color-salvia: #8A9C50;
+  --color-salvia: #7A8C44;         /* íconos. 3.41, el mínimo para no-texto es 3 */
   --color-salvia-hondo: #47562B;
 
   /* tipografía */
