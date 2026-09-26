@@ -1,28 +1,19 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import { AdminLayout } from "../components/layout/AdminLayout";
-import { TiendaLayout } from "../components/layout/TiendaLayout";
-import { AdminTemporal } from "../pages/AdminTemporal";
-import { InicioTemporal } from "../pages/InicioTemporal";
+import { ErrorPage } from "@/pages/Errores/ErrorPage";
+import { rutasAdmin } from "./rutasAdmin";
+import { rutasTienda } from "./rutasTienda";
 
+/**
+ * Router de la app. La raíz no renderiza nada propio: solo aporta el error
+ * boundary común y el fallback de la primera carga. Las dos ramas cuelgan de ella.
+ */
 export const router = createBrowserRouter([
   {
-    element: <TiendaLayout />,
-    children: [
-      {
-        path: "/",
-        element: <InicioTemporal />,
-      },
-    ],
-  },
-  {
-    path: "/admin",
-    element: <AdminLayout />,
-    children: [
-      {
-        index: true,
-        element: <AdminTemporal />,
-      },
-    ],
+    path: "/",
+    ErrorBoundary: ErrorPage,
+    // Mientras corre el primer loader (el authLoader al entrar directo al panel).
+    HydrateFallback: () => null,
+    children: [...rutasTienda, ...rutasAdmin],
   },
 ]);

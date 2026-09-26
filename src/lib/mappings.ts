@@ -1,6 +1,30 @@
 import { ErrorApi } from "@/lib/apiFetch";
 import type { CodigoError, ContextoError } from "@/types";
 
+type Enlace = { ruta: string; texto: string };
+
+/** Enlaces del pie de la tienda. */
+export const ENLACES_PIE: readonly Enlace[] = [
+  { ruta: "/la-marca", texto: "La marca" },
+  { ruta: "/cambios", texto: "Cambios y devoluciones" },
+  { ruta: "/terminos", texto: "Términos y condiciones" },
+  { ruta: "/privacidad", texto: "Política de privacidad" },
+  { ruta: "/arrepentimiento", texto: "Botón de arrepentimiento" },
+];
+
+/** Navegación del panel. */
+export const ENLACES_ADMIN: readonly Enlace[] = [
+  { ruta: "/admin", texto: "Pedidos" },
+  { ruta: "/admin/productos", texto: "Productos" },
+  { ruta: "/admin/categorias", texto: "Categorías" },
+];
+
+/** Cuenta de Instagram de la marca. El handle lleva punto. */
+export const INSTAGRAM = {
+  handle: "@velua.nature",
+  url: "https://www.instagram.com/velua.nature/",
+} as const;
+
 /** Mensaje para un código que el frontend todavía no contempla. */
 export const MENSAJE_ERROR_POR_DEFECTO = "Algo salió mal. Probá de nuevo en unos minutos.";
 
