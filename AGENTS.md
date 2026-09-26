@@ -148,6 +148,23 @@ export const MENSAJES_ERROR = {
 
 Nunca mostrar el código crudo, y nunca depender de un `message` en inglés del backend.
 
+**Códigos que ya existen en la API.** Todos tienen que estar en el diccionario,
+aunque sea en el contexto general:
+
+```
+DATOS_INVALIDOS          JSON_INVALIDO            NO_ENCONTRADO
+NO_AUTORIZADO            TOKEN_INVALIDO           TOKEN_EXPIRADO
+CREDENCIALES_INVALIDAS   USUARIO_INACTIVO         SIN_PERMISO
+CONFLICTO_DE_DATOS       LIMITE_SUPERADO          TRANSICION_INVALIDA
+PAGO_NO_APROBADO         SEGUIMIENTO_REQUERIDO    SIN_VARIANTES
+ULTIMA_VARIANTE_ACTIVA   LIMITE_IMAGENES          ARCHIVO_REQUERIDO
+TIPO_ARCHIVO_INVALIDO    ARCHIVO_DEMASIADO_GRANDE ERROR_AL_SUBIR
+```
+
+Y siempre un mensaje por defecto para un código desconocido: la API puede sumar
+uno nuevo antes de que el frontend lo contemple, y el usuario no puede quedarse
+mirando una pantalla en blanco.
+
 ### 5.5 El badge de descuento tiene condición
 
 Se muestra solo si existe `precioAnterior` **y** es mayor que el precio actual. Sin esa guarda aparecen ofertas del cero por ciento sobre cero pesos, que es el error que tienen en producción las dos tiendas del rubro que miramos.
@@ -155,6 +172,21 @@ Se muestra solo si existe `precioAnterior` **y** es mayor que el precio actual. 
 ### 5.6 Las imágenes vienen de Cloudinary
 
 Nunca se construyen rutas a `/uploads/` del backend. La API devuelve la URL; el tamaño se pide por transformación en la propia URL. Todas las imágenes llevan `loading="lazy"` salvo la primera visible.
+
+Se sube una sola versión, limitada a 1600 px de lado mayor. Los tamaños y formatos
+para cada pantalla salen agregando parámetros a la URL: `f_auto` entrega WebP a
+los navegadores que lo soportan y `q_auto` ajusta la calidad. Para la grilla,
+`w_400`.
+
+### 5.7 Un producto sin fotos es un estado normal, no un error
+
+En el listado, `imagen` es `null` cuando el producto todavía no tiene fotos
+cargadas. **Hoy los quince productos del catálogo están así**, y van a seguir así
+hasta que la marca las mande.
+
+La tarjeta tiene que resolverlo bien desde el principio: en el diseño esa zona
+usa la ilustración botánica de la caja como textura, con una etiqueta discreta.
+No es un placeholder temporal ni un gris: es cómo se ve el catálogo por ahora.
 
 ---
 
@@ -171,7 +203,7 @@ Esta es la diferencia estructural con el proyecto anterior: acá lo público es 
 /carrito
 /checkout
 /pedido/:numero         seguimiento
-/nosotros
+/la-marca
 /arrepentimiento
 /terminos  /privacidad  /cambios
 ```
@@ -197,9 +229,12 @@ El código del panel nunca entra en el bundle de la tienda. Una clienta que entr
 
 Los tipos de la API **no se escriben a mano**. Se generan:
 
-```bash
-npm run tipos    # openapi-typescript contra el OpenAPI de velua-api
+```json
+"tipos": "openapi-typescript https://raw.githubusercontent.com/Dante-Patroni/velua-api/main/docs/openapi.json -o src/types/api.generated.ts"
 ```
+
+Si esa URL da 404, el repositorio del backend es privado: hay que resolverlo
+antes de arrancar, porque sin tipos no se puede hacer nada.
 
 `src/types/api.generated.ts` no se edita nunca. En `types/<entidad>.types.ts` van solo los tipos propios de la UI que no existen en la API.
 
@@ -260,16 +295,59 @@ fetch(url, { ...options, credentials: "include" });
 
 Mobile first, sin excepción. La mayoría del tráfico llega desde Instagram, en el teléfono.
 
-Los colores de marca se definen una vez como tokens de Tailwind v4 en `index.css`, y se usan por nombre:
+Los colores salen medidos del logo real y de la ilustración que ya está impresa
+en las cajas. Se definen una vez como tokens de Tailwind v4 en `index.css` y se
+usan siempre por nombre:
 
 ```css
 @theme {
-  --color-violeta: #464BB3;   /* tipografía del logo, títulos, botones */
-  --color-lila:    #D985C7;   /* trazo botánico, acentos, detalles */
+  /* superficies */
+  --color-crema: #FAF5EA;          /* fondo de página. Nunca blanco puro */
+  --color-crema-clara: #FFFDF8;    /* tarjetas */
+  --color-crema-calida: #F2EADA;   /* bloques editoriales y avisos */
+  --color-borde: #E8DCC8;          /* bordes de tarjeta */
+  --color-borde-frio: #C9BFD8;     /* separadores del encabezado */
+
+  /* marca */
+  --color-lavanda: #9084AE;        /* logo, bordes de control, seleccionados */
+  --color-rosa: #D89CA8;           /* acentos decorativos */
+
+  /* texto y acción */
+  --color-tinta: #4A4066;          /* TEXTO, botones, pie */
+  --color-texto-suave: #5B5178;    /* párrafos */
+  --color-texto-tenue: #6B6188;    /* datos secundarios, deshabilitado */
+  --color-etiqueta: #7A6A3C;       /* versalitas y etiquetas */
+
+  /* cálidos */
+  --color-dorado: #DBB261;         /* acentos */
+  --color-dorado-hondo: #CA821F;   /* links de acción, ofertas, énfasis */
+
+  /* verdes */
+  --color-salvia: #8A9C50;         /* íconos */
+  --color-salvia-hondo: #47562B;   /* confirmaciones, stock disponible */
+
+  /* tipografía */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-sans: Karla, system-ui, sans-serif;
 }
 ```
 
-Nunca hardcodear un hex en un componente. Si hace falta un color nuevo, se agrega al tema.
+**El lavanda del logo no se usa para texto.** Sobre la crema da 3.04 de contraste
+y el mínimo legible es 4.5; el rosa está peor, en 2.0. Los dos sirven para el
+logo, los bordes y las superficies. El texto usa el tinta, que es el mismo tono
+llevado a una luminosidad que sí funciona: 8.36.
+
+**El violeta y el dorado son complementarios.** Eso se ve bien mientras uno domine
+la superficie y el otro aparezca en dosis chicas. En la práctica: crema domina,
+violeta concentrado en lo que se toca, dorado reservado para llamar la atención
+sobre una acción o una oferta. Si van mitad y mitad, vibran y cansan.
+
+Los títulos y **los precios** van en Cormorant Garamond; el resto en Karla. El
+precio en la serif es lo que lo hace ver como parte de la marca y no como un dato
+de sistema.
+
+Nunca hardcodear un hex en un componente. Si hace falta un color nuevo, se agrega
+al tema.
 
 La marca es delicada y con aire: fotos grandes, mucho blanco, pocas cosas por fila. No replicar la densidad de las tiendas de suplementos.
 
@@ -286,8 +364,14 @@ Cada ficha de producto define su título, su descripción y su `og:image`. Es lo
 ## 13) Variables de entorno
 
 ```env
-VITE_API_URL=http://localhost:3000
+# desarrollo, contra el backend local
+VITE_API_URL=http://localhost:3000/api/v1
+
+# la API tambien esta desplegada y se puede consumir directo:
+# VITE_API_URL=https://velua-api-production.up.railway.app/api/v1
 ```
+
+La URL incluye `/api/v1`, así las funciones de `lib/api/` escriben rutas cortas.
 
 Prefijo `VITE_` obligatorio. **Nunca** poner credenciales, claves de pago ni secretos: todo lo que está acá es público y visible en el bundle.
 
@@ -340,6 +424,14 @@ Commits atómicos, con qué cambia y por qué. Ramas de feature o chore. `main` 
 ## 18) Fuera de alcance por ahora
 
 No implementar sin pedido explícito: cuentas de clientas con historial, lista de deseos, comparador, chat en vivo, tienda mayorista, tiempo real con WebSockets, modo oscuro, internacionalización.
+
+**Notificación de reposición.** En el diseño, las tarjetas agotadas tienen un link
+"Avisarme". Por ahora ese link abre WhatsApp: cuando vuelve el stock se avisa a
+mano. No hay endpoint de suscripción ni lo va a haber por ahora.
+
+**Combos configurables.** Los combos son cajas fijas armadas de antemano, o sea
+productos comunes con su propio stock en la categoría Combos. No hay configurador
+ni casilleros: se descartó.
 
 ---
 
