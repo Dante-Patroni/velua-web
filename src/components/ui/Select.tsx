@@ -1,16 +1,28 @@
+import type { ComponentProps } from "react";
+import { ChevronDown } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 
-type SelectProps = React.ComponentProps<"select">;
-
 /**
- * @description Select estilizado sin label, usado en filtros y barras de herramientas.
+ * @description Select nativo con los estilos de la marca. Se usa el nativo a
+ * propósito: en el teléfono abre el selector del sistema, que es el más cómodo.
+ * @param props Propiedades del select. `className` se aplica al contenedor.
+ * @returns El select con su flecha.
  */
-export const Select = ({ className, ...props }: SelectProps) => (
-  <select
-    className={cn(
-      "rounded-xl border border-stone-300 bg-stone-50 px-3 py-2 text-sm focus:border-red-800 focus:outline-none",
-      className
-    )}
-    {...props}
-  />
-);
+export function Select({ className, children, ...props }: ComponentProps<"select">) {
+  return (
+    <div className={cn("relative w-full", className)}>
+      <select
+        data-slot="select"
+        className="h-11 w-full cursor-pointer appearance-none rounded-lg border border-lavanda bg-crema-clara pr-10 pl-3 text-base text-tinta outline-none focus-visible:border-tinta focus-visible:ring-2 focus-visible:ring-lavanda/40 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-dorado-hondo"
+        {...props}
+      >
+        {children}
+      </select>
+      <ChevronDown
+        aria-hidden
+        className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-tinta"
+      />
+    </div>
+  );
+}
