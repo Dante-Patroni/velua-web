@@ -24,7 +24,7 @@ export function ErrorPage() {
         </p>
         <Link
           to="/"
-          className="mt-8 inline-block text-tinta underline decoration-dorado-hondo decoration-2 underline-offset-4"
+          className="mt-8 inline-block text-dorado-texto underline decoration-2 underline-offset-4 hover:text-tinta"
         >
           Volver al inicio
         </Link>

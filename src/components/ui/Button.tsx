@@ -11,9 +11,8 @@ const variantesBoton = cva(
         primario: "bg-tinta text-crema-clara hover:bg-texto-suave",
         secundario: "border border-lavanda bg-transparent text-tinta hover:bg-crema-calida",
         fantasma: "bg-transparent text-tinta hover:bg-crema-calida",
-        // El dorado hondo no llega a 4.5 de contraste como texto: va en el subrayado.
         enlace:
-          "rounded-none text-tinta underline decoration-dorado-hondo decoration-2 underline-offset-4 hover:decoration-tinta",
+          "rounded-none text-dorado-texto underline decoration-2 underline-offset-4 hover:text-tinta",
       },
       tamano: {
         // 44 px de alto: el mínimo cómodo para tocar en el teléfono.

@@ -14,7 +14,7 @@ export function Select({ className, children, ...props }: ComponentProps<"select
     <div className={cn("relative w-full", className)}>
       <select
         data-slot="select"
-        className="h-11 w-full cursor-pointer appearance-none rounded-lg border border-lavanda bg-crema-clara pr-10 pl-3 text-base text-tinta outline-none focus-visible:border-tinta focus-visible:ring-2 focus-visible:ring-lavanda/40 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-dorado-hondo"
+        className="h-11 w-full cursor-pointer appearance-none rounded-lg border border-lavanda bg-crema-clara pr-10 pl-3 text-base text-tinta outline-none focus-visible:border-tinta focus-visible:ring-2 focus-visible:ring-lavanda/40 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-error"
         {...props}
       >
         {children}
