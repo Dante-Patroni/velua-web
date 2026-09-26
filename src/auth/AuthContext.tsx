@@ -1,58 +1,22 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+import { useMemo, type ReactNode } from "react";
 
-import { obtenerUsuarioActual } from "./authService";
-import { AuthContext, type AuthContextValue } from "./useAuth";
-import type { AuthUser } from "./types";
+import type { Usuario } from "@/types";
+import { AuthContext } from "./useAuth";
+
+type AuthProviderProps = {
+  usuario: Usuario;
+  children: ReactNode;
+};
 
 /**
- * Mantiene el estado global de la sesión administrativa.
+ * @description Expone el usuario de la sesión a los componentes del panel.
+ * No consulta la API: recibe el usuario que ya validó el authLoader, así la
+ * tienda pública nunca dispara una verificación de sesión.
+ * @param props El usuario validado y los hijos.
+ * @returns El proveedor del contexto.
  */
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+export function AuthProvider({ usuario, children }: AuthProviderProps) {
+  const valor = useMemo(() => ({ usuario }), [usuario]);
 
-  useEffect(() => {
-    let activo = true;
-
-    obtenerUsuarioActual()
-      .then((usuario) => {
-        if (activo) {
-          setUser(usuario);
-        }
-      })
-      .catch(() => {
-        if (activo) {
-          setUser(null);
-        }
-      })
-      .finally(() => {
-        if (activo) {
-          setIsLoading(false);
-        }
-      });
-
-    return () => {
-      activo = false;
-    };
-  }, []);
-
-  const value = useMemo<AuthContextValue>(
-    () => ({
-      user,
-      isAuthenticated: user !== null,
-      isLoading,
-    }),
-    [user, isLoading],
-  );
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={valor}>{children}</AuthContext.Provider>;
 }
