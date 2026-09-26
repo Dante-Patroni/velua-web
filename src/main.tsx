@@ -1,13 +1,14 @@
+import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 
 import { router } from "./app/routes";
-import { AuthProvider } from "./auth/AuthContext";
 
 import "./index.css";
 
+// Sin AuthProvider global: la sesión solo se consulta dentro de la rama admin.
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <AuthProvider>
+  <StrictMode>
     <RouterProvider router={router} />
-  </AuthProvider>,
+  </StrictMode>,
 );

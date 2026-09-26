@@ -1,13 +1,9 @@
-/**
- * Roles administrativos disponibles en Velua.
- */
-export type RolUsuario = "admin" | "operador";
+import type { Usuario } from "@/types";
 
 /**
- * Usuario autenticado devuelto por la API de Velua.
+ * Valor del contexto de sesión del panel. El usuario viene del contrato
+ * (`Usuario`, generado desde el OpenAPI); acá solo se define la forma del contexto.
  */
-export interface AuthUser {
-  id: number;
-  nombre: string;
-  rol: RolUsuario;
-}
+export type ValorAuth = {
+  usuario: Usuario;
+};

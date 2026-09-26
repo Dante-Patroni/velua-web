@@ -1,24 +1,20 @@
 import { createContext, useContext } from "react";
 
-import type { AuthUser } from "./types";
+import type { ValorAuth } from "./types";
 
-export interface AuthContextValue {
-  user: AuthUser | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-}
-
-export const AuthContext = createContext<AuthContextValue | null>(null);
+export const AuthContext = createContext<ValorAuth | null>(null);
 
 /**
- * Permite acceder al estado global de autenticación.
+ * @description Devuelve el usuario de la sesión dentro de la rama admin.
+ * @returns El usuario que validó el authLoader.
+ * @throws Si se usa fuera de AuthProvider, es decir, fuera del panel.
  */
-export function useAuth(): AuthContextValue {
-  const context = useContext(AuthContext);
+export function useAuth(): ValorAuth {
+  const valor = useContext(AuthContext);
 
-  if (!context) {
+  if (!valor) {
     throw new Error("useAuth debe utilizarse dentro de AuthProvider");
   }
 
-  return context;
+  return valor;
 }

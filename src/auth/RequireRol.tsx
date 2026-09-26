@@ -1,31 +1,22 @@
 import type { ReactNode } from "react";
 
+import type { RolUsuario } from "@/types";
 import { useAuth } from "./useAuth";
-import type { RolUsuario } from "./types";
 
-interface RequireRolProps {
+type RequireRolProps = {
   roles: RolUsuario[];
   children: ReactNode;
   fallback?: ReactNode;
-}
+};
 
 /**
- * Renderiza sus hijos únicamente si el usuario posee uno de los roles indicados.
+ * @description Renderiza sus hijos solo si el usuario tiene uno de los roles.
+ * Es una ayuda de interfaz: el permiso real lo valida la API.
+ * @param props Roles admitidos, hijos y contenido alternativo.
+ * @returns Los hijos o el fallback.
  */
-export function RequireRol({
-  roles,
-  children,
-  fallback = null,
-}: RequireRolProps) {
-  const { user, isLoading } = useAuth();
+export function RequireRol({ roles, children, fallback = null }: RequireRolProps) {
+  const { usuario } = useAuth();
 
-  if (isLoading) {
-    return null;
-  }
-
-  if (!user || !roles.includes(user.rol)) {
-    return <>{fallback}</>;
-  }
-
-  return <>{children}</>;
+  return <>{roles.includes(usuario.rol) ? children : fallback}</>;
 }
