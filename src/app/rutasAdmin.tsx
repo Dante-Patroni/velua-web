@@ -8,11 +8,14 @@ import type { RouteObject } from "react-router-dom";
  * Este archivo no puede tener imports estáticos de código del panel.
  */
 export const rutasAdmin: RouteObject[] = [
-  {
+      {
     path: "admin/login",
     lazy: async () => {
-      const { Login } = await import("@/pages/Admin/Login");
-      return { Component: Login };
+      const [{ Login }, { accionLogin }] = await Promise.all([
+        import("@/pages/Admin/Login"),
+        import("@/pages/Admin/Login.action"),
+      ]);
+      return { Component: Login, action: accionLogin };
     },
   },
   {
