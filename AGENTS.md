@@ -289,6 +289,12 @@ fetch(url, { ...options, credentials: "include" });
 
 **JSDoc.** Toda función exportada lleva su bloque con `@description`, `@param` y `@returns`.
 
+**Actions en su propio archivo.** Un archivo que exporta componentes no puede
+exportar otra cosa sin romper la recarga en caliente de Vite. Las actions, los
+loaders y las funciones auxiliares de una página van en `Pagina.action.ts`, al
+lado de `Pagina.tsx`. El test acompaña al archivo que prueba:
+`Pagina.action.test.ts`.
+
 ---
 
 ## 11) Estilo e identidad
@@ -345,6 +351,10 @@ llevado a una luminosidad que sí funciona: 8.36.
 superficies, subrayados y fondos de badge, no para letras. Un link de acción o
 un texto de oferta usa `dorado-texto`. Los errores usan `error`, nunca el dorado.
 
+**El badge de oferta va con fondo `tinta` y texto crema**, que da 8.71. El fondo
+dorado-hondo no sirve ni con texto claro ni con texto oscuro: no llega al mínimo
+en ninguno de los dos casos.
+
 **El violeta y el dorado son complementarios.** Eso se ve bien mientras uno domine
 la superficie y el otro aparezca en dosis chicas. En la práctica: crema domina,
 violeta concentrado en lo que se toca, dorado reservado para llamar la atención
@@ -353,6 +363,17 @@ sobre una acción o una oferta. Si van mitad y mitad, vibran y cansan.
 Los títulos y **los precios** van en Cormorant Garamond; el resto en Karla. El
 precio en la serif es lo que lo hace ver como parte de la marca y no como un dato
 de sistema.
+
+**Contrastes verificados.** Para texto solo sirven `tinta` #4A4066,
+`texto-suave` #5B5178, `texto-tenue` #6B6188, `etiqueta` #6F6036,
+`salvia-hondo` #47562B y `dorado-texto` #985C14.
+
+El `lavanda`, el `rosa`, el `dorado` y el `dorado-hondo` son para superficies,
+bordes y trazos, **nunca para leer**: el lavanda da 3.04 sobre la crema y el
+dorado-hondo 2.87, cuando el mínimo legible es 4.5.
+
+Para el badge de oferta, fondo `tinta` con texto crema, que da 8.71. El fondo
+dorado-hondo no sirve: ni con texto claro ni con texto oscuro llega al mínimo.
 
 Nunca hardcodear un hex en un componente. Si hace falta un color nuevo, se agrega
 al tema.

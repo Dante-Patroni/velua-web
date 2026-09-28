@@ -28,4 +28,9 @@ describe("formatearPrecio", () => {
       expect(formatearPrecio(valor)).toBe(PRECIO_NO_DISPONIBLE);
     },
   );
+
+    it("muestra el guion cuando el precio no existe", () => {
+    expect(formatearPrecio(null)).toBe("—");
+    expect(formatearPrecio(undefined)).toBe("—");
+  });
 });
