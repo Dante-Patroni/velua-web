@@ -505,7 +505,52 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Borrar un producto
+         * @description Borra el producto con sus variantes e imagenes, incluidos los archivos en el proveedor.
+         *
+         *     Solo funciona con productos que NUNCA se vendieron. Si alguna variante figura en un pedido, responde 409 con PRODUCTO_CON_VENTAS: borrarlo dejaria ese pedido apuntando a un producto que ya no existe. Para ese caso esta despublicar, que lo saca de la tienda y conserva el historial.
+         *
+         *     Requiere el permiso CATALOGO_BORRAR, que solo tiene el rol admin: el operador puede despublicar, que cubre casi todos los casos.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Id del recurso. */
+                    id: components["parameters"]["IdRuta"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Producto borrado */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                404: components["responses"]["NoEncontrado"];
+                /** @description El producto tiene ventas registradas */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "PRODUCTO_CON_VENTAS"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         /**

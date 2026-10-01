@@ -2,6 +2,9 @@
 
 Copia idéntica en `velua-api` y `velua-web`. Cambiar algo de acá se habla entre los dos
 antes de tocar código. Cada línea lleva fecha.
+- **2026-09** En `velua-api`, el PR es obligatorio pero no requiere aprobación:
+  es el repo de Dante y esperar revisión frena todo. En `velua-web` la
+  aprobación sí se mantiene, porque los dos tocan los mismos archivos.
 
 ## Contrato
 
