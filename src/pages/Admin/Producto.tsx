@@ -17,6 +17,7 @@ import type { DatosVistaPrevia } from "@/components/admin/VistaPrevia.utils";
 import { Button } from "@/components/ui/Button";
 import { obtenerMensajeError } from "@/lib/mappings";
 import type { DatosFicha, ErrorFicha } from "./Producto.action";
+import { Galeria } from "@/components/admin/Galeria";
 
 /**
  * @description Arma el estado inicial de la vista previa a partir del producto,
@@ -188,6 +189,11 @@ export function Producto() {
               <section>
                 <h2 className="mb-4 font-display text-2xl text-tinta">Presentaciones</h2>
                 <VariantesExistentes producto={producto} alCambiarPrecio={alCambiarPrecio} />
+              </section>
+
+              <section>
+                <h2 className="mb-4 font-display text-2xl text-tinta">Fotos</h2>
+                <Galeria productoId={producto.id} iniciales={producto.imagenes} />
               </section>
 
               <section className="rounded-lg border border-borde p-5">
