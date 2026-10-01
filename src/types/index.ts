@@ -21,6 +21,11 @@ export type ProductoAdmin = Esquemas["ProductoAdmin"];
 export type VarianteAdmin = Esquemas["VarianteAdmin"];
 export type ImagenAdmin = Esquemas["ImagenAdmin"];
 export type CategoriaAdmin = Esquemas["CategoriaAdmin"];
+export type ProductoEntrada = Esquemas["ProductoEntrada"];
+export type ProductoCambios = Esquemas["ProductoCambios"];
+export type VarianteEntrada = Esquemas["VarianteEntrada"];
+export type VarianteCambios = Esquemas["VarianteCambios"];
+
 
 /** Respuesta del listado de productos del panel. */
 export type ListadoProductosAdmin = { datos: ProductoAdminFila[]; meta: Meta };

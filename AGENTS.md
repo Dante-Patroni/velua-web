@@ -274,6 +274,10 @@ fetch(url, { ...options, credentials: "include" });
 ## 10) Convenciones de código
 
 **Nomenclatura.** `PascalCase` para componentes y archivos de componente. Minúsculas con punto para módulos: `productos.api.ts`, `producto.types.ts`. Hooks y funciones en `camelCase`. Constantes de mapeo en `SCREAMING_SNAKE_CASE`. Todo en español.
+Las carpetas van siempre en minúscula, también las que agrupan componentes:
+`components/ui/`, `components/admin/`, `components/layout/`. Windows no
+distingue mayúsculas pero Linux sí, y el CI corre en Linux: un import con la
+mayúscula cambiada anda en tu máquina y falla en el pipeline.
 
 **Tipos.** `import type` cuando solo se necesita la definición. Un tipo, un archivo, re-exportado desde el barrel. No duplicar.
 
@@ -294,6 +298,22 @@ exportar otra cosa sin romper la recarga en caliente de Vite. Las actions, los
 loaders y las funciones auxiliares de una página van en `Pagina.action.ts`, al
 lado de `Pagina.tsx`. El test acompaña al archivo que prueba:
 `Pagina.action.test.ts`.
+
+**Un archivo de componentes exporta solo componentes.** Es lo que pide la recarga
+en caliente de Vite: si un `.tsx` exporta además una función o una constante, la
+recarga deja de funcionar en ese archivo y ESLint lo marca.
+
+Lo que no es componente va al lado, con el sufijo que corresponda:
+
+| Archivo | Qué contiene |
+|---|---|
+| `Pagina.tsx` | El componente de la página |
+| `Pagina.action.ts` | Su loader, su action y las funciones que usan |
+| `Componente.tsx` | El componente |
+| `Componente.utils.ts` | Tipos y funciones auxiliares del componente |
+
+El test acompaña al archivo que prueba: `Pagina.action.test.ts`,
+`Componente.utils.test.ts`.
 
 ---
 
