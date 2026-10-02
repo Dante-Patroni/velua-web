@@ -45,11 +45,19 @@ export const rutasAdmin: RouteObject[] = [
           return { Component: Productos, loader: cargarProductos, action: accionProductos };
         },
       },
-      {
+            {
         path: "categorias",
         lazy: async () => {
-          const { Categorias } = await import("@/pages/Admin/Categorias");
-          return { Component: Categorias };
+          const [{ Categorias }, { cargarCategorias, accionCategorias }] =
+            await Promise.all([
+              import("@/pages/Admin/Categorias"),
+              import("@/pages/Admin/Categorias.action"),
+            ]);
+          return {
+            Component: Categorias,
+            loader: cargarCategorias,
+            action: accionCategorias,
+          };
         },
       },
 

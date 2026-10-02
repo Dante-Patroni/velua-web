@@ -7,8 +7,13 @@ import type {
   ProductoEntrada,
   VarianteCambios,
   VarianteEntrada,
+  CategoriaEntrada,
+  CategoriaCambios,
 
 } from "@/types";
+
+/** Respuesta de los endpoints que devuelven la lista completa. */
+type ListaCategorias = { datos: CategoriaAdmin[] }
 
 /** Filtros del listado de productos del panel. */
 export type FiltrosProductos = {
@@ -173,4 +178,64 @@ export const actualizarProducto = (id: number | string, cambios: ProductoCambios
   apiFetch<ProductoAdmin>(`/admin/productos/${id}`, {
     method: "PATCH",
     body: JSON.stringify(cambios),
+  });
+/**
+ * @description Crea una categoría. Queda activa y al final del menú.
+ *
+ * Si no se indica slug, se genera del nombre y se le agrega un sufijo si ya
+ * existe. Si se indica a mano y está tomado, se rechaza: poner un sufijo sin
+ * avisar daría una dirección distinta a la que se pidió.
+ *
+ * @param datos Nombre y campos opcionales.
+ * @returns La categoría creada.
+ * @throws {ErrorApi} DATOS_INVALIDOS, o CONFLICTO_DE_DATOS si el slug está tomado.
+ */
+export const crearCategoria = (datos: CategoriaEntrada) =>
+  apiFetch<CategoriaAdmin>("/admin/categorias", {
+    method: "POST",
+    body: JSON.stringify(datos),
+  });
+   
+/**
+ * @description Edita una categoría. Cambiar el nombre no cambia el slug: si se
+ * regenerara, cada corrección rompería los links que ya circularon.
+ * @param id Id de la categoría.
+ * @param cambios Solo los campos que se modifican.
+ * @returns La categoría actualizada.
+ * @throws {ErrorApi} NO_ENCONTRADO, DATOS_INVALIDOS o CONFLICTO_DE_DATOS.
+ */
+export const actualizarCategoria = (id: number | string, cambios: CategoriaCambios) =>
+  apiFetch<CategoriaAdmin>(`/admin/categorias/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(cambios),
+  });
+ 
+/**
+ * @description Activa o desactiva una categoría.
+ *
+ * Desactivarla oculta de la tienda TODOS sus productos, aunque cada uno siga
+ * activo. La respuesta trae `cantidadProductos` para poder informarlo.
+ *
+ * @param id Id de la categoría.
+ * @param activa Estado nuevo.
+ * @returns La categoría con su estado nuevo.
+ * @throws {ErrorApi} NO_ENCONTRADO.
+ */
+export const cambiarEstadoCategoria = (id: number | string, activa: boolean) =>
+  apiFetch<CategoriaAdmin>(`/admin/categorias/${id}/estado`, {
+    method: "PATCH",
+    body: JSON.stringify({ activa }),
+  });
+ 
+/**
+ * @description Reordena el menú. Hay que mandar los ids de TODAS las categorías:
+ * un orden parcial dejaría dos en la misma posición.
+ * @param ids Ids de todas las categorías, en el orden deseado.
+ * @returns Las categorías en el orden nuevo.
+ * @throws {ErrorApi} DATOS_INVALIDOS si la lista está incompleta.
+ */
+export const reordenarCategorias = (ids: number[]) =>
+  apiFetch<ListaCategorias>("/admin/categorias/orden", {
+    method: "PUT",
+    body: JSON.stringify({ ids }),
   });
