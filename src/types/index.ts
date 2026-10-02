@@ -25,6 +25,8 @@ export type ProductoEntrada = Esquemas["ProductoEntrada"];
 export type ProductoCambios = Esquemas["ProductoCambios"];
 export type VarianteEntrada = Esquemas["VarianteEntrada"];
 export type VarianteCambios = Esquemas["VarianteCambios"];
+export type CategoriaEntrada = Esquemas["CategoriaEntrada"];
+export type CategoriaCambios = Esquemas["CategoriaCambios"];
 
 
 /** Respuesta del listado de productos del panel. */
