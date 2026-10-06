@@ -23,3 +23,6 @@ explícito: cuando una se aprueba, se mueve al plan y se borra de acá.
 - **Logo en SVG.** Hoy el encabezado usa `src/assets/Logo-velua.png` (867 × 434,
   unos 73 KB). Un SVG pesa menos y se ve nítido en cualquier pantalla: si la
   marca lo tiene, reemplazarlo.
+- **Logo sin frase para tamaños chicos.** Versión del logo sin la frase
+  "Cosmética natural artesanal" para tamaños chicos: en el encabezado del
+  teléfono la frase es ilegible.
