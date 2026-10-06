@@ -3,13 +3,20 @@ import type { CodigoError, ContextoError } from "@/types";
 
 type Enlace = { ruta: string; texto: string };
 
-/** Enlaces del pie de la tienda. */
-export const ENLACES_PIE: readonly Enlace[] = [
+/** Columna de ayuda del pie de la tienda. */
+export const ENLACES_AYUDA: readonly Enlace[] = [
   { ruta: "/la-marca", texto: "La marca" },
   { ruta: "/cambios", texto: "Cambios y devoluciones" },
+];
+
+/**
+ * Enlaces legales del pie. El botón de arrepentimiento es obligatorio y va
+ * primero, a la vista desde cualquier página.
+ */
+export const ENLACES_LEGALES: readonly Enlace[] = [
+  { ruta: "/arrepentimiento", texto: "Botón de arrepentimiento" },
   { ruta: "/terminos", texto: "Términos y condiciones" },
   { ruta: "/privacidad", texto: "Política de privacidad" },
-  { ruta: "/arrepentimiento", texto: "Botón de arrepentimiento" },
 ];
 
 /** Navegación del panel. */
@@ -19,10 +26,44 @@ export const ENLACES_ADMIN: readonly Enlace[] = [
   { ruta: "/admin/categorias", texto: "Categorías" },
 ];
 
+/** Enlaces fijos del menú de la tienda, después de las colecciones. */
+export const ENLACES_MENU_TIENDA: readonly Enlace[] = [{ ruta: "/la-marca", texto: "La marca" }];
+
+/**
+ * Promesas de la franja superior. Son de la marca y no cambian con la
+ * configuración comercial: el umbral de envío gratis y el descuento por
+ * transferencia vienen del backend y no se escriben acá.
+ */
+export const PROMESAS_TIENDA: readonly string[] = [
+  "Elaboración en frío",
+  "Ingredientes naturales",
+  "Hecho a mano en Río Cuarto",
+];
+
 /** Cuenta de Instagram de la marca. El handle lleva punto. */
 export const INSTAGRAM = {
   handle: "@velua.nature",
   url: "https://www.instagram.com/velua.nature/",
+} as const;
+
+/**
+ * Número de WhatsApp de la marca, desde VITE_WHATSAPP. Vacío mientras no esté
+ * configurado: en ese caso los enlaces a WhatsApp no se muestran.
+ */
+export const WHATSAPP_NUMERO = import.meta.env.VITE_WHATSAPP ?? "";
+
+/**
+ * Enlace obligatorio a la Ventanilla Federal de reclamos (Resolución 274/2021
+ * de la Secretaría de Comercio Interior). El texto es el que exige la norma y
+ * no se modifica. La URL vive solo acá: si el organismo la cambia, se toca
+ * este lugar.
+ *
+ * PENDIENTE: copiar la URL del formulario desde argentina.gob.ar. Mientras
+ * esté vacía, el pie muestra el texto sin enlace.
+ */
+export const DEFENSA_CONSUMIDOR = {
+  texto: "Defensa de las y los Consumidores. Para reclamos. Ingrese aquí",
+  url: "",
 } as const;
 
 /** Mensaje para un código que el frontend todavía no contempla. */
