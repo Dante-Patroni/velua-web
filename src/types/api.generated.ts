@@ -4,6 +4,250 @@
  */
 
 export interface paths {
+    "/pedidos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Crear un pedido
+         * @description Convierte el carrito en un pedido con el stock apartado. Todo pasa en una transaccion: si algo falla, no queda nada.
+         *
+         *     Es mas estricto que /cotizar: **nunca cobra algo distinto de lo que la clienta vio**. Si algo del carrito cambio (stock, producto despublicado, tope), responde CARRITO_DESACTUALIZADO. Si el total no coincide con `totalEsperado`, responde TOTAL_CAMBIO. En los dos casos el frontend tiene que volver a cotizar y mostrarle a la clienta que cambio.
+         *
+         *     El stock queda apartado 1 hora con Mercado Pago y 24 horas con transferencia. Limitado a 10 pedidos por hora por IP: crear pedidos aparta stock, y sin limite alguien podria agotar el catalogo con pedidos falsos.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PedidoEntrada"];
+                };
+            };
+            responses: {
+                /** @description Pedido creado, con pago pendiente */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PedidoCreado"];
+                    };
+                };
+                /** @description DATOS_INVALIDOS, CARRITO_SIN_ITEMS_VALIDOS o ZONA_INVALIDA. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description CARRITO_DESACTUALIZADO, TOTAL_CAMBIO o STOCK_INSUFICIENTE. El estado cambio desde que la clienta miro el carrito: hay que volver a cotizar. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "TOTAL_CAMBIO"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Demasiados pedidos desde la misma direccion */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "LIMITE_SUPERADO"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pedidos/{numero}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar el estado de un pedido
+         * @description Publico y sin sesion: lo usa la pagina de resultado del pago. El numero es imposible de adivinar y funciona como llave, y la respuesta **no incluye ningun dato personal**: ni nombre, ni mail, ni telefono, ni direccion.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    numero: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Estado del pedido */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PedidoPublico"];
+                    };
+                };
+                404: components["responses"]["NoEncontrado"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/cotizar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cotizar un carrito
+         * @description Devuelve cuanto hay que pagar por un carrito. **No crea ni reserva nada**: el stock se verifica pero se descuenta recien al crear el pedido.
+         *
+         *     Los precios NO vienen del carrito: se buscan en la base. El cliente manda que y cuanto, el servidor pone cuanto cuesta.
+         *
+         *     Orden del calculo, que no se cambia sin acordarlo: subtotal, cupon, ajuste por medio de pago, envio. El redondeo al peso se hace una sola vez, sobre el total.
+         *
+         *     Si un producto se agoto o se despublico mientras la persona compraba, se quita del carrito y se informa en `avisos`. Si la cantidad pedida supera el stock o el tope por producto, se ajusta y tambien se avisa. El frontend traduce esos codigos: la API no manda textos para mostrar.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CotizacionEntrada"];
+                };
+            };
+            responses: {
+                /** @description Carrito cotizado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Cotizacion"];
+                    };
+                };
+                /** @description DATOS_INVALIDOS si el carrito esta mal formado, CARRITO_SIN_ITEMS_VALIDOS si ninguno de los productos se puede vender, o ZONA_INVALIDA si la zona no existe o esta inactiva. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "CARRITO_SIN_ITEMS_VALIDOS"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Demasiadas peticiones */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "LIMITE_SUPERADO"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/zonas-envio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar las zonas de envio
+         * @description Zonas activas con su tarifa plana, para que el checkout las muestre. Los costos viajan como cadena decimal, igual que los precios.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Zonas disponibles */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            datos: components["schemas"]["ZonaEnvio"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/categorias": {
         parameters: {
             query?: never;
@@ -1719,6 +1963,181 @@ export interface components {
             ingredientes?: string | null;
             modoUso?: string | null;
             destacado?: boolean;
+        };
+        ZonaEnvio: {
+            /** @example 2 */
+            id: number;
+            /** @example Provincia de Córdoba */
+            nombre: string;
+            /**
+             * @description Cadena decimal.
+             * @example 6500.00
+             */
+            costo: string;
+            /** @example 2 a 4 días hábiles */
+            demora?: string | null;
+        };
+        CotizacionEntrada: {
+            /** @description El carrito. Solo que y cuanto: los precios los pone el servidor. */
+            items: {
+                varianteId: number;
+                /** @example 2 */
+                cantidad: number;
+            }[];
+            /** @description Sin zona, se cotiza como retiro en persona y el envio es cero. */
+            zonaEnvioId?: number | null;
+            /**
+             * @description El descuento por transferencia se aplica solo con ese medio.
+             * @enum {string|null}
+             */
+            medioPago?: "transferencia" | "mercadopago" | null;
+        };
+        ItemCotizado: {
+            varianteId: number;
+            /** @example Éclat Noir */
+            productoNombre?: string;
+            /** @example eclat-noir */
+            productoSlug?: string | null;
+            /** @example 100 g */
+            varianteNombre?: string;
+            /**
+             * @description Puede ser MENOR que la pedida si se ajusto por stock o por tope.
+             * @example 2
+             */
+            cantidad: number;
+            /** @example 8500.00 */
+            precioUnitario: string;
+            /** @example 17000.00 */
+            subtotal: string;
+        };
+        /** @description Algo que cambio respecto de lo que la persona tenia en el carrito. */
+        AvisoCotizacion: {
+            varianteId: number;
+            /**
+             * @description Los cuatro primeros sacan el producto del carrito. Los dos ultimos reducen la cantidad: AJUSTADO_POR_STOCK es un limite fisico, AJUSTADO_POR_TOPE es comercial y conviene invitar a escribir por WhatsApp.
+             * @enum {string}
+             */
+            motivo: "VARIANTE_INEXISTENTE" | "VARIANTE_INACTIVA" | "PRODUCTO_INACTIVO" | "SIN_STOCK" | "AJUSTADO_POR_STOCK" | "AJUSTADO_POR_TOPE";
+            /** @description Nombre, para poder nombrarlo en el aviso. */
+            producto?: string;
+            /** @description Cantidad que habia en el carrito. */
+            pedida?: number;
+            /** @description Solo en AJUSTADO_POR_STOCK. */
+            disponible?: number;
+            /** @description Solo en AJUSTADO_POR_TOPE. */
+            maximo?: number;
+        };
+        /** @description Todos como cadena decimal. El total ya viene redondeado al peso. */
+        TotalesCotizacion: {
+            /** @example 36500.00 */
+            subtotal: string;
+            /** @example 0.00 */
+            descuentoCupon?: string;
+            /**
+             * @description Descuento por el medio de pago. Se RESTA del subtotal.
+             * @example 3650.00
+             */
+            ajusteMedioPago?: string;
+            /** @example 6500.00 */
+            costoEnvio?: string;
+            /** @example 39350.00 */
+            total: string;
+        };
+        DetalleEnvio: {
+            /** @enum {string} */
+            modo: "retiro" | "envio";
+            zonaId?: number | null;
+            nombre?: string | null;
+            demora?: string | null;
+            /** @description Si se alcanzo el umbral DESPUES de aplicar los descuentos. */
+            gratis?: boolean;
+        };
+        Cotizacion: {
+            items: components["schemas"]["ItemCotizado"][];
+            /** @description Vacio si el carrito quedo tal como lo mandaron. */
+            avisos: components["schemas"]["AvisoCotizacion"][];
+            totales: components["schemas"]["TotalesCotizacion"];
+            envio: components["schemas"]["DetalleEnvio"];
+        };
+        PedidoEntrada: {
+            items: {
+                varianteId: number;
+                cantidad: number;
+            }[];
+            cliente: {
+                /** @example Lucía Fernández */
+                nombre: string;
+                /** Format: email */
+                email: string;
+                /** @example 358 412-3344 */
+                telefono: string;
+                documento?: string | null;
+            };
+            /** @description Con envio, zonaEnvioId y la direccion completa son obligatorios. */
+            entrega: {
+                /** @enum {string} */
+                metodo: "envio" | "retiro";
+                zonaEnvioId?: number | null;
+                direccion?: {
+                    calle?: string;
+                    numero?: string;
+                    /** @example Piso 2, depto B */
+                    extra?: string | null;
+                    ciudad?: string;
+                    provincia?: string;
+                    cp?: string;
+                } | null;
+            };
+            /** @enum {string} */
+            medioPago: "mercadopago" | "transferencia";
+            /**
+             * @description El total que la clienta vio en pantalla. Si no coincide con el real, se rechaza con TOTAL_CAMBIO.
+             * @example 23500.00
+             */
+            totalEsperado: string;
+            notas?: string | null;
+        };
+        PedidoCreado: {
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /** @example pendiente */
+            estadoPago: string;
+            /** @enum {string} */
+            medioPago: "mercadopago" | "transferencia";
+            /** @example 23500.00 */
+            total: string;
+            /**
+             * Format: date-time
+             * @description Hasta cuando queda apartado el stock si no se paga.
+             */
+            expiraEn: string;
+        };
+        /** @description Estado de un pedido sin ningun dato personal. */
+        PedidoPublico: {
+            /** @example VEL-4K7Q2X */
+            numero?: string;
+            /** @enum {string} */
+            estadoPago?: "pendiente" | "aprobado" | "rechazado" | "devuelto" | "cancelado";
+            /** @enum {string} */
+            estadoPedido?: "nuevo" | "en_preparacion" | "enviado" | "entregado" | "cancelado";
+            /** @enum {string} */
+            medioPago?: "mercadopago" | "transferencia";
+            /** @enum {string} */
+            metodoEntrega?: "envio" | "retiro";
+            /** Format: date-time */
+            expiraEn?: string | null;
+            comprobanteInformado?: boolean;
+            seguimiento?: string | null;
+            /** Format: date-time */
+            creadoEn?: string;
+            items?: {
+                producto?: string;
+                variante?: string;
+                cantidad?: number;
+                precioUnitario?: string;
+                subtotal?: string;
+            }[];
+            totales?: components["schemas"]["TotalesCotizacion"];
         };
     };
     responses: {
