@@ -55,15 +55,13 @@ export const WHATSAPP_NUMERO = import.meta.env.VITE_WHATSAPP ?? "";
 /**
  * Enlace obligatorio a la Ventanilla Federal de reclamos (Resolución 274/2021
  * de la Secretaría de Comercio Interior). El texto es el que exige la norma y
- * no se modifica. La URL vive solo acá: si el organismo la cambia, se toca
- * este lugar.
- *
- * PENDIENTE: copiar la URL del formulario desde argentina.gob.ar. Mientras
- * esté vacía, el pie muestra el texto sin enlace.
+ * no se modifica. La URL es la que indica la página oficial del trámite en
+ * argentina.gob.ar, y vive solo acá: si el organismo la cambia, se toca este
+ * lugar.
  */
 export const DEFENSA_CONSUMIDOR = {
   texto: "Defensa de las y los Consumidores. Para reclamos. Ingrese aquí",
-  url: "",
+  url: "https://autogestion.produccion.gob.ar/consumidores",
 } as const;
 
 /** Mensaje para un código que el frontend todavía no contempla. */

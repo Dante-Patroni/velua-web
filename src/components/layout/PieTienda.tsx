@@ -98,18 +98,14 @@ export function PieTienda({ categorias }: { categorias: Categoria[] }) {
                 </li>
               ))}
               <li>
-                {DEFENSA_CONSUMIDOR.url ? (
-                  <a
-                    href={DEFENSA_CONSUMIDOR.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={claseEnlace}
-                  >
-                    {DEFENSA_CONSUMIDOR.texto}
-                  </a>
-                ) : (
-                  DEFENSA_CONSUMIDOR.texto
-                )}
+                <a
+                  href={DEFENSA_CONSUMIDOR.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={claseEnlace}
+                >
+                  {DEFENSA_CONSUMIDOR.texto}
+                </a>
               </li>
             </ul>
           </nav>
