@@ -200,6 +200,7 @@ Esta es la diferencia estructural con el proyecto anterior: acá lo público es 
 /                       portada
 /:categoria             listado
 /productos/:slug        ficha
+/buscar?q=              resultados de búsqueda
 /carrito
 /checkout
 /pedido/:numero         seguimiento
@@ -207,6 +208,12 @@ Esta es la diferencia estructural con el proyecto anterior: acá lo público es 
 /arrepentimiento
 /terminos  /privacidad  /cambios
 ```
+
+**Slugs reservados.** Las rutas fijas le ganan a `/:categoria`, así que una
+colección con el mismo slug quedaría inaccesible. Ninguna colección puede
+llamarse `productos`, `buscar`, `carrito`, `checkout`, `pedido`, `la-marca`,
+`arrepentimiento`, `terminos`, `privacidad`, `cambios` ni `admin`. Si se suma
+una ruta fija, se suma a esta lista.
 
 **Rama admin**, con `authLoader` y `AdminLayout`, cargada con `React.lazy`:
 
