@@ -18,6 +18,8 @@ type TarjetaProductoProps = {
   mostrarCategoria?: boolean;
   /** Carga la imagen sin esperar: solo para la primera tarjeta visible. */
   prioridad?: boolean;
+  /** Muestra el badge "Destacado". En la sección de destacados sobra. */
+  mostrarDestacado?: boolean;
 };
 
 /**
@@ -25,10 +27,16 @@ type TarjetaProductoProps = {
  * en oferta y agotado. Sin foto muestra la textura botánica con el nombre: es
  * un estado normal del catálogo. Toda la tarjeta lleva a la ficha; "Avisarme"
  * queda por encima y abre WhatsApp.
- * @param props El producto, si se muestra la colección y si la imagen es prioritaria.
+ * @param props El producto, si se muestran la colección y el badge de
+ * destacado, y si la imagen es prioritaria.
  * @returns La tarjeta.
  */
-export function TarjetaProducto({ producto, mostrarCategoria, prioridad }: TarjetaProductoProps) {
+export function TarjetaProducto({
+  producto,
+  mostrarCategoria,
+  prioridad,
+  mostrarDestacado = true,
+}: TarjetaProductoProps) {
   const { nombre, slug, imagen, precioDesde, precioAnteriorDesde, hayStock, destacado } = producto;
 
   const enOferta = hayStock && hayOferta(precioDesde, precioAnteriorDesde);
@@ -60,7 +68,7 @@ export function TarjetaProducto({ producto, mostrarCategoria, prioridad }: Tarje
         <div className="absolute top-3 left-3 flex flex-wrap gap-2">
           {!hayStock && <span className={cn(claseEtiqueta, "bg-crema-clara text-tinta")}>Sin stock</span>}
           {enOferta && <span className={cn(claseEtiqueta, "bg-tinta text-crema-clara")}>Oferta</span>}
-          {destacado && hayStock && !enOferta && (
+          {mostrarDestacado && destacado && hayStock && !enOferta && (
             <span className={cn(claseEtiqueta, "bg-crema-clara text-etiqueta")}>Destacado</span>
           )}
         </div>

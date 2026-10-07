@@ -91,7 +91,7 @@ export function Portada() {
         {/* El degradado mantiene el texto legible sea cual sea la imagen de fondo. */}
         <div
           aria-hidden
-          className="absolute inset-0 hidden bg-linear-to-r from-crema from-0% via-crema/90 via-35% to-crema/0 to-75% md:block"
+          className="absolute inset-0 hidden bg-linear-to-r from-crema from-0% via-crema/95 via-45% to-crema/0 to-80% md:block"
         />
         <div className="relative mx-auto max-w-6xl px-4 py-8 md:flex md:min-h-[600px] md:items-center md:px-8">
           <div className="flex max-w-xl flex-col gap-5 md:gap-6">
@@ -99,7 +99,7 @@ export function Portada() {
             <h1 className="text-5xl leading-[0.98] font-medium text-tinta md:text-7xl">
               La piel <em className="font-medium text-dorado-texto">recuerda</em> lo que toca
             </h1>
-            <p className="max-w-md font-display text-lg leading-relaxed text-texto-suave italic md:text-xl">
+            <p className="max-w-md font-display text-xl leading-relaxed text-texto-suave italic md:text-2xl">
               Jabones de proceso en frío, con ingredientes botánicos seleccionados. Cada pieza, única.
             </p>
             <div className="flex flex-wrap items-center gap-6 pt-1">
@@ -141,7 +141,7 @@ export function Portada() {
           <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
             {destacados.map((producto) => (
               <li key={producto.id} className="flex">
-                <TarjetaProducto producto={producto} mostrarCategoria />
+                <TarjetaProducto producto={producto} mostrarCategoria mostrarDestacado={false} />
               </li>
             ))}
           </ul>
