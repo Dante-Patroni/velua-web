@@ -99,8 +99,10 @@ export function Portada() {
             <h1 className="text-5xl leading-[0.98] font-medium text-tinta md:text-7xl">
               La piel <em className="font-medium text-dorado-texto">recuerda</em> lo que toca
             </h1>
-            <p className="max-w-md font-display text-xl leading-relaxed text-texto-suave italic md:text-2xl">
-              Jabones de proceso en frío, con ingredientes botánicos seleccionados. Cada pieza, única.
+            <p className="max-w-lg font-display text-xl leading-relaxed text-texto-suave italic md:text-2xl">
+              Hay belleza en los pequeños rituales: en el agua, en los aromas, en la pausa de un
+              instante propio. En Veluá, elaboramos cosmética natural y artesanal saponificada en
+              frío para que el cuidado cotidiano sea un encuentro con lo esencial.
             </p>
             <div className="flex flex-wrap items-center gap-6 pt-1">
               <Button nativeButton={false} render={<a href="#colecciones" />} className="h-13 px-9">
