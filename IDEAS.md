@@ -5,6 +5,11 @@ explícito: cuando una se aprueba, se mueve al plan y se borra de acá.
 
 ## Pie de la tienda
 
+- **Data Fiscal de ARCA. Obligatorio, no es opcional.** Quien vende a
+  consumidores finales por internet tiene que mostrar el logo del Formulario
+  960 con su QR. Lo saca la titular con su clave fiscal, cargando la URL del
+  sitio; ARCA devuelve un código HTML que va en el pie, al lado del enlace de
+  Defensa del Consumidor. Pendiente del trámite.
 - **Newsletter "Novedades".** El diseño tiene un campo "Tu correo" con el botón
   "Suscribirme" para avisar cuando sale una tanda nueva. No hay endpoint de
   suscripción.
