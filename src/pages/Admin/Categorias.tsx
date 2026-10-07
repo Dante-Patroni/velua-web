@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { obtenerMensajeError } from "@/lib/mappings";
 import type { CategoriaAdmin } from "@/types";
 import type { DatosCategorias, ErrorCategorias } from "./Categorias.action";
+import { ImagenCategoria } from "@/components/admin/ImagenCategoria";
 
 /**
  * @description Muestra el error de un campo, si la API devolvió uno.
@@ -169,12 +170,17 @@ function Fila({
             </div>
           </guardado.Form>
 
+          <ImagenCategoria categoria={categoria} />
+
           <div className="border-t border-borde pt-4">
             {confirmando ? (
               <div className="flex flex-col gap-3">
                 {categoria.activa && categoria.cantidadProductos > 0 && (
                   <p className="flex items-start gap-2 text-sm text-dorado-texto">
-                    <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0" />
+                    <AlertTriangle
+                      aria-hidden
+                      className="mt-0.5 size-4 shrink-0"
+                    />
                     <span>
                       Esto va a ocultar de la tienda los{" "}
                       {categoria.cantidadProductos} productos de esta colección,
@@ -214,7 +220,9 @@ function Fila({
                 onClick={() => setConfirmando(true)}
                 className="text-sm text-dorado-texto underline-offset-4 hover:underline"
               >
-                {categoria.activa ? "Despublicar colección" : "Publicar colección"}
+                {categoria.activa
+                  ? "Despublicar colección"
+                  : "Publicar colección"}
               </button>
             )}
           </div>
@@ -253,14 +261,16 @@ export function Categorias() {
 
     orden.submit(
       { intencion: "orden", ids: ids.join(",") },
-      { method: "post" }
+      { method: "post" },
     );
   };
 
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6">
       <header>
-        <h1 className="font-display text-3xl font-medium text-tinta">Colecciones</h1>
+        <h1 className="font-display text-3xl font-medium text-tinta">
+          Colecciones
+        </h1>
         <p className="mt-1 text-sm text-texto-suave">
           El orden de esta lista es el orden del menú de la tienda.
         </p>
@@ -313,7 +323,11 @@ export function Categorias() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button type="submit" disabled={nueva.state !== "idle"} className="w-auto">
+            <Button
+              type="submit"
+              disabled={nueva.state !== "idle"}
+              className="w-auto"
+            >
               {nueva.state !== "idle" ? "Creando…" : "Crear colección"}
             </Button>
             <button
