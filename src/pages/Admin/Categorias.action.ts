@@ -1,4 +1,8 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router-dom";
+import {
+  quitarImagenCategoria,
+  subirImagenCategoria,
+} from "@/lib/api/imagenes.api";
 
 import {
   actualizarCategoria,
@@ -59,7 +63,8 @@ export function leerCambiosCategoria(datos: FormData): CategoriaCambios {
   const cambios: CategoriaCambios = {};
 
   if (datos.has("nombre")) cambios.nombre = texto(datos, "nombre") ?? "";
-  if (datos.has("descripcion")) cambios.descripcion = texto(datos, "descripcion") ?? null;
+  if (datos.has("descripcion"))
+    cambios.descripcion = texto(datos, "descripcion") ?? null;
   if (datos.has("slug")) cambios.slug = texto(datos, "slug") ?? null;
 
   return cambios;
@@ -102,8 +107,28 @@ export async function accionCategorias({ request }: ActionFunctionArgs) {
         return null;
       }
 
+      case "subir-imagen": {
+        const archivo = datos.get("imagen");
+        if (!(archivo instanceof File) || archivo.size === 0) {
+          return {
+            codigo: "ARCHIVO_REQUERIDO",
+            intencion,
+            id,
+          } satisfies ErrorCategorias;
+        }
+        await subirImagenCategoria(id!, archivo);
+        return null;
+      }
+
+      case "quitar-imagen":
+        await quitarImagenCategoria(id!);
+        return null;
+
       default:
-        return { codigo: "DATOS_INVALIDOS", intencion } satisfies ErrorCategorias;
+        return {
+          codigo: "DATOS_INVALIDOS",
+          intencion,
+        } satisfies ErrorCategorias;
     }
   } catch (error) {
     if (error instanceof ErrorApi) {
