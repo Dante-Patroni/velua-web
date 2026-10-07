@@ -29,6 +29,9 @@ export type CategoriaEntrada = Esquemas["CategoriaEntrada"];
 export type CategoriaCambios = Esquemas["CategoriaCambios"];
 
 
+/** Respuesta del listado público de productos. */
+export type ListadoProductos = { datos: ProductoListado[]; meta: Meta };
+
 /** Respuesta del listado de productos del panel. */
 export type ListadoProductosAdmin = { datos: ProductoAdminFila[]; meta: Meta };
 
