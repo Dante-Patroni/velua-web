@@ -1,6 +1,29 @@
 import { describe, expect, it } from "vitest";
 
-import { enlaceWhatsApp } from "@/lib/utils";
+import { enlaceWhatsApp, srcsetCloudinary, urlCloudinary } from "@/lib/utils";
+
+const FOTO = "https://res.cloudinary.com/velua/image/upload/v1712/productos/eclat-noir.jpg";
+
+describe("urlCloudinary", () => {
+  it("inserta la transformación después de /image/upload", () => {
+    expect(urlCloudinary(FOTO, 400)).toBe(
+      "https://res.cloudinary.com/velua/image/upload/f_auto,q_auto,w_400/v1712/productos/eclat-noir.jpg",
+    );
+  });
+
+  it("deja igual una URL que no es de Cloudinary", () => {
+    const otra = "https://ejemplo.com/foto.jpg";
+    expect(urlCloudinary(otra, 400)).toBe(otra);
+  });
+});
+
+describe("srcsetCloudinary", () => {
+  it("ofrece la versión normal y la de doble densidad", () => {
+    expect(srcsetCloudinary(FOTO, 400)).toBe(
+      `${urlCloudinary(FOTO, 400)} 1x, ${urlCloudinary(FOTO, 800)} 2x`,
+    );
+  });
+});
 
 describe("enlaceWhatsApp", () => {
   it("sin número no arma enlace", () => {

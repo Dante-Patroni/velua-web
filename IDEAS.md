@@ -11,6 +11,18 @@ explícito: cuando una se aprueba, se mueve al plan y se borra de acá.
 - **Páginas de ayuda.** "Cómo comprar", "Envíos y retiro" y "Preguntas
   frecuentes" están en el diseño pero no tienen contenido ni ruta.
 
+## Portada
+
+- **Cantidad de productos por colección.** El diseño muestra "6 jabones" en
+  cada colección. `Categoria` no trae ese dato: hace falta un campo en el
+  backend (por ejemplo `cantidadProductos`), para no pedir una vez cada
+  colección solo para contar.
+- **Bloque "Sobre Velua".** Está en el diseño, pero se muestra recién cuando la
+  marca mande el texto de su historia.
+- **Foto de tapa.** El encabezado de la portada usa la ilustración de caléndulas
+  mientras no haya una foto de los jabones. Cuando llegue, va optimizada
+  (WebP, 1600 px, menos de 300 KB).
+
 ## Franja superior
 
 - **Condiciones comerciales en la franja.** En el teléfono, el diseño dice

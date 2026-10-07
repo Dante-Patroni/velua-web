@@ -4,6 +4,12 @@ import { listarCategorias } from "@/lib/api/catalogo.api";
 import { ErrorApi } from "@/lib/apiFetch";
 import type { Categoria } from "@/types";
 
+/**
+ * Id de la ruta del layout. Las páginas lo usan con useRouteLoaderData para
+ * leer las categorías sin volver a pedirlas.
+ */
+export const ID_RUTA_TIENDA = "tienda";
+
 /** Lo que el loader deja disponible para el layout. */
 export type DatosTiendaLayout = { categorias: Categoria[] };
 

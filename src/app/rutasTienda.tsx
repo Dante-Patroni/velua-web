@@ -3,6 +3,7 @@ import type { RouteObject } from "react-router-dom";
 import { TiendaLayout } from "@/components/layout/TiendaLayout";
 import {
   cargarTiendaLayout,
+  ID_RUTA_TIENDA,
   revalidarTiendaLayout,
 } from "@/components/layout/TiendaLayout.action";
 import { Cambios } from "@/pages/Legales/Cambios";
@@ -16,6 +17,7 @@ import { Checkout } from "@/pages/Tienda/Checkout";
 import { LaMarca } from "@/pages/Tienda/LaMarca";
 import { Pedido } from "@/pages/Tienda/Pedido";
 import { Portada } from "@/pages/Tienda/Portada";
+import { cargarPortada } from "@/pages/Tienda/Portada.action";
 import { Producto } from "@/pages/Tienda/Producto";
 
 /**
@@ -25,11 +27,12 @@ import { Producto } from "@/pages/Tienda/Producto";
  */
 export const rutasTienda: RouteObject[] = [
   {
+    id: ID_RUTA_TIENDA,
     Component: TiendaLayout,
     loader: cargarTiendaLayout,
     shouldRevalidate: revalidarTiendaLayout,
     children: [
-      { index: true, Component: Portada },
+      { index: true, Component: Portada, loader: cargarPortada },
       { path: ":categoria", Component: Categoria },
       { path: "productos/:slug", Component: Producto },
       { path: "buscar", Component: Buscar },

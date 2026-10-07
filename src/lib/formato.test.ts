@@ -7,11 +7,18 @@ const sinEspacioDuro = (texto: string) => texto.replace(/\u00A0/g, " ");
 
 describe("formatearPrecio", () => {
   it("formatea una cadena decimal en pesos con separadores de es-AR", () => {
-    expect(sinEspacioDuro(formatearPrecio("8500.00"))).toBe("$ 8.500,00");
+    expect(sinEspacioDuro(formatearPrecio("8500.00"))).toBe("$ 8.500");
   });
 
-  it("respeta los centavos", () => {
+  it("omite los decimales cuando los centavos son cero", () => {
+    expect(sinEspacioDuro(formatearPrecio("8500.00"))).toBe("$ 8.500");
+    expect(sinEspacioDuro(formatearPrecio("8500"))).toBe("$ 8.500");
+  });
+
+  it("muestra los dos decimales cuando hay centavos", () => {
+    expect(sinEspacioDuro(formatearPrecio("8500.50"))).toBe("$ 8.500,50");
     expect(sinEspacioDuro(formatearPrecio("12500.5"))).toBe("$ 12.500,50");
+    expect(sinEspacioDuro(formatearPrecio("8500.05"))).toBe("$ 8.500,05");
   });
 
   it("formatea importes grandes con separador de miles", () => {
@@ -19,7 +26,7 @@ describe("formatearPrecio", () => {
   });
 
   it("formatea cero como un importe válido", () => {
-    expect(sinEspacioDuro(formatearPrecio("0.00"))).toBe("$ 0,00");
+    expect(sinEspacioDuro(formatearPrecio("0.00"))).toBe("$ 0");
   });
 
   it.each(["", "   ", "abc", "12,50", "NaN", "Infinity"])(
