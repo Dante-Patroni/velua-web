@@ -12,19 +12,22 @@ import ilustracion from "@/assets/ilustracion-calendulas.webp";
 /** Ancho de la imagen de una colección, a densidad normal. */
 const ANCHO_COLECCION = 600;
 
-/** Lo que distingue a los jabones de Velua. Texto de la marca, del diseño. */
+/** Lo que propone Velua a quien la elige. Texto de la marca. */
 const PROMESAS = [
   {
-    titulo: "Elaboración en frío",
-    texto: "El método conserva la glicerina natural, que es lo que deja la piel suave en vez de tirante.",
+    titulo: "Tu rutina, un ritual de cuidado",
+    texto:
+      "Transformá tu rutina en un ritual de cuidado. Descubrí texturas y aromas que invitan a hacer una pausa y dedicarte un momento cada día.",
   },
   {
-    titulo: "Seis semanas de curado",
-    texto: "La barra pierde agua y se endurece. Dura bastante más que un jabón industrial.",
+    titulo: "Elegí lo que toca tu piel",
+    texto:
+      "Aceites, mantecas e ingredientes de origen natural, seleccionados para crear una experiencia de cuidado especial.",
   },
   {
-    titulo: "Ninguna igual a otra",
-    texto: "Las vetas y los matices salen distintos en cada tanda. Es la marca de lo hecho a mano.",
+    titulo: "Cuidarte también es elegir.",
+    texto:
+      "Volvé a lo esencial: valorá la elaboración artesanal y los pequeños gestos que ayudan a cuidar nuestro entorno.",
   },
 ] as const;
 
