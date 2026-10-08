@@ -1394,7 +1394,7 @@ export interface paths {
         put?: never;
         /**
          * Crear una categoria
-         * @description Si no se indica slug, se genera del nombre y se le agrega un sufijo si ya existe. Si se indica a mano y esta tomado, se rechaza con CONFLICTO_DE_DATOS. La categoria nueva queda activa y al final del menu.
+         * @description Si no se indica slug, se genera del nombre y se le agrega un sufijo si ya existe. Si se indica a mano y esta tomado, se rechaza con CONFLICTO_DE_DATOS. La categoria nueva queda activa y al final del menu. Si viene padreId, el padre tiene que ser de primer nivel y sin productos: si no, CATEGORIA_PADRE_INVALIDA (400) o CATEGORIA_CON_PRODUCTOS (409).
          */
         post: {
             parameters: {
@@ -1528,7 +1528,7 @@ export interface paths {
         head?: never;
         /**
          * Editar una categoria
-         * @description Solo se modifican los campos que vienen. Cambiar el nombre NO cambia el slug: para cambiar la URL hay que editar el slug a proposito. Si la categoria esta activa, el panel tiene que avisar que los links anteriores dejan de funcionar.
+         * @description Solo se modifican los campos que vienen. Cambiar el nombre NO cambia el slug: para cambiar la URL hay que editar el slug a proposito. Si la categoria esta activa, el panel tiene que avisar que los links anteriores dejan de funcionar. padreId en null la pasa al primer nivel. Un padre tiene que ser de primer nivel y sin productos, y una categoria con hijas no puede ir debajo de otra: CATEGORIA_PADRE_INVALIDA (400), CATEGORIA_CON_PRODUCTOS (409) o CATEGORIA_CON_HIJAS (409).
          */
         patch: {
             parameters: {
@@ -1579,7 +1579,7 @@ export interface paths {
         head?: never;
         /**
          * Activar o desactivar una categoria
-         * @description Desactivar una categoria oculta de la tienda TODOS sus productos, aunque cada uno siga activo. La respuesta incluye cantidadProductos, y el panel tiene que informarlo antes de confirmar.
+         * @description Desactivar una categoria oculta de la tienda TODOS sus productos, aunque cada uno siga activo. Si tiene hijas, tambien quedan ocultas, con sus productos. La respuesta incluye cantidadProductos y cantidadHijas, y el panel tiene que informarlo antes de confirmar.
          */
         patch: {
             parameters: {
@@ -1614,6 +1614,115 @@ export interface paths {
                 404: components["responses"]["NoEncontrado"];
             };
         };
+        trace?: never;
+    };
+    "/admin/categorias/{id}/imagen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Subir o reemplazar la imagen de una categoria
+         * @description Se envia como multipart/form-data, con el archivo en el campo `imagen`. Formatos jpg, png y webp, hasta 5 MB; el contenido se verifica por sus primeros bytes. Si la categoria ya tenia imagen, la anterior se borra del proveedor despues de guardar la nueva.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Id del recurso. */
+                    id: components["parameters"]["IdRuta"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "multipart/form-data": {
+                        /** Format: binary */
+                        imagen: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Categoria con la imagen nueva */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CategoriaAdmin"];
+                    };
+                };
+                /** @description ARCHIVO_REQUERIDO, TIPO_ARCHIVO_INVALIDO o ARCHIVO_DEMASIADO_GRANDE. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "ARCHIVO_DEMASIADO_GRANDE"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                404: components["responses"]["NoEncontrado"];
+                /** @description El proveedor de imagenes rechazo la subida. */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "ERROR_AL_SUBIR"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        /**
+         * Quitar la imagen de una categoria
+         * @description Primero limpia la categoria y despues borra el archivo del proveedor. Si el borrado remoto falla, la categoria igual queda sin imagen.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Id del recurso. */
+                    id: components["parameters"]["IdRuta"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Categoria sin imagen */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CategoriaAdmin"];
+                    };
+                };
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                404: components["responses"]["NoEncontrado"];
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/salud": {
@@ -1703,6 +1812,10 @@ export interface components {
             descripcion?: string | null;
             /** Format: uri */
             imagenUrl?: string | null;
+            /** @example null */
+            padreId?: number | null;
+            /** @description Solo en GET /categorias y solo en las de primer nivel: sus categorías hijas. */
+            hijas?: components["schemas"]["Categoria"][];
         };
         Imagen: {
             /** Format: uri */
@@ -1811,6 +1924,13 @@ export interface components {
             descripcion?: string | null;
             /** Format: uri */
             imagenUrl?: string | null;
+            /** @description Categoría padre. Null si es de primer nivel. */
+            padreId?: number | null;
+            /**
+             * @description Si es mayor que cero, la categoría no puede tener productos.
+             * @example 0
+             */
+            cantidadHijas?: number;
             /** @example 2 */
             orden: number;
             activa: boolean;
@@ -1828,6 +1948,8 @@ export interface components {
             descripcion?: string | null;
             /** Format: uri */
             imagenUrl?: string | null;
+            /** @description Categoría padre, que tiene que ser de primer nivel y sin productos. Null para el primer nivel. */
+            padreId?: number | null;
         };
         /** @description Solo se modifican los campos que vienen. Cambiar el nombre no cambia el slug. */
         CategoriaCambios: {
@@ -1836,6 +1958,8 @@ export interface components {
             descripcion?: string | null;
             /** Format: uri */
             imagenUrl?: string | null;
+            /** @description Categoría padre, que tiene que ser de primer nivel y sin productos. Null para el primer nivel. */
+            padreId?: number | null;
         };
         /** @description Variante vista desde el panel. A diferencia de la tienda, expone el stock real. */
         VarianteAdmin: {
