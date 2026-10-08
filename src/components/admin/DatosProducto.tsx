@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import type { CategoriaAdmin, ProductoAdmin } from "@/types";
+import { OpcionesColeccion } from "./OpcionesColeccion";
 
 /** Largo recomendado de la descripción corta, la que se ve en la grilla. */
 const LARGO_DESCRIPCION_CORTA = 120;
@@ -15,7 +16,10 @@ type Props = {
   /** Null cuando se está creando. */
   producto: ProductoAdmin | null;
   /** Avisa los cambios que la vista previa necesita reflejar. */
-  alCambiar: (campo: "nombre" | "descripcionCorta" | "coleccion", valor: string) => void;
+  alCambiar: (
+    campo: "nombre" | "descripcionCorta" | "coleccion",
+    valor: string,
+  ) => void;
   details?: Record<string, string>;
 };
 
@@ -55,8 +59,15 @@ function ErrorCampo({
  * @param props Categorías, producto en edición, avisador de cambios y errores.
  * @returns Los campos del producto.
  */
-export function DatosProducto({ categorias, producto, alCambiar, details }: Props) {
-  const [largoCorta, setLargoCorta] = useState(producto?.descripcionCorta?.length ?? 0);
+export function DatosProducto({
+  categorias,
+  producto,
+  alCambiar,
+  details,
+}: Props) {
+  const [largoCorta, setLargoCorta] = useState(
+    producto?.descripcionCorta?.length ?? 0,
+  );
   const [verSlug, setVerSlug] = useState(false);
 
   const editando = producto !== null;
@@ -72,18 +83,16 @@ export function DatosProducto({ categorias, producto, alCambiar, details }: Prop
           defaultValue={producto?.categoria?.id ?? ""}
           className="mt-1"
           onChange={(e) =>
-            alCambiar("coleccion", e.target.selectedOptions[0]?.textContent ?? "")
+            alCambiar(
+              "coleccion",
+              e.target.selectedOptions[0]?.textContent ?? "",
+            )
           }
         >
           <option value="" disabled>
             Elegí una colección
           </option>
-          {categorias.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nombre}
-              {!c.activa ? " (despublicada)" : ""}
-            </option>
-          ))}
+          <OpcionesColeccion categorias={categorias} marcarDespublicadas />
         </Select>
         <ErrorCampo details={details} campo="categoriaId" />
       </div>
@@ -119,7 +128,9 @@ export function DatosProducto({ categorias, producto, alCambiar, details }: Prop
         />
         <p
           className={`mt-1 text-xs ${
-            largoCorta > LARGO_DESCRIPCION_CORTA ? "text-dorado-texto" : "text-texto-tenue"
+            largoCorta > LARGO_DESCRIPCION_CORTA
+              ? "text-dorado-texto"
+              : "text-texto-tenue"
           }`}
         >
           {largoCorta > LARGO_DESCRIPCION_CORTA

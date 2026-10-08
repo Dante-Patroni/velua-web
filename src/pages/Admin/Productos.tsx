@@ -1,4 +1,10 @@
-import { Form, Link, useFetcher, useLoaderData, useSearchParams } from "react-router-dom";
+import {
+  Form,
+  Link,
+  useFetcher,
+  useLoaderData,
+  useSearchParams,
+} from "react-router-dom";
 import { AlertTriangle, ImageOff, Search } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
@@ -9,6 +15,7 @@ import { formatearPrecio } from "@/lib/formato";
 import type { ProductoAdminFila } from "@/types";
 import type { DatosProductos } from "./Productos.action";
 import { LIMITE } from "./Productos.action";
+import { OpcionesColeccion } from "@/components/admin/OpcionesColeccion";
 
 /**
  * @description Indica si un producto necesita atención de la dueña: sin fotos
@@ -16,7 +23,9 @@ import { LIMITE } from "./Productos.action";
  * @param p Fila del listado.
  * @returns Un aviso corto, o null si el producto está completo.
  */
-function avisoDe(p: ProductoAdminFila): { texto: string; icono: typeof ImageOff } | null {
+function avisoDe(
+  p: ProductoAdminFila,
+): { texto: string; icono: typeof ImageOff } | null {
   if (p.cantidadImagenes === 0) return { texto: "Sin fotos", icono: ImageOff };
   if (p.stockTotal === 0) return { texto: "Sin stock", icono: AlertTriangle };
   return null;
@@ -61,11 +70,7 @@ function Filtros({ categorias }: { categorias: DatosProductos["categorias"] }) {
           className="mt-1"
         >
           <option value="">Todas</option>
-          {categorias.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nombre}
-            </option>
-          ))}
+          <OpcionesColeccion categorias={categorias} />
         </Select>
       </div>
 
@@ -160,7 +165,10 @@ function Paginacion({ pagina, total }: { pagina: number; total: number }) {
   };
 
   return (
-    <nav aria-label="Paginación" className="flex items-center justify-center gap-2 py-6">
+    <nav
+      aria-label="Paginación"
+      className="flex items-center justify-center gap-2 py-6"
+    >
       {Array.from({ length: paginas }, (_, i) => i + 1).map((n) => (
         <Link
           key={n}
@@ -194,9 +202,12 @@ export function Productos() {
     <div className="flex flex-col gap-6 p-4 sm:p-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl font-medium text-tinta">Productos</h1>
+          <h1 className="font-display text-3xl font-medium text-tinta">
+            Productos
+          </h1>
           <p className="mt-1 text-sm text-texto-suave">
-            {meta.total} {meta.total === 1 ? "producto" : "productos"} en el catálogo
+            {meta.total} {meta.total === 1 ? "producto" : "productos"} en el
+            catálogo
             {sinFotos > 0 && (
               <>
                 {" · "}
@@ -214,7 +225,6 @@ export function Productos() {
         >
           Agregar producto
         </Link>
-
       </header>
 
       <section className="rounded-lg border border-borde bg-crema-clara p-4">
@@ -246,7 +256,10 @@ export function Productos() {
                   const Icono = aviso?.icono;
 
                   return (
-                    <tr key={p.id} className="border-b border-borde last:border-0">
+                    <tr
+                      key={p.id}
+                      className="border-b border-borde last:border-0"
+                    >
                       <td className="px-4 py-4">
                         <Link
                           to={`/admin/productos/${p.id}`}
@@ -309,7 +322,8 @@ export function Productos() {
 
                   <p className="mt-1 text-sm text-texto-suave">
                     {p.categoria?.nombre ?? "—"} · {p.stockTotal} en stock ·{" "}
-                    {p.cantidadImagenes} {p.cantidadImagenes === 1 ? "foto" : "fotos"}
+                    {p.cantidadImagenes}{" "}
+                    {p.cantidadImagenes === 1 ? "foto" : "fotos"}
                   </p>
 
                   {aviso && Icono && (
