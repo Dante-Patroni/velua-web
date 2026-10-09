@@ -25,7 +25,7 @@ const PROMESAS = [
       "Aceites, mantecas e ingredientes de origen natural, seleccionados para crear una experiencia de cuidado especial.",
   },
   {
-    titulo: "Cuidarte también es elegir.",
+    titulo: "Cuidarte también es elegir",
     texto:
       "Volvé a lo esencial: valorá la elaboración artesanal y los pequeños gestos que ayudan a cuidar nuestro entorno.",
   },
