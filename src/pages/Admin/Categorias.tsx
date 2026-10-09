@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useFetcher, useLoaderData } from "react-router-dom";
 import { AlertTriangle, ChevronDown, ChevronUp, Plus } from "lucide-react";
 
+import { ImagenCategoria } from "@/components/admin/ImagenCategoria";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
@@ -9,7 +10,11 @@ import { Textarea } from "@/components/ui/Textarea";
 import { obtenerMensajeError } from "@/lib/mappings";
 import type { CategoriaAdmin } from "@/types";
 import type { DatosCategorias, ErrorCategorias } from "./Categorias.action";
-import { ImagenCategoria } from "@/components/admin/ImagenCategoria";
+import { aplanarArbol, ordenTrasMover, posiblesPadres } from "./Categorias.utils";
+
+/** Clases del selector, iguales a las del Input. */
+const CLASES_SELECT =
+  "mt-1 w-full rounded-md border border-borde bg-crema-clara px-3 py-2 text-tinta disabled:opacity-60";
 
 /**
  * @description Muestra el error de un campo, si la API devolvió uno.
@@ -36,28 +41,84 @@ function ErrorCampo({
 }
 
 /**
+ * @description Selector "Dentro de": elige la categoría padre, o ninguna para
+ * dejarla en el primer nivel.
+ * @param props Datos del selector.
+ * @param props.id Id del elemento, para el label.
+ * @param props.categorias Todas las categorías.
+ * @param props.propia La categoría que se edita, o null si se está creando.
+ * @returns El selector con su ayuda.
+ */
+function SelectorPadre({
+  id,
+  categorias,
+  propia,
+}: {
+  id: string;
+  categorias: CategoriaAdmin[];
+  propia: CategoriaAdmin | null;
+}) {
+  const opciones = posiblesPadres(categorias, propia);
+  // Con hijas no puede ir debajo de otra: quedarían tres niveles
+  const bloqueado = (propia?.cantidadHijas ?? 0) > 0;
+
+  return (
+    <div>
+      <Label htmlFor={id}>Dentro de</Label>
+      <select
+        id={id}
+        name="padreId"
+        defaultValue={propia?.padreId ?? ""}
+        disabled={bloqueado}
+        className={CLASES_SELECT}
+      >
+        <option value="">Ninguna (primer nivel del menú)</option>
+        {opciones.map((o) => (
+          <option key={o.id} value={o.id} disabled={!o.disponible}>
+            {o.nombre}
+            {!o.disponible ? " (tiene productos)" : ""}
+          </option>
+        ))}
+      </select>
+      <p className="mt-1 text-xs text-texto-tenue">
+        {bloqueado
+          ? "Agrupa otras colecciones, así que tiene que quedar en el primer nivel."
+          : "Por ejemplo, las colecciones de jabones van dentro de “Jabones”."}
+      </p>
+    </div>
+  );
+}
+
+/**
  * @description Una categoría del menú, editable en el lugar.
  *
- * Con tres o cuatro categorías, navegar a otra pantalla para cambiar un nombre
- * sería de más: cada fila se despliega y se guarda sola.
+ * Con pocas categorías, navegar a otra pantalla para cambiar un nombre sería
+ * de más: cada fila se despliega y se guarda sola. Las hijas se muestran con
+ * sangría, debajo de su categoría padre.
  *
  * @param props Datos de la categoría y su posición.
  * @param props.categoria Categoría a mostrar.
- * @param props.posicion Posición en el menú.
- * @param props.total Cantidad de categorías.
- * @param props.alMover Pide mover la categoría a otra posición.
+ * @param props.nivel 0 si es de primer nivel, 1 si es hija.
+ * @param props.categorias Todas las categorías, para el selector de padre.
+ * @param props.puedeSubir Si se puede subir entre sus hermanas.
+ * @param props.puedeBajar Si se puede bajar entre sus hermanas.
+ * @param props.alMover Pide moverla un lugar: -1 sube, 1 baja.
  * @returns La fila con su formulario.
  */
 function Fila({
   categoria,
-  posicion,
-  total,
+  nivel,
+  categorias,
+  puedeSubir,
+  puedeBajar,
   alMover,
 }: {
   categoria: CategoriaAdmin;
-  posicion: number;
-  total: number;
-  alMover: (desde: number, hasta: number) => void;
+  nivel: 0 | 1;
+  categorias: CategoriaAdmin[];
+  puedeSubir: boolean;
+  puedeBajar: boolean;
+  alMover: (direccion: -1 | 1) => void;
 }) {
   const [abierta, setAbierta] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
@@ -66,10 +127,11 @@ function Fila({
 
   const error = guardado.data as ErrorCategorias | undefined;
   const guardando = guardado.state !== "idle";
+  const tieneHijas = categoria.cantidadHijas > 0;
 
   return (
     <li
-      className={`rounded-lg border bg-crema-clara ${
+      className={`rounded-lg border bg-crema-clara ${nivel === 1 ? "ml-8" : ""} ${
         categoria.activa ? "border-borde" : "border-borde opacity-75"
       }`}
     >
@@ -77,8 +139,8 @@ function Fila({
         <div className="flex flex-col">
           <button
             type="button"
-            onClick={() => alMover(posicion, posicion - 1)}
-            disabled={posicion === 0}
+            onClick={() => alMover(-1)}
+            disabled={!puedeSubir}
             aria-label={`Subir ${categoria.nombre} en el menú`}
             className="flex size-7 items-center justify-center rounded-sm text-tinta hover:bg-crema-calida disabled:opacity-30"
           >
@@ -86,8 +148,8 @@ function Fila({
           </button>
           <button
             type="button"
-            onClick={() => alMover(posicion, posicion + 1)}
-            disabled={posicion === total - 1}
+            onClick={() => alMover(1)}
+            disabled={!puedeBajar}
             aria-label={`Bajar ${categoria.nombre} en el menú`}
             className="flex size-7 items-center justify-center rounded-sm text-tinta hover:bg-crema-calida disabled:opacity-30"
           >
@@ -105,9 +167,14 @@ function Fila({
             )}
           </p>
           <p className="text-sm text-texto-suave">
-            {categoria.cantidadProductos}{" "}
-            {categoria.cantidadProductos === 1 ? "producto" : "productos"} ·{" "}
-            <span className="font-mono text-xs">{categoria.slug}</span>
+            {tieneHijas
+              ? `Agrupa ${categoria.cantidadHijas} ${
+                  categoria.cantidadHijas === 1 ? "colección" : "colecciones"
+                }`
+              : `${categoria.cantidadProductos} ${
+                  categoria.cantidadProductos === 1 ? "producto" : "productos"
+                }`}{" "}
+            · <span className="font-mono text-xs">{categoria.slug}</span>
           </p>
         </div>
 
@@ -153,6 +220,12 @@ function Fila({
               <ErrorCampo details={error?.details} campo="descripcion" />
             </div>
 
+            <SelectorPadre
+              id={`padre-${categoria.id}`}
+              categorias={categorias}
+              propia={categoria}
+            />
+
             <div className="flex items-center gap-3">
               <Button type="submit" disabled={guardando} className="w-auto">
                 {guardando ? "Guardando…" : "Guardar"}
@@ -175,16 +248,13 @@ function Fila({
           <div className="border-t border-borde pt-4">
             {confirmando ? (
               <div className="flex flex-col gap-3">
-                {categoria.activa && categoria.cantidadProductos > 0 && (
+                {categoria.activa && (tieneHijas || categoria.cantidadProductos > 0) && (
                   <p className="flex items-start gap-2 text-sm text-dorado-texto">
-                    <AlertTriangle
-                      aria-hidden
-                      className="mt-0.5 size-4 shrink-0"
-                    />
+                    <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0" />
                     <span>
-                      Esto va a ocultar de la tienda los{" "}
-                      {categoria.cantidadProductos} productos de esta colección,
-                      aunque cada uno siga publicado.
+                      {tieneHijas
+                        ? `Esto va a ocultar de la tienda sus ${categoria.cantidadHijas} colecciones y todos sus productos.`
+                        : `Esto va a ocultar de la tienda los ${categoria.cantidadProductos} productos de esta colección, aunque cada uno siga publicado.`}
                     </span>
                   </p>
                 )}
@@ -220,9 +290,7 @@ function Fila({
                 onClick={() => setConfirmando(true)}
                 className="text-sm text-dorado-texto underline-offset-4 hover:underline"
               >
-                {categoria.activa
-                  ? "Despublicar colección"
-                  : "Publicar colección"}
+                {categoria.activa ? "Despublicar colección" : "Publicar colección"}
               </button>
             )}
           </div>
@@ -233,8 +301,8 @@ function Fila({
 }
 
 /**
- * @description Pantalla de colecciones del panel. Lista, edita, reordena y
- * publica o despublica.
+ * @description Pantalla de colecciones del panel. Lista el árbol, edita,
+ * reordena, agrupa y publica o despublica.
  * @returns La lista de categorías y el formulario para agregar una.
  */
 export function Categorias() {
@@ -244,46 +312,41 @@ export function Categorias() {
   const orden = useFetcher();
 
   const errorNueva = nueva.data as ErrorCategorias | undefined;
+  const filas = aplanarArbol(categorias);
 
   /**
-   * @description Reordena el menú. Manda la lista completa de ids: un orden
-   * parcial dejaría dos categorías en la misma posición.
-   * @param desde Posición actual.
-   * @param hasta Posición destino.
+   * @description Mueve una categoría entre sus hermanas. Manda la lista
+   * completa de ids: un orden parcial dejaría dos en la misma posición.
+   * @param id Id de la categoría.
+   * @param direccion -1 sube, 1 baja.
    * @returns Nada.
    */
-  const mover = (desde: number, hasta: number) => {
-    if (hasta < 0 || hasta >= categorias.length) return;
-
-    const ids = categorias.map((c) => c.id);
-    const [movido] = ids.splice(desde, 1);
-    ids.splice(hasta, 0, movido);
-
-    orden.submit(
-      { intencion: "orden", ids: ids.join(",") },
-      { method: "post" },
-    );
+  const mover = (id: number, direccion: -1 | 1) => {
+    const ids = ordenTrasMover(filas, id, direccion);
+    if (!ids) return;
+    orden.submit({ intencion: "orden", ids: ids.join(",") }, { method: "post" });
   };
 
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6">
       <header>
-        <h1 className="font-display text-3xl font-medium text-tinta">
-          Colecciones
-        </h1>
+        <h1 className="font-display text-3xl font-medium text-tinta">Colecciones</h1>
         <p className="mt-1 text-sm text-texto-suave">
-          El orden de esta lista es el orden del menú de la tienda.
+          El orden de esta lista es el orden del menú de la tienda. Las que están
+          con sangría aparecen dentro de la de arriba.
         </p>
       </header>
 
       <ul className="flex flex-col gap-3">
-        {categorias.map((c, i) => (
+        {filas.map(({ categoria, nivel }) => (
           <Fila
-            key={c.id}
-            categoria={c}
-            posicion={i}
-            total={categorias.length}
-            alMover={mover}
+            key={categoria.id}
+            categoria={categoria}
+            nivel={nivel}
+            categorias={categorias}
+            puedeSubir={ordenTrasMover(filas, categoria.id, -1) !== null}
+            puedeBajar={ordenTrasMover(filas, categoria.id, 1) !== null}
+            alMover={(direccion) => mover(categoria.id, direccion)}
           />
         ))}
       </ul>
@@ -304,7 +367,7 @@ export function Categorias() {
               required
               autoFocus
               maxLength={80}
-              placeholder="Shampoo Sólido"
+              placeholder="Cuidado capilar"
               className="mt-1"
             />
             <ErrorCampo details={errorNueva?.details} campo="nombre" />
@@ -322,12 +385,16 @@ export function Categorias() {
             />
           </div>
 
+          <SelectorPadre id="padre-nueva" categorias={categorias} propia={null} />
+
+          {errorNueva && !errorNueva.details && (
+            <p role="alert" className="text-sm text-error">
+              {obtenerMensajeError(errorNueva.codigo, "panel")}
+            </p>
+          )}
+
           <div className="flex items-center gap-3">
-            <Button
-              type="submit"
-              disabled={nueva.state !== "idle"}
-              className="w-auto"
-            >
+            <Button type="submit" disabled={nueva.state !== "idle"} className="w-auto">
               {nueva.state !== "idle" ? "Creando…" : "Crear colección"}
             </Button>
             <button
@@ -352,7 +419,8 @@ export function Categorias() {
 
       <p className="text-sm text-texto-suave">
         Las colecciones no se borran: se despublican. Despublicar una esconde de
-        la tienda todos sus productos, aunque cada uno siga publicado.
+        la tienda todos sus productos, aunque cada uno siga publicado. Si agrupa
+        otras, también las esconde a ellas.
       </p>
     </div>
   );

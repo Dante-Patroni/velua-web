@@ -24,7 +24,11 @@ export type CodigoErrorApi =
   | "ARCHIVO_REQUERIDO"
   | "TIPO_ARCHIVO_INVALIDO"
   | "ARCHIVO_DEMASIADO_GRANDE"
-  | "ERROR_AL_SUBIR";
+  | "ERROR_AL_SUBIR"
+  | "CATEGORIA_PADRE_INVALIDA"
+  | "CATEGORIA_CON_HIJAS"
+  | "CATEGORIA_CON_PRODUCTOS"
+  | "PRODUCTO_CON_VENTAS";
 
 /**
  * Códigos propios del frontend, para fallas que no traen respuesta de la API:

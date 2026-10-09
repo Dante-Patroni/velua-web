@@ -53,6 +53,21 @@ const texto = (datos: FormData, nombre: string): string | undefined => {
 };
 
 /**
+ * @description Lee la categoría padre elegida. Vacío quiere decir primer nivel.
+ * Si el campo no vino (por ejemplo, porque el selector estaba bloqueado),
+ * devuelve undefined para no tocarlo.
+ * @param datos Datos del formulario.
+ * @returns El id del padre, null para el primer nivel, o undefined si no vino.
+ */
+export function leerPadreId(datos: FormData): number | null | undefined {
+  if (!datos.has("padreId")) return undefined;
+  const valor = String(datos.get("padreId") ?? "").trim();
+  if (valor === "") return null;
+  const id = Number(valor);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+/**
  * @description Arma los cambios de una categoría a partir del formulario.
  * Solo se envían los campos presentes: el backend deja sin tocar los que no
  * llegan, así que mandar todo pisaría datos que no se editaron.
@@ -63,13 +78,14 @@ export function leerCambiosCategoria(datos: FormData): CategoriaCambios {
   const cambios: CategoriaCambios = {};
 
   if (datos.has("nombre")) cambios.nombre = texto(datos, "nombre") ?? "";
-  if (datos.has("descripcion"))
-    cambios.descripcion = texto(datos, "descripcion") ?? null;
+  if (datos.has("descripcion")) cambios.descripcion = texto(datos, "descripcion") ?? null;
   if (datos.has("slug")) cambios.slug = texto(datos, "slug") ?? null;
+
+  const padreId = leerPadreId(datos);
+  if (padreId !== undefined) cambios.padreId = padreId;
 
   return cambios;
 }
-
 /**
  * @description Action de la pantalla. Como en la ficha de producto, cada
  * formulario manda un campo oculto `intencion` y acá se despacha según su valor.
@@ -87,6 +103,11 @@ export async function accionCategorias({ request }: ActionFunctionArgs) {
         await crearCategoria({
           nombre: texto(datos, "nombre") ?? "",
           descripcion: texto(datos, "descripcion") ?? null,
+        });
+        await crearCategoria({
+          nombre: texto(datos, "nombre") ?? "",
+          descripcion: texto(datos, "descripcion") ?? null,
+          padreId: leerPadreId(datos) ?? null,
         });
         return null;
 

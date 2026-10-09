@@ -27,7 +27,9 @@ export const ENLACES_ADMIN: readonly Enlace[] = [
 ];
 
 /** Enlaces fijos del menú de la tienda, después de las colecciones. */
-export const ENLACES_MENU_TIENDA: readonly Enlace[] = [{ ruta: "/la-marca", texto: "La marca" }];
+export const ENLACES_MENU_TIENDA: readonly Enlace[] = [
+  { ruta: "/la-marca", texto: "La marca" },
+];
 
 /**
  * Promesas de la franja superior. Son de la marca y no cambian con la
@@ -71,7 +73,8 @@ export const DEFENSA_CONSUMIDOR = {
 } as const;
 
 /** Mensaje para un código que el frontend todavía no contempla. */
-export const MENSAJE_ERROR_POR_DEFECTO = "Algo salió mal. Probá de nuevo en unos minutos.";
+export const MENSAJE_ERROR_POR_DEFECTO =
+  "Algo salió mal. Probá de nuevo en unos minutos.";
 
 type DiccionarioErrores = Partial<Record<CodigoError, string>>;
 
@@ -89,7 +92,8 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
 > = {
   general: {
     DATOS_INVALIDOS: "Revisá los datos marcados.",
-    JSON_INVALIDO: "No pudimos procesar la información enviada. Probá de nuevo.",
+    JSON_INVALIDO:
+      "No pudimos procesar la información enviada. Probá de nuevo.",
     NO_ENCONTRADO: "No encontramos lo que buscabas.",
     NO_AUTORIZADO: "Tenés que iniciar sesión para continuar.",
     TOKEN_INVALIDO: "Tu sesión no es válida. Iniciá sesión de nuevo.",
@@ -98,26 +102,36 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
     USUARIO_INACTIVO: "Este usuario está desactivado.",
     SIN_PERMISO: "No tenés permiso para hacer esto.",
     CONFLICTO_DE_DATOS: "Ya existe un registro con esos datos.",
-    LIMITE_SUPERADO: "Hiciste demasiados intentos. Esperá unos minutos y volvé a probar.",
+    LIMITE_SUPERADO:
+      "Hiciste demasiados intentos. Esperá unos minutos y volvé a probar.",
     TRANSICION_INVALIDA: "Ese cambio de estado no está permitido.",
+    CATEGORIA_PADRE_INVALIDA: "Esa ubicación no es válida para la categoría.",
+    CATEGORIA_CON_HIJAS: "La categoría agrupa otras y no se puede mover.",
+    CATEGORIA_CON_PRODUCTOS:
+      "La categoría tiene productos y no puede agrupar otras.",
+    PRODUCTO_CON_VENTAS: "El producto tiene ventas y no se puede borrar.",
     PAGO_NO_APROBADO: "El pago no fue aprobado.",
     SEGUIMIENTO_REQUERIDO: "Falta cargar el código de seguimiento del envío.",
     SIN_VARIANTES: "El producto necesita al menos una variante.",
-    ULTIMA_VARIANTE_ACTIVA: "No podés desactivar la última variante activa del producto.",
+    ULTIMA_VARIANTE_ACTIVA:
+      "No podés desactivar la última variante activa del producto.",
     LIMITE_IMAGENES: "El producto ya tiene el máximo de imágenes permitido.",
     ARCHIVO_REQUERIDO: "Elegí un archivo para subir.",
     TIPO_ARCHIVO_INVALIDO: "La imagen tiene que ser JPG, PNG o WebP.",
     ARCHIVO_DEMASIADO_GRANDE: "La imagen supera los 5 MB.",
     ERROR_AL_SUBIR: "No pudimos subir la imagen. Probá de nuevo.",
-    ERROR_DE_RED: "No pudimos conectarnos. Revisá tu conexión y probá de nuevo.",
+    ERROR_DE_RED:
+      "No pudimos conectarnos. Revisá tu conexión y probá de nuevo.",
     ERROR_DESCONOCIDO: MENSAJE_ERROR_POR_DEFECTO,
   },
   tienda: {
-    NO_ENCONTRADO: "No encontramos lo que buscabas. Puede que ya no esté disponible.",
+    NO_ENCONTRADO:
+      "No encontramos lo que buscabas. Puede que ya no esté disponible.",
   },
   login: {
     DATOS_INVALIDOS: "Completá el mail y la contraseña.",
-    LIMITE_SUPERADO: "Demasiados intentos de ingreso. Esperá unos minutos y volvé a probar.",
+    LIMITE_SUPERADO:
+      "Demasiados intentos de ingreso. Esperá unos minutos y volvé a probar.",
     NO_AUTORIZADO: "Tu sesión terminó. Ingresá de nuevo.",
     TOKEN_INVALIDO: "Tu sesión terminó. Ingresá de nuevo.",
     TOKEN_EXPIRADO: "Tu sesión venció. Ingresá de nuevo.",
@@ -125,6 +139,14 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
   panel: {
     CONFLICTO_DE_DATOS: "Ese slug ya está en uso. Elegí otro.",
     NO_ENCONTRADO: "Ese registro ya no existe. Puede que lo hayan eliminado.",
+    CATEGORIA_PADRE_INVALIDA:
+      "Esa colección no puede ir ahí. Solo se puede poner dentro de una categoría del primer nivel.",
+    CATEGORIA_CON_HIJAS:
+      "Esta categoría agrupa otras colecciones, así que tiene que quedar en el primer nivel.",
+    CATEGORIA_CON_PRODUCTOS:
+      "Esa categoría tiene productos, así que no puede agrupar colecciones. Mové sus productos a otra antes.",
+    PRODUCTO_CON_VENTAS:
+      "Este producto ya se vendió, así que no se puede borrar. Despublicalo para que no aparezca en la tienda.",
   },
 };
 
@@ -149,7 +171,9 @@ export const obtenerMensajeError = (
 
 // hasOwn evita que un código como "constructor" devuelva algo del prototipo.
 const buscarMensaje = (diccionario: DiccionarioErrores, codigo: string) =>
-  Object.hasOwn(diccionario, codigo) ? diccionario[codigo as CodigoError] : undefined;
+  Object.hasOwn(diccionario, codigo)
+    ? diccionario[codigo as CodigoError]
+    : undefined;
 
 /**
  * @description Devuelve el mensaje legible para cualquier error capturado.
@@ -158,7 +182,10 @@ const buscarMensaje = (diccionario: DiccionarioErrores, codigo: string) =>
  * @param contexto Pantalla o flujo donde se muestra.
  * @returns El texto para mostrar al usuario.
  */
-export const mensajeDeError = (error: unknown, contexto: ContextoError = "general"): string =>
+export const mensajeDeError = (
+  error: unknown,
+  contexto: ContextoError = "general",
+): string =>
   error instanceof ErrorApi
     ? obtenerMensajeError(error.codigo, contexto)
     : MENSAJE_ERROR_POR_DEFECTO;
