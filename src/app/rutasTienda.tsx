@@ -13,6 +13,7 @@ import { Arrepentimiento } from "@/pages/Tienda/Arrepentimiento";
 import { Buscar } from "@/pages/Tienda/Buscar";
 import { Carrito } from "@/pages/Tienda/Carrito";
 import { Categoria } from "@/pages/Tienda/Categoria";
+import { cargarCategoria } from "@/pages/Tienda/Categoria.action";
 import { Checkout } from "@/pages/Tienda/Checkout";
 import { LaMarca } from "@/pages/Tienda/LaMarca";
 import { Pedido } from "@/pages/Tienda/Pedido";
@@ -33,7 +34,7 @@ export const rutasTienda: RouteObject[] = [
     shouldRevalidate: revalidarTiendaLayout,
     children: [
       { index: true, Component: Portada, loader: cargarPortada },
-      { path: ":categoria", Component: Categoria },
+      { path: ":categoria", Component: Categoria, loader: cargarCategoria },
       { path: "productos/:slug", Component: Producto },
       { path: "buscar", Component: Buscar },
       { path: "carrito", Component: Carrito },
