@@ -2,15 +2,11 @@ import { Link, useLoaderData, useRouteLoaderData } from "react-router-dom";
 
 import { Button } from "@/components/ui/Button";
 import { TarjetaProducto } from "@/components/tienda/TarjetaProducto";
-import { TexturaBotanica } from "@/components/tienda/TexturaBotanica";
-import type { Categoria } from "@/types";
-import { cn, srcsetCloudinary, urlCloudinary } from "@/lib/utils";
+import { TarjetaColeccion } from "@/components/tienda/TarjetaColeccion";
+import { cn } from "@/lib/utils";
 import { ID_RUTA_TIENDA, type cargarTiendaLayout } from "@/components/layout/TiendaLayout.action";
 import type { cargarPortada } from "./Portada.action";
 import ilustracion from "@/assets/ilustracion-calendulas.webp";
-
-/** Ancho de la imagen de una colección, a densidad normal. */
-const ANCHO_COLECCION = 600;
 
 /** Lo que propone Velua a quien la elige. Texto de la marca. */
 const PROMESAS = [
@@ -32,43 +28,6 @@ const PROMESAS = [
 ] as const;
 
 const claseEyebrow = "text-xs font-bold tracking-[0.18em] text-etiqueta uppercase";
-
-/**
- * @description Tarjeta de una colección: su imagen, o la textura botánica si
- * todavía no tiene, con el nombre y la descripción.
- * @param props La categoría.
- * @returns El enlace a la colección.
- */
-function TarjetaColeccion({ categoria }: { categoria: Categoria }) {
-  const { nombre, slug, descripcion, imagenUrl } = categoria;
-
-  return (
-    <Link
-      to={`/${slug}`}
-      className="group flex w-full flex-col overflow-hidden rounded-2xl border border-borde bg-crema-clara"
-    >
-      {imagenUrl ? (
-        <img
-          src={urlCloudinary(imagenUrl, ANCHO_COLECCION)}
-          srcSet={srcsetCloudinary(imagenUrl, ANCHO_COLECCION)}
-          alt=""
-          width={ANCHO_COLECCION}
-          height={400}
-          loading="lazy"
-          className="aspect-[3/2] w-full object-cover"
-        />
-      ) : (
-        <TexturaBotanica className="aspect-[3/2] w-full" />
-      )}
-      <div className="flex flex-col gap-2 p-5">
-        <h3 className="font-display text-2xl font-medium text-tinta group-hover:text-dorado-texto">
-          {nombre}
-        </h3>
-        {descripcion && <p className="text-sm text-texto-suave">{descripcion}</p>}
-      </div>
-    </Link>
-  );
-}
 
 /**
  * @description Portada de la tienda: encabezado con la frase de la marca,
