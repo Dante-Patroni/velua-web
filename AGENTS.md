@@ -199,6 +199,7 @@ Esta es la diferencia estructural con el proyecto anterior: acá lo público es 
 ```
 /                       portada
 /:categoria             listado
+/catalogo               todos los productos
 /productos/:slug        ficha
 /buscar?q=              resultados de búsqueda
 /carrito
@@ -211,7 +212,7 @@ Esta es la diferencia estructural con el proyecto anterior: acá lo público es 
 
 **Slugs reservados.** Las rutas fijas le ganan a `/:categoria`, así que una
 colección con el mismo slug quedaría inaccesible. Ninguna colección puede
-llamarse `productos`, `buscar`, `carrito`, `checkout`, `pedido`, `la-marca`,
+llamarse `productos`, `catalogo`, `buscar`, `carrito`, `checkout`, `pedido`, `la-marca`,
 `arrepentimiento`, `terminos`, `privacidad`, `cambios` ni `admin`. Si se suma
 una ruta fija, se suma a esta lista.
 
