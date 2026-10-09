@@ -6,6 +6,7 @@ import {
   ID_RUTA_TIENDA,
   revalidarTiendaLayout,
 } from "@/components/layout/TiendaLayout.action";
+import { ErrorTienda } from "@/pages/Errores/ErrorTienda";
 import { Cambios } from "@/pages/Legales/Cambios";
 import { Privacidad } from "@/pages/Legales/Privacidad";
 import { Terminos } from "@/pages/Legales/Terminos";
@@ -13,6 +14,7 @@ import { Arrepentimiento } from "@/pages/Tienda/Arrepentimiento";
 import { Buscar } from "@/pages/Tienda/Buscar";
 import { Carrito } from "@/pages/Tienda/Carrito";
 import { Categoria } from "@/pages/Tienda/Categoria";
+import { cargarCategoria } from "@/pages/Tienda/Categoria.action";
 import { Checkout } from "@/pages/Tienda/Checkout";
 import { LaMarca } from "@/pages/Tienda/LaMarca";
 import { Pedido } from "@/pages/Tienda/Pedido";
@@ -32,18 +34,33 @@ export const rutasTienda: RouteObject[] = [
     loader: cargarTiendaLayout,
     shouldRevalidate: revalidarTiendaLayout,
     children: [
-      { index: true, Component: Portada, loader: cargarPortada },
-      { path: ":categoria", Component: Categoria },
-      { path: "productos/:slug", Component: Producto },
-      { path: "buscar", Component: Buscar },
-      { path: "carrito", Component: Carrito },
-      { path: "checkout", Component: Checkout },
-      { path: "pedido/:numero", Component: Pedido },
-      { path: "la-marca", Component: LaMarca },
-      { path: "arrepentimiento", Component: Arrepentimiento },
-      { path: "terminos", Component: Terminos },
-      { path: "privacidad", Component: Privacidad },
-      { path: "cambios", Component: Cambios },
+      {
+        // Sin path: solo aporta el boundary. Un error de página se dibuja dentro
+        // del layout y la clienta conserva el menú. Los errores del layout mismo
+        // siguen yendo al boundary de la raíz.
+        ErrorBoundary: ErrorTienda,
+        children: [
+          { index: true, Component: Portada, loader: cargarPortada },
+          { path: ":categoria", Component: Categoria, loader: cargarCategoria },
+          { path: "productos/:slug", Component: Producto },
+          { path: "buscar", Component: Buscar },
+          { path: "carrito", Component: Carrito },
+          { path: "checkout", Component: Checkout },
+          { path: "pedido/:numero", Component: Pedido },
+          { path: "la-marca", Component: LaMarca },
+          { path: "arrepentimiento", Component: Arrepentimiento },
+          { path: "terminos", Component: Terminos },
+          { path: "privacidad", Component: Privacidad },
+          { path: "cambios", Component: Cambios },
+          {
+            // Cualquier URL que no coincide con nada, por ejemplo /a/b.
+            path: "*",
+            loader: () => {
+              throw new Response(null, { status: 404, statusText: "Not Found" });
+            },
+          },
+        ],
+      },
     ],
   },
 ];
