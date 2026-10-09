@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Menu, Search, ShoppingBasket, X } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
@@ -9,15 +9,11 @@ import { ENLACES_MENU_TIENDA, PROMESAS_TIENDA } from "@/lib/mappings";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/Logo-velua.png";
 import { FormBusqueda } from "./FormBusqueda";
+import { MenuEscritorio, MenuMovil } from "./MenuColecciones";
+import { itemsMenu } from "./MenuColecciones.utils";
 
 const ID_MENU = "menu-tienda";
 const ID_BUSQUEDA = "busqueda-tienda";
-
-const claseEnlaceMenu = ({ isActive }: { isActive: boolean }) =>
-  cn(
-    "text-xs font-semibold tracking-[0.14em] uppercase text-tinta underline-offset-8 hover:text-dorado-texto",
-    isActive && "underline decoration-dorado-hondo decoration-2",
-  );
 
 /**
  * @description Encabezado de la tienda: franja de promesas, logo, buscador,
@@ -31,10 +27,7 @@ export function EncabezadoTienda({ categorias }: { categorias: Categoria[] }) {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [busquedaAbierta, setBusquedaAbierta] = useState(false);
 
-  const enlaces = [
-    ...categorias.map((categoria) => ({ ruta: `/${categoria.slug}`, texto: categoria.nombre })),
-    ...ENLACES_MENU_TIENDA,
-  ];
+  const items = itemsMenu(categorias, ENLACES_MENU_TIENDA);
   const etiquetaCanasta =
     unidades === 0
       ? "Tu canasta, vacía"
@@ -131,17 +124,7 @@ export function EncabezadoTienda({ categorias }: { categorias: Categoria[] }) {
           </div>
         )}
 
-        <nav aria-label="Colecciones" className="hidden border-t border-borde-frio md:block">
-          <ul className="flex h-[58px] items-center justify-center gap-11">
-            {enlaces.map(({ ruta, texto }) => (
-              <li key={ruta}>
-                <NavLink to={ruta} className={claseEnlaceMenu}>
-                  {texto}
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <MenuEscritorio items={items} />
       </div>
 
       {menuAbierto && (
@@ -149,21 +132,7 @@ export function EncabezadoTienda({ categorias }: { categorias: Categoria[] }) {
           <div className="px-4 pt-4">
             <FormBusqueda alBuscar={cerrarPaneles} />
           </div>
-          <nav aria-label="Colecciones">
-            <ul className="flex flex-col px-4 py-2">
-              {enlaces.map(({ ruta, texto }) => (
-                <li key={ruta} className="border-b border-borde last:border-b-0">
-                  <NavLink
-                    to={ruta}
-                    onClick={cerrarPaneles}
-                    className={(estado) => cn(claseEnlaceMenu(estado), "flex h-12 items-center")}
-                  >
-                    {texto}
-                  </NavLink>
-                </li>
-              ))}
-            </ul>
-          </nav>
+          <MenuMovil items={items} alNavegar={cerrarPaneles} />
         </div>
       )}
     </header>
