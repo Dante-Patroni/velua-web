@@ -12,19 +12,22 @@ import ilustracion from "@/assets/ilustracion-calendulas.webp";
 /** Ancho de la imagen de una colección, a densidad normal. */
 const ANCHO_COLECCION = 600;
 
-/** Lo que distingue a los jabones de Velua. Texto de la marca, del diseño. */
+/** Lo que propone Velua a quien la elige. Texto de la marca. */
 const PROMESAS = [
   {
-    titulo: "Elaboración en frío",
-    texto: "El método conserva la glicerina natural, que es lo que deja la piel suave en vez de tirante.",
+    titulo: "Tu rutina, un ritual de cuidado",
+    texto:
+      "Transformá tu rutina en un ritual de cuidado. Descubrí texturas y aromas que invitan a hacer una pausa y dedicarte un momento cada día.",
   },
   {
-    titulo: "Seis semanas de curado",
-    texto: "La barra pierde agua y se endurece. Dura bastante más que un jabón industrial.",
+    titulo: "Elegí lo que toca tu piel",
+    texto:
+      "Aceites, mantecas e ingredientes de origen natural, seleccionados para crear una experiencia de cuidado especial.",
   },
   {
-    titulo: "Ninguna igual a otra",
-    texto: "Las vetas y los matices salen distintos en cada tanda. Es la marca de lo hecho a mano.",
+    titulo: "Cuidarte también es elegir",
+    texto:
+      "Volvé a lo esencial: valorá la elaboración artesanal y los pequeños gestos que ayudan a cuidar nuestro entorno.",
   },
 ] as const;
 
@@ -95,12 +98,14 @@ export function Portada() {
         />
         <div className="relative mx-auto max-w-6xl px-4 py-8 md:flex md:min-h-[600px] md:items-center md:px-8">
           <div className="flex max-w-xl flex-col gap-5 md:gap-6">
-            <p className={claseEyebrow}>Elaboración en frío · Río Cuarto</p>
+            <p className={claseEyebrow}>Cosmética natural · Río Cuarto</p>
             <h1 className="text-5xl leading-[0.98] font-medium text-tinta md:text-7xl">
               La piel <em className="font-medium text-dorado-texto">recuerda</em> lo que toca
             </h1>
-            <p className="max-w-md font-display text-xl leading-relaxed text-texto-suave italic md:text-2xl">
-              Jabones de proceso en frío, con ingredientes botánicos seleccionados. Cada pieza, única.
+            <p className="max-w-lg font-display text-xl leading-relaxed text-texto-suave italic md:text-2xl">
+              Hay belleza en los pequeños rituales: en el agua, en los aromas, en la pausa de un
+              instante propio. En Veluá nos inspira que tu cuidado cotidiano sea un encuentro con lo
+              esencial.
             </p>
             <div className="flex flex-wrap items-center gap-6 pt-1">
               <Button nativeButton={false} render={<a href="#colecciones" />} className="h-13 px-9">

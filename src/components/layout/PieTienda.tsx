@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 
 import type { Categoria } from "@/types";
 import {
+  CREDITOS_DESARROLLO,
   DEFENSA_CONSUMIDOR,
   ENLACES_AYUDA,
   ENLACES_LEGALES,
@@ -87,7 +88,11 @@ export function PieTienda({ categorias }: { categorias: Categoria[] }) {
         </div>
 
         <div className="flex flex-col gap-4 pt-6 text-sm md:flex-row md:items-start md:justify-between">
-          <p className="shrink-0 whitespace-nowrap">© {anio} Velua · veluanature.com.ar</p>
+          {/* Solo la ciudad: la marca produce en un domicilio particular. */}
+          <div className="flex shrink-0 flex-col gap-1">
+            <p className="whitespace-nowrap">© {anio} Veluá · Todos los derechos reservados</p>
+            <p className="whitespace-nowrap">Río Cuarto, Córdoba · veluanature.com.ar</p>
+          </div>
           <nav aria-label="Legales">
             <ul className="flex flex-col gap-3 md:flex-row md:flex-wrap md:justify-end md:gap-x-6">
               {ENLACES_LEGALES.map(({ ruta, texto }, indice) => (
@@ -110,6 +115,18 @@ export function PieTienda({ categorias }: { categorias: Categoria[] }) {
             </ul>
           </nav>
         </div>
+
+        <p className="pt-8 text-xs">
+          Desarrollado por{" "}
+          {CREDITOS_DESARROLLO.map(({ nombre, url }, indice) => (
+            <span key={nombre}>
+              {indice > 0 && " y "}
+              <a href={url} target="_blank" rel="noopener noreferrer" className={claseEnlace}>
+                {nombre}
+              </a>
+            </span>
+          ))}
+        </p>
       </div>
     </footer>
   );

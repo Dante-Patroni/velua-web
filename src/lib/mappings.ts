@@ -48,6 +48,12 @@ export const INSTAGRAM = {
   url: "https://www.instagram.com/velua.nature/",
 } as const;
 
+/** Créditos del desarrollo, al pie de la tienda. */
+export const CREDITOS_DESARROLLO = [
+  { nombre: "Dante Patroni", url: "https://www.linkedin.com/in/dantepatroni-dev/" },
+  { nombre: "Koda Logics", url: "https://kodalogics.com/" },
+] as const;
+
 /**
  * Número de WhatsApp de la marca, desde VITE_WHATSAPP. Vacío mientras no esté
  * configurado: en ese caso los enlaces a WhatsApp no se muestran.
