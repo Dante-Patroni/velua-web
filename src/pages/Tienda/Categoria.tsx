@@ -1,13 +1,12 @@
 import { useLoaderData } from "react-router-dom";
 
 import { MigaDePan } from "@/components/tienda/MigaDePan";
-import { Paginacion } from "@/components/tienda/Paginacion";
+import { GrillaProductos } from "@/components/tienda/GrillaProductos";
 import { TarjetaColeccion } from "@/components/tienda/TarjetaColeccion";
-import { TarjetaProducto } from "@/components/tienda/TarjetaProducto";
 import { TexturaBotanica } from "@/components/tienda/TexturaBotanica";
 import { srcsetCloudinary, urlCloudinary } from "@/lib/utils";
 import type { cargarCategoria } from "./Categoria.action";
-import { totalPaginas, tramosMiga } from "./Categoria.utils";
+import { tramosMiga } from "./Categoria.utils";
 
 /** Ancho de la imagen del encabezado, a densidad normal. */
 const ANCHO_ENCABEZADO = 1200;
@@ -64,27 +63,12 @@ export function Categoria() {
               </li>
             ))}
           </ul>
-        ) : datos.productos.length === 0 ? (
-          <div className="rounded-2xl border border-borde bg-crema-calida px-6 py-14 text-center">
-            <p className="font-display text-3xl font-medium text-tinta">Muy pronto…</p>
-            <p className="mt-2 text-texto-suave">
-              Estamos preparando esta colección. Volvé a visitarnos en unos días.
-            </p>
-          </div>
         ) : (
-          <>
-            <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-6">
-              {datos.productos.map((producto, indice) => (
-                <li key={producto.id} className="flex">
-                  <TarjetaProducto producto={producto} prioridad={indice < 2} mostrarDestacado={false} />
-                </li>
-              ))}
-            </ul>
-            <Paginacion
-              pagina={datos.meta.pagina}
-              totalPaginas={totalPaginas(datos.meta.total, datos.meta.limite)}
-            />
-          </>
+          <GrillaProductos
+            productos={datos.productos}
+            meta={datos.meta}
+            mensajeVacio="Estamos preparando esta colección. Volvé a visitarnos en unos días."
+          />
         )}
       </section>
     </>
