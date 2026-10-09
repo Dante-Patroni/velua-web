@@ -9,7 +9,7 @@ import {
   INSTAGRAM,
   WHATSAPP_NUMERO,
 } from "@/lib/mappings";
-import { cn, enlaceWhatsApp } from "@/lib/utils";
+import { enlaceWhatsApp } from "@/lib/utils";
 
 const claseEnlace = "underline-offset-4 hover:underline";
 const claseTituloColumna = "text-xs font-bold tracking-[0.14em] uppercase";
@@ -27,14 +27,7 @@ export function PieTienda({ categorias }: { categorias: Categoria[] }) {
   return (
     <footer className="bg-tinta text-crema-clara">
       <div className="mx-auto max-w-6xl px-4 pt-12 pb-8 md:px-8 md:pt-16">
-        <div
-          className={cn(
-            "grid gap-10 border-b border-texto-tenue pb-10",
-            // Sin colecciones (por ejemplo si /categorias falla), la grilla
-            // pierde una columna en vez de dejar un hueco a la derecha.
-            categorias.length > 0 ? "md:grid-cols-[1.4fr_1fr_1fr]" : "md:grid-cols-[1.4fr_1fr]",
-          )}
-        >
+        <div className="grid gap-10 border-b border-texto-tenue pb-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div className="flex flex-col gap-4">
             <p className="font-display text-4xl">veluá</p>
             <p className="text-sm">Cosmética natural artesanal. Río Cuarto, Córdoba.</p>
@@ -54,22 +47,26 @@ export function PieTienda({ categorias }: { categorias: Categoria[] }) {
             </ul>
           </div>
 
-          {categorias.length > 0 && (
-            <nav aria-labelledby="pie-catalogo">
-              <p id="pie-catalogo" className={claseTituloColumna}>
-                Catálogo
-              </p>
-              <ul className="mt-4 flex flex-col gap-3 text-sm">
-                {categorias.map((categoria) => (
-                  <li key={categoria.id}>
-                    <Link to={`/${categoria.slug}`} className={claseEnlace}>
-                      {categoria.nombre}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-          )}
+          <nav aria-labelledby="pie-catalogo">
+            <p id="pie-catalogo" className={claseTituloColumna}>
+              Catálogo
+            </p>
+            <ul className="mt-4 flex flex-col gap-3 text-sm">
+              {/* Va primero y no depende de las categorías: funciona aunque /categorias falle. */}
+              <li>
+                <Link to="/catalogo" className={claseEnlace}>
+                  Todos los productos
+                </Link>
+              </li>
+              {categorias.map((categoria) => (
+                <li key={categoria.id}>
+                  <Link to={`/${categoria.slug}`} className={claseEnlace}>
+                    {categoria.nombre}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
           <nav aria-labelledby="pie-ayuda">
             <p id="pie-ayuda" className={claseTituloColumna}>
