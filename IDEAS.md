@@ -43,3 +43,11 @@ explícito: cuando una se aprueba, se mueve al plan y se borra de acá.
 - **Logo sin frase para tamaños chicos.** Versión del logo sin la frase
   "Cosmética natural artesanal" para tamaños chicos: en el encabezado del
   teléfono la frase es ilegible.
+
+## Colecciones
+
+- **"Ver todos los jabones".** En la página de una categoría con hijas, un enlace
+  que muestre la grilla de productos de todas sus colecciones. La API ya lo
+  resuelve con `GET /productos?categoria=<slug-padre>`; falta decidir la URL
+  (por ejemplo `/jabones?ver=todos`) y el diseño. Mientras las colecciones estén
+  en el primer nivel, nadie lo vería.
