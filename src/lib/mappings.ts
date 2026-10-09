@@ -37,7 +37,7 @@ export const ENLACES_MENU_TIENDA: readonly Enlace[] = [
  * transferencia vienen del backend y no se escriben acá.
  */
 export const PROMESAS_TIENDA: readonly string[] = [
-  "Elaboración en frío",
+  "Cosmética natural",
   "Ingredientes naturales",
   "Hecho a mano en Río Cuarto",
 ];
