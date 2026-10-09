@@ -13,6 +13,8 @@ import { Terminos } from "@/pages/Legales/Terminos";
 import { Arrepentimiento } from "@/pages/Tienda/Arrepentimiento";
 import { Buscar } from "@/pages/Tienda/Buscar";
 import { Carrito } from "@/pages/Tienda/Carrito";
+import { Catalogo } from "@/pages/Tienda/Catalogo";
+import { cargarCatalogo } from "@/pages/Tienda/Catalogo.action";
 import { Categoria } from "@/pages/Tienda/Categoria";
 import { cargarCategoria } from "@/pages/Tienda/Categoria.action";
 import { Checkout } from "@/pages/Tienda/Checkout";
@@ -41,6 +43,7 @@ export const rutasTienda: RouteObject[] = [
         ErrorBoundary: ErrorTienda,
         children: [
           { index: true, Component: Portada, loader: cargarPortada },
+          { path: "catalogo", Component: Catalogo, loader: cargarCatalogo },
           { path: ":categoria", Component: Categoria, loader: cargarCategoria },
           { path: "productos/:slug", Component: Producto },
           { path: "buscar", Component: Buscar },

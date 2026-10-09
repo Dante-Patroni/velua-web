@@ -67,7 +67,7 @@ export function Portada() {
               esencial.
             </p>
             <div className="flex flex-wrap items-center gap-6 pt-1">
-              <Button nativeButton={false} render={<a href="#colecciones" />} className="h-13 px-9">
+              <Button nativeButton={false} render={<Link to="/catalogo" />} className="h-13 px-9">
                 Ver el catálogo
               </Button>
               <Link
@@ -82,7 +82,7 @@ export function Portada() {
       </section>
 
       {categorias.length > 0 && (
-        <section id="colecciones" className="mx-auto max-w-6xl scroll-mt-4 px-4 pt-14 md:px-8 md:pt-24">
+        <section className="mx-auto max-w-6xl px-4 pt-14 md:px-8 md:pt-24">
           <h2 className="text-4xl font-medium text-tinta md:text-5xl">Colecciones</h2>
           <ul
             className={cn(
