@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { Categoria } from "@/types";
 import {
   CREDITOS_DESARROLLO,
+  DATA_FISCAL,
   DEFENSA_CONSUMIDOR,
   ENLACES_AYUDA,
   ENLACES_LEGALES,
@@ -91,7 +92,7 @@ export function PieTienda({ categorias }: { categorias: Categoria[] }) {
             <p className="whitespace-nowrap">Río Cuarto, Córdoba · veluanature.com.ar</p>
           </div>
           <nav aria-label="Legales">
-            <ul className="flex flex-col gap-3 md:flex-row md:flex-wrap md:justify-end md:gap-x-6">
+            <ul className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-end md:gap-x-6">
               {ENLACES_LEGALES.map(({ ruta, texto }, indice) => (
                 <li key={ruta}>
                   <Link to={ruta} className={indice === 0 ? `${claseEnlace} font-bold` : claseEnlace}>
@@ -107,6 +108,18 @@ export function PieTienda({ categorias }: { categorias: Categoria[] }) {
                   className={claseEnlace}
                 >
                   {DEFENSA_CONSUMIDOR.texto}
+                </a>
+              </li>
+              <li>
+                <a href={DATA_FISCAL.url} target="_blank" rel="noopener noreferrer">
+                  <img
+                    src={DATA_FISCAL.imagen}
+                    alt={DATA_FISCAL.alt}
+                    width={239}
+                    height={327}
+                    loading="lazy"
+                    className="h-16 w-auto"
+                  />
                 </a>
               </li>
             </ul>
