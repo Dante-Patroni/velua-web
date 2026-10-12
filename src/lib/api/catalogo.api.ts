@@ -1,5 +1,5 @@
 import { apiFetch } from "@/lib/apiFetch";
-import type { Categoria, ListadoProductos } from "@/types";
+import type { Categoria, ListadoProductos, ProductoDetalle } from "@/types";
 
 /** Respuesta de GET /categorias. */
 type ListaCategorias = { datos: Categoria[] };
@@ -50,3 +50,13 @@ export const listarCategorias = (signal?: AbortSignal) =>
  */
 export const listarProductosTienda = (filtros: FiltrosCatalogo = {}, signal?: AbortSignal) =>
   apiFetch<ListadoProductos>(`/productos${aConsulta(filtros)}`, { signal });
+
+/**
+ * @description Trae la ficha completa de un producto publicado: todas las
+ * variantes activas, todas las imágenes, ingredientes y modo de uso.
+ * @param slug Slug del producto, tal como va en la URL.
+ * @param signal Señal para cancelar la petición si la navegación cambia.
+ * @returns El producto. Si no existe o está despublicado, la API responde 404.
+ */
+export const obtenerProductoTienda = (slug: string, signal?: AbortSignal) =>
+  apiFetch<ProductoDetalle>(`/productos/${encodeURIComponent(slug)}`, { signal });
