@@ -72,6 +72,20 @@ export const DEFENSA_CONSUMIDOR = {
   url: "https://autogestion.produccion.gob.ar/consumidores",
 } as const;
 
+/**
+ * Data Fiscal de ARCA (Formulario 960), obligatorio para vender online. La
+ * imagen se sirve desde el propio sitio: el código original de ARCA la pide por
+ * `http` y el navegador la bloquea en una página `https` (contenido mixto). Las
+ * dos comas finales de la URL son parte del código y no se sacan. El parámetro
+ * `qr` no es secreto: identifica el Data Fiscal de la tienda y es público a
+ * propósito.
+ */
+export const DATA_FISCAL = {
+  url: "https://qr.afip.gob.ar/?qr=BdlWUM5ko53WPnBwNFHFog,,",
+  imagen: "/data-fiscal.jpg",
+  alt: "Data Fiscal (ARCA)",
+} as const;
+
 /** Mensaje para un código que el frontend todavía no contempla. */
 export const MENSAJE_ERROR_POR_DEFECTO =
   "Algo salió mal. Probá de nuevo en unos minutos.";
