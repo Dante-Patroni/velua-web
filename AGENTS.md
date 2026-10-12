@@ -103,7 +103,7 @@ src/
 
 ### 5.1 El frontend no calcula totales
 
-Ningún componente, hook ni util suma precios, aplica descuentos ni calcula envío. Todo importe que se muestre en el carrito o el checkout viene de `POST /carrito/cotizar`.
+Ningún componente, hook ni util suma precios, aplica descuentos ni calcula envío. Todo importe que se muestre en el carrito o el checkout viene de `POST /cotizar`.
 
 Está prohibido replicar en TypeScript la lógica del cotizador del backend, aunque parezca trivial y aunque evite un viaje de red. Dos implementaciones de la misma regla divergen siempre, y el cliente termina viendo un total distinto al que se le cobra.
 
