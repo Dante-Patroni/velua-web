@@ -23,6 +23,7 @@ import { Pedido } from "@/pages/Tienda/Pedido";
 import { Portada } from "@/pages/Tienda/Portada";
 import { cargarPortada } from "@/pages/Tienda/Portada.action";
 import { Producto } from "@/pages/Tienda/Producto";
+import { cargarProducto } from "@/pages/Tienda/Producto.action";
 
 /**
  * Rama pública, sin autenticación. Las rutas estáticas le ganan a /:categoria
@@ -45,7 +46,7 @@ export const rutasTienda: RouteObject[] = [
           { index: true, Component: Portada, loader: cargarPortada },
           { path: "catalogo", Component: Catalogo, loader: cargarCatalogo },
           { path: ":categoria", Component: Categoria, loader: cargarCategoria },
-          { path: "productos/:slug", Component: Producto },
+          { path: "productos/:slug", Component: Producto, loader: cargarProducto },
           { path: "buscar", Component: Buscar },
           { path: "carrito", Component: Carrito },
           { path: "checkout", Component: Checkout },
