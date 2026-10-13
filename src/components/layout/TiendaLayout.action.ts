@@ -28,7 +28,11 @@ export async function cargarTiendaLayout({
     const { datos } = await listarCategorias(request.signal);
     return { categorias: datos };
   } catch (error) {
-    if (error instanceof ErrorApi) return { categorias: [] };
+    if (error instanceof ErrorApi) {
+      // Sin esto, una API caída o un CORS mal configurado dejan el menú vacío sin rastro.
+      console.warn("No se pudieron cargar las categorías del menú:", error);
+      return { categorias: [] };
+    }
     throw error;
   }
 }
