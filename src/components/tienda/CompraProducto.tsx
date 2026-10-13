@@ -123,7 +123,11 @@ export function CompraProducto({ nombre, variantes }: CompraProductoProps) {
               >
                 <Minus aria-hidden />
               </Button>
-              <output aria-live="polite" className="w-10 text-center font-display text-2xl text-tinta">
+              {/* Cifras alineadas: en las de estilo antiguo de la serif, el 1 se lee como una "I". */}
+              <output
+                aria-live="polite"
+                className="w-10 text-center font-display text-2xl text-tinta lining-nums tabular-nums"
+              >
                 {cantidad}
               </output>
               <Button
