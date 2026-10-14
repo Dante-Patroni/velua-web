@@ -1,4 +1,4 @@
-import { Outlet, useLoaderData } from "react-router-dom";
+import { Outlet, ScrollRestoration, useLoaderData } from "react-router-dom";
 
 import { CarritoProvider } from "@/carrito/CarritoContext";
 import type { cargarTiendaLayout } from "./TiendaLayout.action";
@@ -24,6 +24,7 @@ export function TiendaLayout() {
         </main>
 
         <PieTienda categorias={categorias} />
+        <ScrollRestoration />
       </div>
     </CarritoProvider>
   );
