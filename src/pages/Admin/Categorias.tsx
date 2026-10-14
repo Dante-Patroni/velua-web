@@ -312,6 +312,15 @@ export function Categorias() {
   const orden = useFetcher();
 
   const errorNueva = nueva.data as ErrorCategorias | undefined;
+
+  // Al crear, el formulario se cierra: si quedara abierto con los mismos datos,
+  // otro toque crearía la colección dos veces.
+  const [estadoPrevio, setEstadoPrevio] = useState(nueva.state);
+  if (estadoPrevio !== nueva.state) {
+    setEstadoPrevio(nueva.state);
+    if (nueva.state === "idle" && nueva.data === null) setAgregando(false);
+  }
+
   const filas = aplanarArbol(categorias);
 
   /**
