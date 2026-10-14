@@ -36,6 +36,14 @@ Reglas:
 
 ---
 
+## Fuentes de verdad
+
+- **El contrato** es `velua-api/docs/openapi.json`.
+- **Las decisiones** están en `velua-api/DECISIONES.md` (el de este repo es su espejo).
+- Si hay diferencias entre ellos y este archivo, **manda el OpenAPI**.
+
+---
+
 ## 3) Stack
 
 | Herramienta | Propósito |
@@ -148,18 +156,13 @@ export const MENSAJES_ERROR = {
 
 Nunca mostrar el código crudo, y nunca depender de un `message` en inglés del backend.
 
-**Códigos que ya existen en la API.** Todos tienen que estar en el diccionario,
-aunque sea en el contexto general:
-
-```
-DATOS_INVALIDOS          JSON_INVALIDO            NO_ENCONTRADO
-NO_AUTORIZADO            TOKEN_INVALIDO           TOKEN_EXPIRADO
-CREDENCIALES_INVALIDAS   USUARIO_INACTIVO         SIN_PERMISO
-CONFLICTO_DE_DATOS       LIMITE_SUPERADO          TRANSICION_INVALIDA
-PAGO_NO_APROBADO         SEGUIMIENTO_REQUERIDO    SIN_VARIANTES
-ULTIMA_VARIANTE_ACTIVA   LIMITE_IMAGENES          ARCHIVO_REQUERIDO
-TIPO_ARCHIVO_INVALIDO    ARCHIVO_DEMASIADO_GRANDE ERROR_AL_SUBIR
-```
+**Códigos que existen en la API.** Todos tienen que estar en el diccionario,
+aunque sea en el contexto general. La lista no se repite acá porque crece con la
+API: la fuente es el OpenAPI y, para ver de dónde sale cada uno,
+`src/middlewares/errorMapper.js` de `velua-api` (más `TOKEN_EXPIRADO` y
+`LIMITE_SUPERADO`, que salen de los middlewares). Cuando el esquema `Error` del
+OpenAPI publique los códigos como enum, `CodigoError` sale de `npm run tipos` y
+TypeScript marca el que falte.
 
 Y siempre un mensaje por defecto para un código desconocido: la API puede sumar
 uno nuevo antes de que el frontend lo contemple, y el usuario no puede quedarse
@@ -181,12 +184,12 @@ los navegadores que lo soportan y `q_auto` ajusta la calidad. Para la grilla,
 ### 5.7 Un producto sin fotos es un estado normal, no un error
 
 En el listado, `imagen` es `null` cuando el producto todavía no tiene fotos
-cargadas. **Hoy los quince productos del catálogo están así**, y van a seguir así
-hasta que la marca las mande.
+cargadas. Es un estado normal: hay productos con fotos y productos sin ellas, y
+la marca las va sumando de a poco.
 
-La tarjeta tiene que resolverlo bien desde el principio: en el diseño esa zona
-usa la ilustración botánica de la caja como textura, con una etiqueta discreta.
-No es un placeholder temporal ni un gris: es cómo se ve el catálogo por ahora.
+La tarjeta tiene que resolverlo bien: en el diseño esa zona usa la ilustración
+botánica de la caja como textura, con una etiqueta discreta. No es un
+placeholder temporal ni un gris: es cómo se ve un producto sin fotos.
 
 ---
 
@@ -257,6 +260,14 @@ Se mantiene el patrón del proyecto anterior.
 **Loaders** para lectura, antes de renderizar. Llaman a funciones de `lib/api/`, nunca a `fetch` directo.
 
 **Actions** para escritura, con `<Form>` de react-router, inputs con `name`, `useNavigation()` para el estado de envío y `useActionData()` para los errores.
+
+**Todo botón de envío se deshabilita mientras `useNavigation().state === "submitting"`**
+(o `fetcher.state !== "idle"` si el formulario usa un fetcher). Sin eso, un doble
+toque crea el registro dos veces: así apareció la colección "Sets" duplicada.
+
+**Cada layout lleva `<ScrollRestoration />`.** Sin él, al cambiar de página el
+scroll queda a la altura de la anterior. Con él, cada página arranca arriba y
+"Atrás" vuelve a donde estabas.
 
 **Dónde no usar loaders:** el carrito. Es estado de cliente, vive en `CarritoContext` y se sincroniza con el endpoint de cotización. No es un recurso de ruta.
 
@@ -394,14 +405,13 @@ de sistema.
 
 **Contrastes verificados.** Para texto solo sirven `tinta` #4A4066,
 `texto-suave` #5B5178, `texto-tenue` #6B6188, `etiqueta` #6F6036,
-`salvia-hondo` #47562B y `dorado-texto` #985C14.
+`salvia-hondo` #47562B y `dorado-texto` #985C14. El resto es para superficies,
+bordes y trazos, nunca para leer.
 
-El `lavanda`, el `rosa`, el `dorado` y el `dorado-hondo` son para superficies,
-bordes y trazos, **nunca para leer**: el lavanda da 3.04 sobre la crema y el
-dorado-hondo 2.87, cuando el mínimo legible es 4.5.
-
-Para el badge de oferta, fondo `tinta` con texto crema, que da 8.71. El fondo
-dorado-hondo no sirve: ni con texto claro ni con texto oscuro llega al mínimo.
+**Cantidades y contadores** llevan `font-variant-numeric: lining-nums tabular-nums`
+(clases `lining-nums tabular-nums` de Tailwind): con las cifras de estilo antiguo de
+Cormorant, el "1" parece una "I" y los dígitos no se alinean. Los precios pueden
+seguir con cifras de estilo antiguo.
 
 Nunca hardcodear un hex en un componente. Si hace falta un color nuevo, se agrega
 al tema.
@@ -414,21 +424,33 @@ La marca es delicada y con aire: fotos grandes, mucho blanco, pocas cosas por fi
 
 React 19 permite declarar `<title>` y `<meta>` directamente en el componente y los eleva al `head`. No hace falta una librería.
 
-Cada ficha de producto define su título, su descripción y su `og:image`. Es lo mínimo para que un link compartido por WhatsApp muestre la foto del producto, que es como se va a compartir casi todo.
+Cada ficha de producto define su título, su descripción y su `og:image`.
+
+**Limitación conocida.** Un `og:image` declarado desde React no lo ven WhatsApp
+ni otros rastreadores, porque no ejecutan JavaScript: leen el HTML tal como sale
+del servidor. Para que el link compartido muestre la foto del producto hace falta
+un middleware en Vercel que inyecte los metadatos. Queda pendiente; hasta
+entonces, las etiquetas del componente sirven para el navegador y para Google,
+no para WhatsApp.
 
 ---
 
 ## 13) Variables de entorno
 
 ```env
-# desarrollo, contra el backend local
+# desarrollo, siempre contra el backend local
 VITE_API_URL=http://localhost:3000/api/v1
-
-# la API tambien esta desplegada y se puede consumir directo:
-# VITE_API_URL=https://velua-api-production.up.railway.app/api/v1
 ```
 
+La API de producción está en `https://api.veluanature.com.ar/api/v1` y
+**rechaza `localhost` por CORS (403), a propósito**. El desarrollo es siempre
+contra la API local.
+
 La URL incluye `/api/v1`, así las funciones de `lib/api/` escriben rutas cortas.
+
+**Previews de Vercel.** Usan la API de producción: no terminar compras ahí. El
+panel no funciona desde una preview porque la cookie es `SameSite=Lax`, y está
+bien así.
 
 Prefijo `VITE_` obligatorio. **Nunca** poner credenciales, claves de pago ni secretos: todo lo que está acá es público y visible en el bundle.
 
@@ -490,6 +512,10 @@ mano. No hay endpoint de suscripción ni lo va a haber por ahora.
 entonces, un combo es un producto común con su propio stock, en la categoría
 Combos. No implementes selector, casilleros ni descuento de stock por
 componente antes del H8: las reglas están en DECISIONES.md.
+
+**Checkout con Mercado Pago y página del pedido.** No se implementan hasta que
+esté el contrato final del pago. Lo único que se adelanta son los textos de los
+códigos de error en `lib/mappings.ts`.
 
 ---
 
