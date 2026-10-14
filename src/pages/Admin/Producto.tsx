@@ -135,7 +135,7 @@ export function Producto() {
           <Form method="post">
             <input type="hidden" name="intencion" value="estado-producto" />
             <input type="hidden" name="activo" value={String(!producto.activo)} />
-            <Button type="submit" className="w-auto">
+            <Button type="submit" disabled={enviando} className="w-auto">
               {producto.activo ? "Despublicar" : "Publicar"}
             </Button>
           </Form>
