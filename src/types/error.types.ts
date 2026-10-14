@@ -28,7 +28,21 @@ export type CodigoErrorApi =
   | "CATEGORIA_PADRE_INVALIDA"
   | "CATEGORIA_CON_HIJAS"
   | "CATEGORIA_CON_PRODUCTOS"
-  | "PRODUCTO_CON_VENTAS";
+  | "PRODUCTO_CON_VENTAS"
+  | "CARRITO_DESACTUALIZADO"
+  | "CARRITO_SIN_ITEMS_VALIDOS"
+  | "ERROR_INTERNO"
+  | "ORIGEN_NO_PERMITIDO"
+  | "PEDIDO_NO_PAGABLE"
+  | "PEDIDO_VENCIDO"
+  | "PEDIDO_YA_PAGADO"
+  | "PAGO_EN_PROCESO"
+  | "PEDIDO_EN_REVISION"
+  | "PROCESADOR_NO_CONFIGURADO"
+  | "PROCESADOR_NO_DISPONIBLE"
+  | "STOCK_INSUFICIENTE"
+  | "TOTAL_CAMBIO"
+  | "ZONA_INVALIDA";
 
 /**
  * Códigos propios del frontend, para fallas que no traen respuesta de la API:
@@ -40,4 +54,4 @@ export type CodigoErrorCliente = "ERROR_DE_RED" | "ERROR_DESCONOCIDO";
 export type CodigoError = CodigoErrorApi | CodigoErrorCliente;
 
 /** Pantalla o flujo donde se muestra el error. Define el tono del mensaje. */
-export type ContextoError = "general" | "tienda" | "login" | "panel";
+export type ContextoError = "general" | "tienda" | "login" | "panel" | "ficha" | "checkout";
