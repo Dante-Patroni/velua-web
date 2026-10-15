@@ -4,6 +4,67 @@
  */
 
 export interface paths {
+    "/webhooks/mercadopago": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Aviso de Mercado Pago
+         * @description Lo llama Mercado Pago, no el frontend. Verifica la firma (x-signature y x-request-id con MP_WEBHOOK_SECRET), consulta el pago en Mercado Pago y, si corresponde, mueve el estado de pago del pedido. Es idempotente: el mismo aviso puede llegar varias veces.
+         */
+        post: {
+            parameters: {
+                query: {
+                    "data.id": string;
+                    type: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Aviso recibido. Se procese o no, no hace falta reintentarlo. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Firma inválida. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Falla pasajera (Mercado Pago no respondió). Mercado Pago reintenta. */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Falta configurar MP_WEBHOOK_SECRET. */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/pedidos": {
         parameters: {
             query?: never;
@@ -124,6 +185,67 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pedidos/{numero}/pago": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Generar un link de pago de Mercado Pago
+         * @description Para un pedido de Mercado Pago con el pago pendiente o rechazado y la reserva vigente. Se usa si al crear el pedido Mercado Pago no respondio (urlPago null), o para reintentar despues de un rechazo. Publico: el numero funciona como llave. Comparte el limite de 10 por hora por IP con la creacion de pedidos.
+         *     Antes de dar el link consulta a Mercado Pago si el pedido ya tiene pagos: si hay uno aprobado lo registra y responde PEDIDO_YA_PAGADO, y si hay uno en curso responde PAGO_EN_PROCESO. Si no puede consultar, no da link. Reusa la preferencia del pedido mientras siga vigente, asi que dos llamadas seguidas devuelven el mismo link.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    numero: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Link de pago */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PagoIniciado"];
+                    };
+                };
+                404: components["responses"]["NoEncontrado"];
+                /** @description PEDIDO_NO_PAGABLE (otro medio de pago, o ya aprobado o cancelado), PEDIDO_VENCIDO (la reserva vencio), PEDIDO_YA_PAGADO (Mercado Pago ya tiene un pago aprobado; el pedido queda aprobado, recargar el pedido), PAGO_EN_PROCESO (hay un pago pendiente; no ofrecer otro pago, esperar o escribir a la tienda) o PEDIDO_EN_REVISION (la tienda lo esta revisando; no ofrecer otro pago). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description PROCESADOR_NO_DISPONIBLE. Mercado Pago no respondio, o no se pudo verificar si el pedido ya tenia un pago. Reintentar en unos minutos. */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -599,6 +721,87 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/arrepentimientos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar el arrepentimiento de una compra
+         * @description Botón de arrepentimiento (Resolución 424/2020). No requiere registrarse. Siempre registra la solicitud y devuelve un código de trámite, que también se le manda por mail a la clienta.
+         *
+         *     No confirma si el pedido existe ni controla el plazo legal: de eso se ocupa la dueña. El motivo es opcional: no hace falta justificar.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @example VEL-TV89DE */
+                        pedidoNumero?: string;
+                        nombre: string;
+                        /** Format: email */
+                        email: string;
+                        telefono?: string;
+                        motivo?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Solicitud registrada */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @example ARR-K7Q2XM */
+                            codigo: string;
+                            /** Format: date-time */
+                            creadoEn: string;
+                        };
+                    };
+                };
+                /** @description DATOS_INVALIDOS, con el campo que falla en details. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Demasiadas solicitudes desde la misma dirección */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "LIMITE_SUPERADO"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -1725,6 +1928,71 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/arrepentimientos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar las solicitudes de arrepentimiento
+         * @description De la más nueva a la más vieja. Incluye los datos de contacto de la clienta: por eso pide el permiso de ver pedidos. El plazo legal y si el pedido existe los evalúa quien gestiona la solicitud.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    estado?: "recibido" | "en_gestion" | "resuelto";
+                    pagina?: number;
+                    limite?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Página de solicitudes */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            datos: {
+                                id?: number;
+                                codigo?: string;
+                                pedidoNumero?: string | null;
+                                nombre?: string;
+                                email?: string;
+                                telefono?: string | null;
+                                motivo?: string | null;
+                                /** @enum {string} */
+                                estado?: "recibido" | "en_gestion" | "resuelto";
+                                /** Format: date-time */
+                                creadoEn?: string;
+                            }[];
+                            meta: {
+                                pagina?: number;
+                                limite?: number;
+                                total?: number;
+                            };
+                        };
+                    };
+                };
+                400: components["responses"]["DatosInvalidos"];
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/salud": {
         parameters: {
             query?: never;
@@ -2235,6 +2503,14 @@ export interface components {
              * @description Hasta cuando queda apartado el stock si no se paga.
              */
             expiraEn: string;
+            /** @description Solo con Mercado Pago. Link al que se redirige a la clienta. Null si Mercado Pago no respondió: se reintenta con POST /pedidos/{numero}/pago. */
+            urlPago?: string | null;
+        };
+        PagoIniciado: {
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /** @description Link de pago de Mercado Pago. */
+            urlPago: string;
         };
         /** @description Estado de un pedido sin ningun dato personal. */
         PedidoPublico: {
