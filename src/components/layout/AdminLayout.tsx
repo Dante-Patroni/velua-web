@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useLoaderData } from "react-router-dom";
+import { NavLink, Outlet, ScrollRestoration, useLoaderData } from "react-router-dom";
 
 import { AuthProvider } from "@/auth/AuthContext";
 import type { authLoader } from "@/auth/authService";
@@ -46,6 +46,8 @@ export function AdminLayout() {
         <main className="flex-1">
           <Outlet />
         </main>
+
+        <ScrollRestoration />
       </div>
     </AuthProvider>
   );
