@@ -8,7 +8,7 @@ import {
   obtenerMensajeError,
 } from "./mappings";
 
-// Lista de AGENTS.md §5.4. Se repite acá a propósito: si alguien borra un
+// Lista de códigos de la API (OpenAPI y errorMapper.js). Se repite acá a propósito: si alguien borra un
 // código del diccionario y del tipo a la vez, este test lo detecta.
 const CODIGOS_DE_LA_API = [
   "DATOS_INVALIDOS", "JSON_INVALIDO", "NO_ENCONTRADO",
@@ -18,7 +18,8 @@ const CODIGOS_DE_LA_API = [
   "PAGO_NO_APROBADO", "SEGUIMIENTO_REQUERIDO", "SIN_VARIANTES",
   "ULTIMA_VARIANTE_ACTIVA", "LIMITE_IMAGENES", "ARCHIVO_REQUERIDO",
   "TIPO_ARCHIVO_INVALIDO", "ARCHIVO_DEMASIADO_GRANDE", "ERROR_AL_SUBIR",
-  "CATEGORIA_PADRE_INVALIDA", "CATEGORIA_CON_HIJAS", "CATEGORIA_CON_PRODUCTOS", "PRODUCTO_CON_VENTAS"
+  "CATEGORIA_PADRE_INVALIDA", "CATEGORIA_CON_HIJAS", "CATEGORIA_CON_PRODUCTOS", "PRODUCTO_CON_VENTAS",
+  "CARRITO_DESACTUALIZADO", "CARRITO_SIN_ITEMS_VALIDOS", "ERROR_INTERNO", "ORIGEN_NO_PERMITIDO", "PEDIDO_NO_PAGABLE", "PEDIDO_VENCIDO", "PEDIDO_YA_PAGADO", "PAGO_EN_PROCESO", "PEDIDO_EN_REVISION", "PROCESADOR_NO_CONFIGURADO", "PROCESADOR_NO_DISPONIBLE", "STOCK_INSUFICIENTE", "TOTAL_CAMBIO", "ZONA_INVALIDA",
 ];
 
 describe("obtenerMensajeError", () => {
@@ -35,6 +36,18 @@ describe("obtenerMensajeError", () => {
     );
     expect(obtenerMensajeError("CONFLICTO_DE_DATOS", "panel")).not.toBe(
       MENSAJES_ERROR.general.CONFLICTO_DE_DATOS,
+    );
+  });
+
+  it("dice cosas distintas del stock según la pantalla", () => {
+    expect(obtenerMensajeError("STOCK_INSUFICIENTE", "ficha")).toBe(
+      MENSAJES_ERROR.ficha.STOCK_INSUFICIENTE,
+    );
+    expect(obtenerMensajeError("STOCK_INSUFICIENTE", "checkout")).toBe(
+      MENSAJES_ERROR.checkout.STOCK_INSUFICIENTE,
+    );
+    expect(obtenerMensajeError("STOCK_INSUFICIENTE")).toBe(
+      MENSAJES_ERROR.general.STOCK_INSUFICIENTE,
     );
   });
 

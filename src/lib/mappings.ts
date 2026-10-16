@@ -125,6 +125,24 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
       "La categoría tiene productos y no puede agrupar otras.",
     PRODUCTO_CON_VENTAS: "El producto tiene ventas y no se puede borrar.",
     PAGO_NO_APROBADO: "El pago no fue aprobado.",
+    CARRITO_DESACTUALIZADO: "Tu carrito cambió. Revisalo antes de continuar.",
+    CARRITO_SIN_ITEMS_VALIDOS:
+      "Ninguno de los productos de tu carrito está disponible.",
+    STOCK_INSUFICIENTE: "No hay stock suficiente.",
+    TOTAL_CAMBIO: "El total cambió desde la última vez que lo viste. Revisalo antes de pagar.",
+    ZONA_INVALIDA: "No pudimos reconocer la zona de envío. Revisala y probá de nuevo.",
+    PEDIDO_NO_PAGABLE: "Este pedido no se puede pagar desde acá. Si tenés dudas, escribinos por WhatsApp.",
+    PEDIDO_VENCIDO: "Tu pedido venció: pasó el tiempo en que guardamos tus productos. Podés armarlo de nuevo desde el carrito.",
+    PEDIDO_YA_PAGADO: "Tu pago ya está acreditado.",
+    PAGO_EN_PROCESO:
+      "Tenés un pago en proceso. Si querés pagar de otra forma, escribinos por WhatsApp.",
+    PEDIDO_EN_REVISION: "Estamos revisando tu pedido y te vamos a escribir.",
+    PROCESADOR_NO_DISPONIBLE:
+      "No pudimos conectar con Mercado Pago, probá en unos minutos.",
+    PROCESADOR_NO_CONFIGURADO:
+      "El pago online no está disponible por ahora. Escribinos por WhatsApp.",
+    ORIGEN_NO_PERMITIDO: "No pudimos completar la operación. Probá recargando la página.",
+    ERROR_INTERNO: "Tuvimos un problema de nuestro lado. Probá de nuevo en unos minutos.",
     SEGUIMIENTO_REQUERIDO: "Falta cargar el código de seguimiento del envío.",
     SIN_VARIANTES: "El producto necesita al menos una variante.",
     ULTIMA_VARIANTE_ACTIVA:
@@ -141,6 +159,12 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
   tienda: {
     NO_ENCONTRADO:
       "No encontramos lo que buscabas. Puede que ya no esté disponible.",
+  },
+  ficha: {
+    STOCK_INSUFICIENTE: "Nos quedan menos unidades de las que pediste.",
+  },
+  checkout: {
+    STOCK_INSUFICIENTE: "Alguien se adelantó. Revisá tu carrito antes de pagar.",
   },
   login: {
     DATOS_INVALIDOS: "Completá el mail y la contraseña.",
