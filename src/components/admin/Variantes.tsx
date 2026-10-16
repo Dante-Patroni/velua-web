@@ -192,6 +192,14 @@ export function VariantesExistentes({
   const activas = producto.variantes.filter((v) => v.activa).length;
   const error = nueva.data as { details?: Record<string, string> } | undefined;
 
+  // Al agregar, el formulario se cierra: abierto y con los mismos datos, otro
+  // toque crearía la presentación dos veces.
+  const [estadoPrevio, setEstadoPrevio] = useState(nueva.state);
+  if (estadoPrevio !== nueva.state) {
+    setEstadoPrevio(nueva.state);
+    if (nueva.state === "idle" && nueva.data === null) setAgregando(false);
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {producto.variantes.map((v, i) => (
