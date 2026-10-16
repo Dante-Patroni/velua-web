@@ -103,10 +103,6 @@ export async function accionCategorias({ request }: ActionFunctionArgs) {
         await crearCategoria({
           nombre: texto(datos, "nombre") ?? "",
           descripcion: texto(datos, "descripcion") ?? null,
-        });
-        await crearCategoria({
-          nombre: texto(datos, "nombre") ?? "",
-          descripcion: texto(datos, "descripcion") ?? null,
           padreId: leerPadreId(datos) ?? null,
         });
         return null;
