@@ -131,8 +131,8 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
     STOCK_INSUFICIENTE: "No hay stock suficiente.",
     TOTAL_CAMBIO: "El total cambió desde la última vez que lo viste. Revisalo antes de pagar.",
     ZONA_INVALIDA: "No pudimos reconocer la zona de envío. Revisala y probá de nuevo.",
-    PEDIDO_NO_PAGABLE: "Este pedido ya no se puede pagar.",
-    PEDIDO_VENCIDO: "Tu pedido venció: pasó el tiempo en que guardamos tus productos.",
+    PEDIDO_NO_PAGABLE: "Este pedido no se puede pagar desde acá. Si tenés dudas, escribinos por WhatsApp.",
+    PEDIDO_VENCIDO: "Tu pedido venció: pasó el tiempo en que guardamos tus productos. Podés armarlo de nuevo desde el carrito.",
     PEDIDO_YA_PAGADO: "Tu pago ya está acreditado.",
     PAGO_EN_PROCESO:
       "Tenés un pago en proceso. Si querés pagar de otra forma, escribinos por WhatsApp.",
@@ -141,7 +141,7 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
       "No pudimos conectar con Mercado Pago, probá en unos minutos.",
     PROCESADOR_NO_CONFIGURADO:
       "El pago online no está disponible por ahora. Escribinos por WhatsApp.",
-    ORIGEN_NO_PERMITIDO: "No pudimos completar la operación desde este sitio.",
+    ORIGEN_NO_PERMITIDO: "No pudimos completar la operación. Probá recargando la página.",
     ERROR_INTERNO: "Tuvimos un problema de nuestro lado. Probá de nuevo en unos minutos.",
     SEGUIMIENTO_REQUERIDO: "Falta cargar el código de seguimiento del envío.",
     SIN_VARIANTES: "El producto necesita al menos una variante.",
