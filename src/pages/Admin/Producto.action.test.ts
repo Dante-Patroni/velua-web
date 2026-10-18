@@ -124,7 +124,19 @@ describe("leerProductoNuevo", () => {
     expect(leerProductoNuevo(form(base)).destacado).toBe(false);
     expect(leerProductoNuevo(form([...base, ["destacado", "true"]])).destacado).toBe(true);
   });
+
+  it("manda la fecha de lanzamiento como texto, sin convertirla", () => {
+    const p = leerProductoNuevo(form([...base, ["disponibleDesde", "2026-11-05"]]));
+
+    expect(p.disponibleDesde).toBe("2026-11-05");
+  });
+
+  it("sin fecha de lanzamiento manda null", () => {
+    expect(leerProductoNuevo(form(base)).disponibleDesde).toBeNull();
+    expect(leerProductoNuevo(form([...base, ["disponibleDesde", ""]])).disponibleDesde).toBeNull();
+  });
 });
+
 
 describe("leerCambiosProducto", () => {
   it("solo incluye los campos que vinieron en el formulario", () => {
@@ -146,5 +158,16 @@ describe("leerCambiosProducto", () => {
 
   it("convierte la categoría a número", () => {
     expect(leerCambiosProducto(form([["categoriaId", "7"]])).categoriaId).toBe(7);
+  });
+
+  it("manda null si se vació la fecha, para quitarla", () => {
+    const cambios = leerCambiosProducto(form([["disponibleDesde", ""]]));
+
+    expect(cambios).toHaveProperty("disponibleDesde");
+    expect(cambios.disponibleDesde).toBeNull();
+  });
+
+  it("no toca la fecha si el campo no vino", () => {
+    expect(leerCambiosProducto(form([["nombre", "X"]]))).not.toHaveProperty("disponibleDesde");
   });
 });
