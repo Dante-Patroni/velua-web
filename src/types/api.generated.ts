@@ -435,6 +435,8 @@ export interface paths {
                     categoria?: string;
                     /** @description Si es true, devuelve solo los productos marcados como destacados. */
                     destacados?: boolean;
+                    /** @description Si es true, devuelve solo los productos que todavía no salieron a la venta. */
+                    proximamente?: boolean;
                     /** @description Texto de busqueda. Busca en nombre y descripcion corta. */
                     q?: string;
                     /** @description Criterio de ordenamiento. `defecto`: orden de categoria y despues alfabetico. `precio_asc` / `precio_desc`: por precio minimo de variante activa. `mas_vendidos`: declarado en el contrato pero no implementado todavia; hasta que existan ventas reales devuelve el orden por defecto. */
@@ -2298,6 +2300,12 @@ export interface components {
             modoUso?: string | null;
             activo: boolean;
             destacado: boolean;
+            /**
+             * Format: date
+             * @description Día desde el que se vende (AAAA-MM-DD, hora de Argentina). Null si no tiene fecha de lanzamiento.
+             * @example 2026-11-05
+             */
+            disponibleDesde?: string | null;
             categoria?: components["schemas"]["Categoria"];
             /** @description Todas, activas e inactivas. */
             variantes: components["schemas"]["VarianteAdmin"][];
@@ -2342,6 +2350,12 @@ export interface components {
             modoUso?: string | null;
             /** @default false */
             destacado: boolean;
+            /**
+             * Format: date
+             * @description Día de lanzamiento (AAAA-MM-DD, hora de Argentina). Hasta ese día el producto se muestra como Próximamente y no se puede comprar. Null o vacío la quita.
+             * @example 2026-11-05
+             */
+            disponibleDesde?: string | null;
             /** @description Al menos una. El esquema no admite productos sin variantes. */
             variantes: components["schemas"]["VarianteEntrada"][];
         };
@@ -2355,6 +2369,12 @@ export interface components {
             ingredientes?: string | null;
             modoUso?: string | null;
             destacado?: boolean;
+            /**
+             * Format: date
+             * @description Día de lanzamiento (AAAA-MM-DD, hora de Argentina). Hasta ese día el producto se muestra como Próximamente y no se puede comprar. Null o vacío la quita.
+             * @example 2026-11-05
+             */
+            disponibleDesde?: string | null;
         };
         ZonaEnvio: {
             /** @example 2 */
@@ -2406,10 +2426,10 @@ export interface components {
         AvisoCotizacion: {
             varianteId: number;
             /**
-             * @description Los cuatro primeros sacan el producto del carrito. Los dos ultimos reducen la cantidad: AJUSTADO_POR_STOCK es un limite fisico, AJUSTADO_POR_TOPE es comercial y conviene invitar a escribir por WhatsApp.
+             * @description Los cinco primeros sacan el producto del carrito. Los dos ultimos reducen la cantidad: AJUSTADO_POR_STOCK es un limite fisico, AJUSTADO_POR_TOPE es comercial y conviene invitar a escribir por WhatsApp.
              * @enum {string}
              */
-            motivo: "VARIANTE_INEXISTENTE" | "VARIANTE_INACTIVA" | "PRODUCTO_INACTIVO" | "SIN_STOCK" | "AJUSTADO_POR_STOCK" | "AJUSTADO_POR_TOPE";
+            motivo: "VARIANTE_INEXISTENTE" | "VARIANTE_INACTIVA" | "PRODUCTO_INACTIVO" | "PROXIMAMENTE" | "SIN_STOCK" | "AJUSTADO_POR_STOCK" | "AJUSTADO_POR_TOPE";
             /** @description Nombre, para poder nombrarlo en el aviso. */
             producto?: string;
             /** @description Cantidad que habia en el carrito. */
@@ -2418,6 +2438,11 @@ export interface components {
             disponible?: number;
             /** @description Solo en AJUSTADO_POR_TOPE. */
             maximo?: number;
+            /**
+             * Format: date
+             * @description Solo en PROXIMAMENTE. Día desde el que se puede comprar.
+             */
+            disponibleDesde?: string;
         };
         /** @description Todos como cadena decimal. El total ya viene redondeado al peso. */
         TotalesCotizacion: {
