@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import type { CategoriaAdmin, ProductoAdmin } from "@/types";
+import { formatearDiaMes } from "@/lib/fechas";
 import { OpcionesColeccion } from "./OpcionesColeccion";
 
 /** Largo recomendado de la descripción corta, la que se ve en la grilla. */
@@ -71,6 +72,8 @@ export function DatosProducto({
   const [verSlug, setVerSlug] = useState(false);
 
   const editando = producto !== null;
+
+  const fechaGuardada = formatearDiaMes(producto?.disponibleDesde);
 
   return (
     <div className="flex flex-col gap-5">
@@ -194,6 +197,42 @@ export function DatosProducto({
             Los destacados aparecen en la portada de la tienda.
           </p>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-borde bg-crema-calida p-4">
+        <Label htmlFor="disponibleDesde">Disponible desde</Label>
+        <div className="mt-1 flex flex-wrap items-center gap-3">
+          <Input
+            id="disponibleDesde"
+            name="disponibleDesde"
+            type="date"
+            defaultValue={producto?.disponibleDesde ?? ""}
+            className="max-w-xs"
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              const campo =
+                e.currentTarget.form?.elements.namedItem("disponibleDesde");
+              if (campo instanceof HTMLInputElement) campo.value = "";
+            }}
+            className="text-sm text-dorado-texto underline-offset-4 hover:underline"
+          >
+            Quitar la fecha
+          </button>
+        </div>
+        <p className="mt-2 text-sm text-texto-suave">
+          Para los productos que todavía no están listos, como los jabones en
+          curado. Hasta ese día se muestran como «Próximamente» y no se pueden
+          comprar, ni en la tienda ni en persona. Si queda vacío, se vende desde
+          ya.
+        </p>
+        {fechaGuardada && (
+          <p className="mt-1 text-sm text-dorado-texto">
+            Fecha guardada: se vende desde el {fechaGuardada}.
+          </p>
+        )}
+        <ErrorCampo details={details} campo="disponibleDesde" />
       </div>
 
       {editando && (
