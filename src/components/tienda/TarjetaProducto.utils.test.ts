@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { hayOferta, mensajeAvisarme } from "@/components/tienda/TarjetaProducto.utils";
+import {
+  etiquetaProximamente,
+  hayOferta,
+  mensajeAvisarme,
+  mensajeConsultar,
+} from "@/components/tienda/TarjetaProducto.utils";
 
 describe("hayOferta", () => {
   it("muestra la oferta si el precio anterior es mayor", () => {
@@ -33,6 +38,41 @@ describe("mensajeAvisarme", () => {
   it("nombra el producto agotado", () => {
     expect(mensajeAvisarme("Amande Sereine")).toBe(
       "Hola, quiero que me avisen cuando vuelva a haber Amande Sereine.",
+    );
+  });
+});
+
+describe("etiquetaProximamente", () => {
+  it("muestra la fecha y los días que faltan", () => {
+    expect(etiquetaProximamente("2026-11-05", 19)).toBe(
+      "Próximamente · listo el 05/11 (faltan 19 días)",
+    );
+  });
+
+  it("usa el singular cuando falta un día", () => {
+    expect(etiquetaProximamente("2026-11-05", 1)).toBe(
+      "Próximamente · listo el 05/11 (falta 1 día)",
+    );
+  });
+
+  it("sin días o sin fecha válida muestra solo Próximamente", () => {
+    expect(etiquetaProximamente("2026-11-05", null)).toBe("Próximamente");
+    expect(etiquetaProximamente(null, null)).toBe("Próximamente");
+    expect(etiquetaProximamente("fecha-rota", 3)).toBe("Próximamente");
+  });
+});
+
+describe("mensajeConsultar", () => {
+  it("nombra el producto y la fecha de salida", () => {
+    expect(mensajeConsultar("Éclat Doré", "2026-11-05")).toBe(
+      "Hola, quiero consultar por Éclat Doré, que sale el 05/11.",
+    );
+  });
+
+  it("sin fecha válida nombra solo el producto", () => {
+    expect(mensajeConsultar("Éclat Doré", null)).toBe("Hola, quiero consultar por Éclat Doré.");
+    expect(mensajeConsultar("Éclat Doré", "2026-13-45")).toBe(
+      "Hola, quiero consultar por Éclat Doré.",
     );
   });
 });
