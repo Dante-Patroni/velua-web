@@ -21,6 +21,15 @@ export type CotizacionEntrada = Esquemas["CotizacionEntrada"];
 export type ItemCotizado = Esquemas["ItemCotizado"];
 export type AvisoCotizacion = Esquemas["AvisoCotizacion"];
 export type MotivoAviso = AvisoCotizacion["motivo"];
+export type ZonaEnvio = Esquemas["ZonaEnvio"];
+
+// Pedidos y pago
+export type PedidoEntrada = Esquemas["PedidoEntrada"];
+export type PedidoCreado = Esquemas["PedidoCreado"];
+export type PedidoPublico = Esquemas["PedidoPublico"];
+export type PagoIniciado = Esquemas["PagoIniciado"];
+export type EstadoPago = PedidoPublico["estadoPago"];
+export type EstadoPedido = PedidoPublico["estadoPedido"];
 
 // Catálogo del panel
 export type ProductoAdminFila = Esquemas["ProductoAdminFila"];
