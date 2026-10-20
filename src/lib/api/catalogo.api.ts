@@ -10,6 +10,8 @@ export type FiltrosCatalogo = {
   limite?: number;
   categoria?: string;
   destacados?: boolean;
+  /** true: solo los que todavía no salieron a la venta. La API acepta únicamente true o false. */
+  proximamente?: boolean;
   q?: string;
   orden?: "defecto" | "precio_asc" | "precio_desc";
 };

@@ -36,7 +36,7 @@ const claseEyebrow = "text-xs font-bold tracking-[0.18em] text-etiqueta uppercas
  * @returns La portada.
  */
 export function Portada() {
-  const { destacados } = useLoaderData<typeof cargarPortada>();
+  const { destacados, proximos } = useLoaderData<typeof cargarPortada>();
   const categorias = useRouteLoaderData<typeof cargarTiendaLayout>(ID_RUTA_TIENDA)?.categorias ?? [];
 
   return (
@@ -104,6 +104,19 @@ export function Portada() {
           <h2 className="text-4xl font-medium text-tinta md:text-5xl">Destacados</h2>
           <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
             {destacados.map((producto) => (
+              <li key={producto.id} className="flex">
+                <TarjetaProducto producto={producto} mostrarCategoria mostrarDestacado={false} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {proximos.length > 0 && (
+        <section className="mx-auto max-w-6xl px-4 pt-14 md:px-8 md:pt-24">
+          <h2 className="text-4xl font-medium text-tinta md:text-5xl">Próximos lanzamientos</h2>
+          <ul className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-6">
+            {proximos.map((producto) => (
               <li key={producto.id} className="flex">
                 <TarjetaProducto producto={producto} mostrarCategoria mostrarDestacado={false} />
               </li>
