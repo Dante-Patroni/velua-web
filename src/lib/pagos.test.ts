@@ -19,6 +19,7 @@ describe("urlPagoSegura", () => {
     ["javascript:", "javascript:alert(1)"],
     ["otro dominio", "https://example.com/mercadopago.com.ar"],
     ["dominio que solo se parece", "https://mercadopago.com.ar.evil.com/pago"],
+    ["dominio que termina igual", "https://evilmercadopago.com.ar/pago"],
     ["dominio terminado igual pero distinto", "https://notmercadopago.com.ar/pago"],
     ["con usuario que simula el dominio", "https://www.mercadopago.com.ar@evil.com/pago"],
     ["no es una URL", "esto no es una url"],
