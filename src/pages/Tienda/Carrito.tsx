@@ -4,6 +4,7 @@ import { useCarrito } from "@/carrito/useCarrito";
 import { useCotizacion } from "@/carrito/useCotizacion";
 import { carritoConfirmado, mensajeMasUnidades } from "@/carrito/cotizacion.utils";
 import { LineaCarrito } from "@/components/tienda/LineaCarrito";
+import { VaciarCarrito } from "@/components/tienda/VaciarCarrito";
 import { Button } from "@/components/ui/Button";
 import { Precio } from "@/components/ui/Precio";
 import {
@@ -27,7 +28,7 @@ const claseEnlaceAccion =
  */
 export function Carrito() {
   const { items, cambiarCantidad, quitar, reemplazar, vaciar } = useCarrito();
-  const { cotizacion, avisos, error, cargando, descartarAvisos, reintentar } = useCotizacion(
+  const { cotizacion, avisos, error, cargando, descartarAvisos, reintentar, reiniciar } = useCotizacion(
     items,
     reemplazar,
     vaciar,
@@ -37,6 +38,11 @@ export function Carrito() {
   // Mientras se cotiza un cambio, la lista sigue mostrando lo último que respondió la API.
   const lineas = (cotizacion?.items ?? []).filter(({ varianteId }) => cantidadActual.has(varianteId));
   const confirmado = carritoConfirmado(items, cotizacion, cargando);
+
+  const vaciarTodo = () => {
+    vaciar();
+    reiniciar();
+  };
 
   return (
     <>
@@ -110,9 +116,12 @@ export function Carrito() {
             </Button>
           </div>
         ) : !cotizacion ? (
-          <p role="status" className="mt-8 text-texto-suave">
-            {error ? "No pudimos cargar tu carrito." : "Armando tu carrito…"}
-          </p>
+          <div className="mt-8 flex flex-col items-start gap-4">
+            <p role="status" className="text-texto-suave">
+              {error ? "No pudimos cargar tu carrito." : "Armando tu carrito…"}
+            </p>
+            {error && <VaciarCarrito onVaciar={vaciarTodo} />}
+          </div>
         ) : (
           <div className="mt-8 grid gap-8 md:grid-cols-[1fr_20rem] md:gap-12" aria-busy={cargando}>
             <div>
@@ -126,6 +135,9 @@ export function Carrito() {
                   onQuitar={() => quitar(linea.varianteId)}
                 />
               ))}
+              <div className="pt-4">
+                <VaciarCarrito onVaciar={vaciarTodo} />
+              </div>
             </div>
 
             <aside className="flex h-fit flex-col gap-4 rounded-2xl border border-borde bg-crema-clara p-5 md:p-6">

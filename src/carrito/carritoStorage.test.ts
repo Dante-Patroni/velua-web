@@ -5,6 +5,7 @@ import {
   guardarCarrito,
   interpretarCarrito,
   leerCarrito,
+  vaciarCarrito,
 } from "@/carrito/carritoStorage";
 
 /**
@@ -16,6 +17,7 @@ const crearAlmacen = (inicial: Record<string, string> = {}) => {
   return {
     getItem: (clave: string) => datos.get(clave) ?? null,
     setItem: (clave: string, valor: string) => void datos.set(clave, valor),
+    removeItem: (clave: string) => void datos.delete(clave),
     datos,
   };
 };
@@ -136,9 +138,55 @@ describe("leerCarrito y guardarCarrito", () => {
       setItem: () => {
         throw new Error("cuota llena");
       },
+      removeItem: () => {
+        throw new Error("bloqueado");
+      },
     };
 
     expect(leerCarrito(roto)).toEqual([]);
     expect(() => guardarCarrito([{ varianteId: 1, cantidad: 1 }], roto)).not.toThrow();
+    expect(() => vaciarCarrito(roto)).not.toThrow();
+  });
+
+  it("guardar un carrito vacío borra la entrada en vez de dejar una lista vacía", () => {
+    const almacen = crearAlmacen();
+    guardarCarrito([{ varianteId: 1, cantidad: 1 }], almacen);
+
+    guardarCarrito([], almacen);
+
+    expect(almacen.datos.has(CLAVE_CARRITO)).toBe(false);
+  });
+});
+
+describe("vaciarCarrito", () => {
+  it("borra la entrada del almacén: no queda ni siquiera como lista vacía", () => {
+    const almacen = crearAlmacen();
+    guardarCarrito([{ varianteId: 1, cantidad: 2 }], almacen);
+
+    vaciarCarrito(almacen);
+
+    expect(almacen.getItem(CLAVE_CARRITO)).toBeNull();
+    expect(almacen.datos.size).toBe(0);
+    expect(leerCarrito(almacen)).toEqual([]);
+  });
+
+  it("no toca otras claves del almacén", () => {
+    const almacen = crearAlmacen({ otra: "valor" });
+    guardarCarrito([{ varianteId: 1, cantidad: 1 }], almacen);
+
+    vaciarCarrito(almacen);
+
+    expect(almacen.datos.get("otra")).toBe("valor");
+  });
+
+  it("con el carrito ya vacío no falla", () => {
+    const almacen = crearAlmacen();
+
+    expect(() => vaciarCarrito(almacen)).not.toThrow();
+    expect(almacen.datos.size).toBe(0);
+  });
+
+  it("sin almacén disponible no lanza", () => {
+    expect(() => vaciarCarrito(null)).not.toThrow();
   });
 });

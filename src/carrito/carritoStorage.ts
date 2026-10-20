@@ -5,7 +5,7 @@ import type { ItemCarrito } from "./types";
 export const CLAVE_CARRITO = "velua.carrito.v1";
 
 /** Lo mínimo de Storage que se usa. Permite probar sin navegador. */
-type Almacen = Pick<Storage, "getItem" | "setItem">;
+type Almacen = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 /**
  * @description Devuelve el localStorage del navegador, o null si no está
@@ -75,9 +75,25 @@ export const leerCarrito = (almacen: Almacen | null = almacenPorDefecto()): Item
 };
 
 /**
+ * @description Borra el carrito guardado: elimina la entrada del almacén, no
+ * la deja como una lista vacía. Nunca lanza.
+ * @param almacen Dónde borrar. Por defecto, localStorage.
+ */
+export const vaciarCarrito = (almacen: Almacen | null = almacenPorDefecto()): void => {
+  if (!almacen) return;
+
+  try {
+    almacen.removeItem(CLAVE_CARRITO);
+  } catch {
+    // Sin permiso sobre el almacén: el carrito ya está vacío en memoria.
+  }
+};
+
+/**
  * @description Guarda el carrito. Solo ids y cantidades, aunque reciba algo
- * más. Si el almacén falla, por ejemplo por cuota llena, el carrito sigue en
- * memoria durante la visita.
+ * más. Un carrito vacío no se guarda como lista vacía: se borra la entrada. Si
+ * el almacén falla, por ejemplo por cuota llena, el carrito sigue en memoria
+ * durante la visita.
  * @param items Carrito a guardar.
  * @param almacen Dónde escribir. Por defecto, localStorage.
  */
@@ -86,6 +102,11 @@ export const guardarCarrito = (
   almacen: Almacen | null = almacenPorDefecto(),
 ): void => {
   if (!almacen) return;
+
+  if (items.length === 0) {
+    vaciarCarrito(almacen);
+    return;
+  }
 
   const soloIds = items.map(({ varianteId, cantidad }) => ({ varianteId, cantidad }));
 
