@@ -1,5 +1,6 @@
 import { ErrorApi } from "@/lib/apiFetch";
-import type { CodigoError, ContextoError } from "@/types";
+import { formatearDiaMes } from "@/lib/fechas";
+import type { AvisoCotizacion, CodigoError, ContextoError, MotivoAviso } from "@/types";
 
 type Enlace = { ruta: string; texto: string };
 
@@ -85,6 +86,46 @@ export const DATA_FISCAL = {
   imagen: "/data-fiscal.jpg",
   alt: "Data Fiscal (ARCA)",
 } as const;
+
+/** Cómo se nombra un producto en un aviso cuando la API no manda el nombre. */
+const nombreEnAviso = ({ producto }: AvisoCotizacion): string => producto?.trim() || "Un producto";
+
+/**
+ * Mensajes de los avisos que devuelve `/cotizar`, uno por motivo. Está tipado
+ * como Record sobre el enum generado del contrato: si la API suma un motivo y
+ * falta acá, la compilación rompe. La API no manda textos, solo el motivo y los
+ * datos para armarlo. El carrito es una canastita, por eso "tu canasta".
+ */
+export const MENSAJES_AVISO: Record<MotivoAviso, (aviso: AvisoCotizacion) => string> = {
+  VARIANTE_INEXISTENTE: () => "Uno de los productos de tu canasta ya no existe. Lo quitamos.",
+  VARIANTE_INACTIVA: (aviso) =>
+    `${nombreEnAviso(aviso)} ya no está disponible. Lo quitamos de tu canasta.`,
+  PRODUCTO_INACTIVO: (aviso) =>
+    `${nombreEnAviso(aviso)} ya no está disponible. Lo quitamos de tu canasta.`,
+  PROXIMAMENTE: (aviso) => {
+    const fecha = formatearDiaMes(aviso.disponibleDesde);
+
+    return fecha
+      ? `${nombreEnAviso(aviso)} sale el ${fecha}. Lo quitamos de tu canasta.`
+      : `${nombreEnAviso(aviso)} todavía no salió a la venta. Lo quitamos de tu canasta.`;
+  },
+  SIN_STOCK: (aviso) => `${nombreEnAviso(aviso)} se quedó sin stock. Lo quitamos de tu canasta.`,
+  AJUSTADO_POR_STOCK: (aviso) => {
+    const { disponible } = aviso;
+
+    if (disponible === undefined) {
+      return `Ajustamos la cantidad de ${nombreEnAviso(aviso)} al stock que tenemos.`;
+    }
+
+    return disponible === 1
+      ? `Nos queda 1 unidad de ${nombreEnAviso(aviso)}. Ajustamos la cantidad.`
+      : `Nos quedan ${disponible} unidades de ${nombreEnAviso(aviso)}. Ajustamos la cantidad.`;
+  },
+  AJUSTADO_POR_TOPE: (aviso) =>
+    aviso.maximo === undefined
+      ? `Ajustamos la cantidad de ${nombreEnAviso(aviso)} al máximo por compra.`
+      : `Podés llevar hasta ${aviso.maximo} de ${nombreEnAviso(aviso)} por compra. Ajustamos la cantidad.`,
+};
 
 /** Mensaje para un código que el frontend todavía no contempla. */
 export const MENSAJE_ERROR_POR_DEFECTO =

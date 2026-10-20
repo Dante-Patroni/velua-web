@@ -15,6 +15,13 @@ export type Variante = Esquemas["Variante"];
 export type Imagen = Esquemas["Imagen"];
 export type Meta = Esquemas["Meta"];
 
+// Carrito y cotización
+export type Cotizacion = Esquemas["Cotizacion"];
+export type CotizacionEntrada = Esquemas["CotizacionEntrada"];
+export type ItemCotizado = Esquemas["ItemCotizado"];
+export type AvisoCotizacion = Esquemas["AvisoCotizacion"];
+export type MotivoAviso = AvisoCotizacion["motivo"];
+
 // Catálogo del panel
 export type ProductoAdminFila = Esquemas["ProductoAdminFila"];
 export type ProductoAdmin = Esquemas["ProductoAdmin"];
