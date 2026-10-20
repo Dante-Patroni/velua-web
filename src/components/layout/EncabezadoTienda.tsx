@@ -41,10 +41,11 @@ export function EncabezadoTienda({ categorias }: { categorias: Categoria[] }) {
   return (
     <header>
       <div className="bg-tinta px-4 py-2.5 text-crema-clara">
-        <ul className="flex items-center justify-center gap-3 text-[11px] font-bold tracking-[0.12em] uppercase md:gap-4 md:text-xs">
+        {/* Una sola línea: en el teléfono baja el cuerpo y el espaciado para que entren las dos promesas visibles. */}
+        <ul className="flex items-center justify-center gap-2 text-[10px] font-bold tracking-[0.08em] whitespace-nowrap uppercase min-[400px]:gap-3 min-[400px]:text-[11px] min-[400px]:tracking-[0.12em] md:gap-4 md:text-xs">
           {PROMESAS_TIENDA.map((promesa, indice) => (
             // La del medio no entra a 390 px: se muestra desde md.
-            <li key={promesa} className={cn("flex items-center gap-3 md:gap-4", indice === 1 && "hidden md:flex")}>
+            <li key={promesa} className={cn("flex items-center gap-2 min-[400px]:gap-3 md:gap-4", indice === 1 && "hidden md:flex")}>
               {indice > 0 && (
                 <span aria-hidden className="text-dorado">
                   •
