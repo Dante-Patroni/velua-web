@@ -35,8 +35,19 @@ function SeccionTexto({ titulo, texto }: { titulo: string; texto?: string | null
  */
 export function Producto() {
   const { producto, padre } = useLoaderData<typeof cargarProducto>();
-  const { nombre, descripcionCorta, descripcion, ingredientes, modoUso, categoria, imagenes, variantes } =
-    producto;
+  const {
+    nombre,
+    descripcionCorta,
+    descripcion,
+    ingredientes,
+    modoUso,
+    categoria,
+    imagenes,
+    variantes,
+    proximamente,
+    disponibleDesde,
+    diasRestantes,
+  } = producto;
 
   const descripcionPagina = descripcionMeta(producto);
   const imagenPrincipal = imagenes[0];
@@ -67,7 +78,14 @@ export function Producto() {
               )}
             </div>
 
-            <CompraProducto key={producto.id} nombre={nombre} variantes={variantes} />
+            <CompraProducto
+              key={producto.id}
+              nombre={nombre}
+              variantes={variantes}
+              proximamente={proximamente}
+              disponibleDesde={disponibleDesde}
+              diasRestantes={diasRestantes}
+            />
           </div>
         </div>
 
