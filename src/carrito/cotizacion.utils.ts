@@ -32,6 +32,22 @@ export const coincideConCotizacion = (
 };
 
 /**
+ * @description Decide si lo que la clienta ve está confirmado por la API: el
+ * carrito es exactamente lo que devolvió la última cotización (mismas
+ * variantes y mismas cantidades) y no hay una cotización en curso. Mientras no
+ * lo esté, no se puede seguir al checkout ni mostrar el subtotal como vigente.
+ * @param items Carrito actual.
+ * @param cotizacion Última cotización recibida, o null si todavía no hay.
+ * @param cargando true si hay una cotización en curso.
+ * @returns true si el carrito está confirmado.
+ */
+export const carritoConfirmado = (
+  items: ItemCarrito[],
+  cotizacion: Cotizacion | null,
+  cargando: boolean,
+): boolean => !cargando && coincideConCotizacion(items, cotizacion);
+
+/**
  * @description Mensaje que se precarga en WhatsApp cuando la clienta quiere
  * más unidades que el tope por compra. Nombra el producto.
  * @param producto Nombre del producto, si la API lo mandó.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  carritoConfirmado,
   coincideConCotizacion,
   itemsDeCotizacion,
   mensajeMasUnidades,
@@ -212,5 +213,39 @@ describe("resolverCotizacion", () => {
     );
 
     expect(resultado).toEqual({ tipo: "sin_items_validos" });
+  });
+});
+
+describe("carritoConfirmado", () => {
+  const cotizacion = cotizacionCon([linea(1, 8)]);
+
+  it("está confirmado cuando el carrito es lo que cotizó la API y no hay nada en curso", () => {
+    expect(carritoConfirmado([{ varianteId: 1, cantidad: 8 }], cotizacion, false)).toBe(true);
+  });
+
+  it("con la cantidad en 9 y el total cotizado en 8, no está confirmado", () => {
+    expect(carritoConfirmado([{ varianteId: 1, cantidad: 9 }], cotizacion, false)).toBe(false);
+  });
+
+  it("no está confirmado mientras hay una cotización en curso", () => {
+    expect(carritoConfirmado([{ varianteId: 1, cantidad: 8 }], cotizacion, true)).toBe(false);
+  });
+
+  it("no está confirmado si se agregó o se quitó una línea", () => {
+    expect(
+      carritoConfirmado(
+        [
+          { varianteId: 1, cantidad: 8 },
+          { varianteId: 2, cantidad: 1 },
+        ],
+        cotizacion,
+        false,
+      ),
+    ).toBe(false);
+    expect(carritoConfirmado([], cotizacion, false)).toBe(false);
+  });
+
+  it("sin cotización no está confirmado", () => {
+    expect(carritoConfirmado([{ varianteId: 1, cantidad: 8 }], null, false)).toBe(false);
   });
 });

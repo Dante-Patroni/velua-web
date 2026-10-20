@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 import { useCarrito } from "@/carrito/useCarrito";
 import { useCotizacion } from "@/carrito/useCotizacion";
-import { mensajeMasUnidades } from "@/carrito/cotizacion.utils";
+import { carritoConfirmado, mensajeMasUnidades } from "@/carrito/cotizacion.utils";
 import { LineaCarrito } from "@/components/tienda/LineaCarrito";
 import { Button } from "@/components/ui/Button";
 import { Precio } from "@/components/ui/Precio";
@@ -36,7 +36,7 @@ export function Carrito() {
   const cantidadActual = new Map(items.map(({ varianteId, cantidad }) => [varianteId, cantidad]));
   // Mientras se cotiza un cambio, la lista sigue mostrando lo último que respondió la API.
   const lineas = (cotizacion?.items ?? []).filter(({ varianteId }) => cantidadActual.has(varianteId));
-  const sincronizado = !cargando && lineas.length === items.length;
+  const confirmado = carritoConfirmado(items, cotizacion, cargando);
 
   return (
     <>
@@ -131,19 +131,26 @@ export function Carrito() {
             <aside className="flex h-fit flex-col gap-4 rounded-2xl border border-borde bg-crema-clara p-5 md:p-6">
               <div className="flex items-baseline justify-between gap-4">
                 <span className="text-texto-suave">Subtotal</span>
-                <Precio valor={cotizacion.totales.subtotal} className={cn("text-3xl", !sincronizado && "opacity-50")} />
+                <Precio valor={cotizacion.totales.subtotal} className={cn("text-3xl", !confirmado && "opacity-50")} />
               </div>
               <p className="text-sm text-texto-suave">
                 El envío se calcula al finalizar la compra, según tu zona.
               </p>
-              {sincronizado ? (
+              {confirmado ? (
                 <Button nativeButton={false} render={<Link to="/checkout" />} className="h-13 w-full">
                   Continuar con la compra
                 </Button>
               ) : (
-                <Button disabled className="h-13 w-full">
-                  {cargando ? "Actualizando…" : "Continuar con la compra"}
-                </Button>
+                <>
+                  <Button disabled className="h-13 w-full">
+                    {cargando || !error ? "Actualizando tu carrito…" : "Continuar con la compra"}
+                  </Button>
+                  {!cargando && error && (
+                    <p className="text-sm text-texto-suave">
+                      Tu carrito no está al día. Reintentá para poder continuar.
+                    </p>
+                  )}
+                </>
               )}
               <Link to="/catalogo" className={`${claseEnlaceAccion} text-center text-sm`}>
                 Seguir mirando
