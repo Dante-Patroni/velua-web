@@ -1,22 +1,28 @@
 import type { ItemCarrito } from "./types";
 
+/** Máximo de líneas distintas que acepta `/cotizar` y `POST /pedidos`. */
+export const MAX_ITEMS_CARRITO = 30;
+
 /**
  * @description Indica si un valor sirve como id de variante o como cantidad:
- * un entero mayor que cero.
+ * un entero seguro mayor que cero. Un número como 1e21 es entero pero viaja
+ * como "1e+21" y la API lo rechaza.
  * @param valor Valor a revisar.
  * @returns true si es un entero positivo.
  */
 export const esEnteroPositivo = (valor: unknown): valor is number =>
-  typeof valor === "number" && Number.isInteger(valor) && valor > 0;
+  typeof valor === "number" && Number.isSafeInteger(valor) && valor > 0;
 
 /**
  * @description Agrega unidades de una variante. Si ya estaba en el carrito,
  * suma a la línea existente en vez de duplicarla. No aplica topes: el máximo
- * por compra y el stock los decide el backend al cotizar.
+ * por compra y el stock los decide el backend al cotizar. Sí respeta el máximo
+ * de líneas del contrato: una variante nueva no entra si el carrito ya tiene
+ * MAX_ITEMS_CARRITO.
  * @param items Carrito actual.
  * @param varianteId Variante a agregar.
  * @param cantidad Unidades a sumar. Por defecto, una.
- * @returns Un carrito nuevo. Si los datos no sirven, el mismo carrito.
+ * @returns Un carrito nuevo. Si los datos no sirven o no hay lugar, el mismo carrito.
  */
 export const agregarItem = (
   items: ItemCarrito[],
@@ -27,7 +33,9 @@ export const agregarItem = (
 
   const existe = items.some((item) => item.varianteId === varianteId);
 
-  if (!existe) return [...items, { varianteId, cantidad }];
+  if (!existe) {
+    return items.length >= MAX_ITEMS_CARRITO ? items : [...items, { varianteId, cantidad }];
+  }
 
   return items.map((item) =>
     item.varianteId === varianteId ? { ...item, cantidad: item.cantidad + cantidad } : item,

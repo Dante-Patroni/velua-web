@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ErrorApi } from "./apiFetch";
 import {
+  MENSAJES_AVISO,
   MENSAJES_ERROR,
   MENSAJE_ERROR_POR_DEFECTO,
   mensajeDeError,
@@ -81,5 +82,80 @@ describe("mensajeDeError", () => {
     const error = new Error("Cannot read properties of undefined");
 
     expect(mensajeDeError(error)).toBe(MENSAJE_ERROR_POR_DEFECTO);
+  });
+});
+
+describe("MENSAJES_AVISO", () => {
+  // Se repite acá a propósito: el Record garantiza la cobertura al compilar, y este
+  // test avisa si alguien saca un motivo del mapa y del contrato a la vez.
+  const MOTIVOS = [
+    "VARIANTE_INEXISTENTE",
+    "VARIANTE_INACTIVA",
+    "PRODUCTO_INACTIVO",
+    "PROXIMAMENTE",
+    "SIN_STOCK",
+    "AJUSTADO_POR_STOCK",
+    "AJUSTADO_POR_TOPE",
+  ] as const;
+
+  it("tiene un mensaje para cada motivo del contrato", () => {
+    expect(Object.keys(MENSAJES_AVISO).sort()).toEqual([...MOTIVOS].sort());
+  });
+
+  it.each(MOTIVOS)("%s da un texto legible, sin mostrar el código", (motivo) => {
+    const texto = MENSAJES_AVISO[motivo]({ varianteId: 1, motivo, producto: "Éclat Doré" });
+
+    expect(texto.length).toBeGreaterThan(10);
+    expect(texto).not.toContain(motivo);
+  });
+
+  it("PROXIMAMENTE nombra el producto y la fecha de salida", () => {
+    expect(
+      MENSAJES_AVISO.PROXIMAMENTE({
+        varianteId: 16,
+        motivo: "PROXIMAMENTE",
+        producto: "Éclat Doré",
+        disponibleDesde: "2026-11-05",
+      }),
+    ).toBe("Éclat Doré sale el 05/11. Lo quitamos de tu canasta.");
+  });
+
+  it("PROXIMAMENTE sin fecha válida no inventa una", () => {
+    const texto = MENSAJES_AVISO.PROXIMAMENTE({
+      varianteId: 16,
+      motivo: "PROXIMAMENTE",
+      producto: "Éclat Doré",
+      disponibleDesde: "2026-13-45",
+    });
+
+    expect(texto).toBe("Éclat Doré todavía no salió a la venta. Lo quitamos de tu canasta.");
+  });
+
+  it("sin nombre de producto usa uno genérico", () => {
+    expect(MENSAJES_AVISO.SIN_STOCK({ varianteId: 1, motivo: "SIN_STOCK" })).toBe(
+      "Un producto se quedó sin stock. Lo quitamos de tu canasta.",
+    );
+  });
+
+  it("AJUSTADO_POR_STOCK usa el singular cuando queda una unidad", () => {
+    const aviso = { varianteId: 1, motivo: "AJUSTADO_POR_STOCK", producto: "Éclat Noir" } as const;
+
+    expect(MENSAJES_AVISO.AJUSTADO_POR_STOCK({ ...aviso, disponible: 1 })).toBe(
+      "Nos queda 1 unidad de Éclat Noir. Ajustamos la cantidad.",
+    );
+    expect(MENSAJES_AVISO.AJUSTADO_POR_STOCK({ ...aviso, disponible: 3 })).toBe(
+      "Nos quedan 3 unidades de Éclat Noir. Ajustamos la cantidad.",
+    );
+  });
+
+  it("AJUSTADO_POR_TOPE dice el máximo por compra", () => {
+    expect(
+      MENSAJES_AVISO.AJUSTADO_POR_TOPE({
+        varianteId: 1,
+        motivo: "AJUSTADO_POR_TOPE",
+        producto: "Éclat Noir",
+        maximo: 5,
+      }),
+    ).toBe("Podés llevar hasta 5 de Éclat Noir por compra. Ajustamos la cantidad.");
   });
 });
