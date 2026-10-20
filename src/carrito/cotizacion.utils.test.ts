@@ -4,8 +4,10 @@ import {
   coincideConCotizacion,
   itemsDeCotizacion,
   mensajeMasUnidades,
+  resolverCotizacion,
 } from "@/carrito/cotizacion.utils";
 import type { ItemCarrito } from "@/carrito/types";
+import { ErrorApi } from "@/lib/apiFetch";
 import type { Cotizacion } from "@/types";
 
 const linea = (varianteId: number, cantidad: number) => ({
@@ -95,5 +97,120 @@ describe("mensajeMasUnidades", () => {
 
   it("sin nombre usa un texto genérico", () => {
     expect(mensajeMasUnidades(undefined)).toBe("Hola, quiero comprar más unidades de un producto.");
+  });
+});
+
+describe("resolverCotizacion", () => {
+  const items: ItemCarrito[] = [{ varianteId: 1, cantidad: 2 }];
+  const conAvisos = (lineas: ReturnType<typeof linea>[]) =>
+    ({
+      ...cotizacionCon(lineas),
+      avisos: [{ varianteId: 1, motivo: "AJUSTADO_POR_STOCK", disponible: 1 }],
+    }) as unknown as Cotizacion;
+
+  it("una respuesta que llega después de cancelar la petición se descarta", async () => {
+    const controlador = new AbortController();
+    // La respuesta se resuelve igual (el fetch ya había terminado), pero el carrito cambió antes.
+    const cotizar = async () => {
+      controlador.abort();
+      return conAvisos([linea(1, 1)]);
+    };
+
+    await expect(resolverCotizacion(items, cotizar, controlador.signal)).resolves.toEqual({
+      tipo: "obsoleta",
+    });
+  });
+
+  it("con dos cotizaciones seguidas, la vieja no pisa a la nueva", async () => {
+    const primera = new AbortController();
+    const segunda = new AbortController();
+    let resolverPrimera: (c: Cotizacion) => void = () => {};
+    const lenta = new Promise<Cotizacion>((resolver) => (resolverPrimera = resolver));
+
+    const vieja = resolverCotizacion(items, () => lenta, primera.signal);
+    const nueva = await resolverCotizacion(
+      [{ varianteId: 1, cantidad: 3 }],
+      async () => cotizacionCon([linea(1, 3)]),
+      segunda.signal,
+    );
+
+    // El carrito cambió: la petición vieja se cancela y recién después responde.
+    primera.abort();
+    resolverPrimera(conAvisos([linea(1, 1)]));
+
+    expect(nueva.tipo).toBe("cotizado");
+    await expect(vieja).resolves.toEqual({ tipo: "obsoleta" });
+  });
+
+  it("una petición cancelada que falla tampoco es un error para la pantalla", async () => {
+    const controlador = new AbortController();
+    const cotizar = async () => {
+      controlador.abort();
+      throw new DOMException("cancelada", "AbortError");
+    };
+
+    await expect(resolverCotizacion(items, cotizar, controlador.signal)).resolves.toEqual({
+      tipo: "obsoleta",
+    });
+  });
+
+  it("si la API responde con avisos que cambian el carrito, devuelve el carrito corregido", async () => {
+    const resultado = await resolverCotizacion(
+      items,
+      async () => conAvisos([linea(1, 1)]),
+      new AbortController().signal,
+    );
+
+    expect(resultado).toMatchObject({ tipo: "cotizado", items: [{ varianteId: 1, cantidad: 1 }] });
+  });
+
+  it("sin avisos no toca el carrito, aunque las líneas difieran", async () => {
+    const resultado = await resolverCotizacion(
+      items,
+      async () => cotizacionCon([linea(1, 1)]),
+      new AbortController().signal,
+    );
+
+    expect(resultado).toMatchObject({ tipo: "cotizado", items: null });
+  });
+
+  it("si coincide con lo enviado, no hay nada que corregir", async () => {
+    const resultado = await resolverCotizacion(
+      items,
+      async () => ({ ...cotizacionCon([linea(1, 2)]), avisos: [] }) as unknown as Cotizacion,
+      new AbortController().signal,
+    );
+
+    expect(resultado).toMatchObject({ tipo: "cotizado", items: null });
+  });
+
+  it.each([
+    ["error de red", new ErrorApi("ERROR_DE_RED", 0)],
+    ["un 500", new ErrorApi("ERROR_INTERNO", 500)],
+    ["demasiados pedidos", new ErrorApi("LIMITE_SUPERADO", 429)],
+    ["algo que no es ErrorApi", new Error("boom")],
+  ])("%s: el carrito queda como estaba", async (_nombre, error) => {
+    const resultado = await resolverCotizacion(
+      items,
+      async () => {
+        throw error;
+      },
+      new AbortController().signal,
+    );
+
+    expect(resultado.tipo).toBe("error");
+    expect(resultado).not.toHaveProperty("items");
+  });
+
+  it("CARRITO_SIN_ITEMS_VALIDOS se distingue de un error de red", async () => {
+    const resultado = await resolverCotizacion(
+      items,
+      async () => {
+        throw new ErrorApi("CARRITO_SIN_ITEMS_VALIDOS", 400);
+      },
+      new AbortController().signal,
+    );
+
+    expect(resultado).toEqual({ tipo: "sin_items_validos" });
   });
 });

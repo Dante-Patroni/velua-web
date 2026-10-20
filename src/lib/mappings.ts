@@ -127,6 +127,13 @@ export const MENSAJES_AVISO: Record<MotivoAviso, (aviso: AvisoCotizacion) => str
       : `Podés llevar hasta ${aviso.maximo} de ${nombreEnAviso(aviso)} por compra. Ajustamos la cantidad.`,
 };
 
+/**
+ * Cuando no se pudo cotizar (sin conexión, error de la API o demasiados
+ * pedidos). El carrito queda como estaba: lo que se ve puede no estar al día.
+ */
+export const MENSAJE_CARRITO_NO_ACTUALIZADO =
+  "No pudimos actualizar tu carrito. Lo que ves puede no estar al día: probá de nuevo en unos minutos.";
+
 /** Mensaje para un código que el frontend todavía no contempla. */
 export const MENSAJE_ERROR_POR_DEFECTO =
   "Algo salió mal. Probá de nuevo en unos minutos.";

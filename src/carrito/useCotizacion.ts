@@ -1,33 +1,41 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { cotizarCarrito } from "@/lib/api/cotizacion.api";
-import { ErrorApi } from "@/lib/apiFetch";
 import type { AvisoCotizacion, Cotizacion } from "@/types";
-import { coincideConCotizacion, itemsDeCotizacion } from "./cotizacion.utils";
+import { coincideConCotizacion, resolverCotizacion } from "./cotizacion.utils";
 import type { ItemCarrito } from "./types";
 
 /** Espera antes de cotizar, para no pedir una cotización por cada toque en "+". */
 const ESPERA_COTIZACION_MS = 300;
+
+/**
+ * Por qué no hay una cotización al día. `sin_items_validos`: la API dijo que
+ * nada se puede vender y el carrito se vació. `no_actualizado`: la cotización
+ * falló (red, 500, límite de pedidos) y el carrito quedó como estaba.
+ */
+export type ErrorCarrito = "sin_items_validos" | "no_actualizado";
 
 /** Lo que el hook deja disponible para la pantalla del carrito. */
 export type EstadoCotizacion = {
   cotizacion: Cotizacion | null;
   /** Lo que cambió respecto de lo que la clienta tenía. Se muestra hasta que lo descarta. */
   avisos: AvisoCotizacion[];
-  /** Código de error de la última cotización fallida, o null. */
-  codigoError: string | null;
+  error: ErrorCarrito | null;
   /** true mientras se pide una cotización. */
   cargando: boolean;
   descartarAvisos: () => void;
+  /** Vuelve a pedir la cotización después de un error. */
+  reintentar: () => void;
 };
 
 /**
  * @description Mantiene el carrito sincronizado con `/cotizar`. Cada vez que el
  * carrito cambia pide la cotización (con una pequeña espera) y la deja lista
- * para mostrar: las líneas, los totales y los avisos. Si la API quitó productos
- * o bajó cantidades, reemplaza el carrito con lo que sí se puede comprar. Si
- * ninguno de los productos se puede vender, lo vacía. El carrito guarda solo
- * ids y cantidades: nunca copia datos de la cotización.
+ * para mostrar. Si el carrito cambia mientras una petición está en vuelo, esa
+ * respuesta se descarta: una respuesta vieja nunca pisa el carrito. Solo se
+ * corrige el carrito cuando la API responde con avisos; ante un error de red o
+ * un 500 queda como estaba. Guarda solo ids y cantidades: nunca copia datos de
+ * la cotización.
  * @param items Carrito actual.
  * @param reemplazar Reemplaza el carrito entero.
  * @param vaciar Vacía el carrito.
@@ -40,8 +48,9 @@ export function useCotizacion(
 ): EstadoCotizacion {
   const [cotizacion, setCotizacion] = useState<Cotizacion | null>(null);
   const [avisos, setAvisos] = useState<AvisoCotizacion[]>([]);
-  const [codigoError, setCodigoError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorCarrito | null>(null);
   const [cargando, setCargando] = useState(false);
+  const [intento, setIntento] = useState(0);
   const ultimaCotizacion = useRef<Cotizacion | null>(null);
 
   useEffect(() => {
@@ -58,44 +67,47 @@ export function useCotizacion(
     const espera = setTimeout(async () => {
       setCargando(true);
 
-      try {
-        const nueva = await cotizarCarrito(items, controlador.signal);
+      const resultado = await resolverCotizacion(items, cotizarCarrito, controlador.signal);
 
-        ultimaCotizacion.current = nueva;
-        setCotizacion(nueva);
-        setCodigoError(null);
-        if (nueva.avisos.length > 0) setAvisos(nueva.avisos);
+      if (resultado.tipo === "obsoleta") return;
 
-        const cotizados = itemsDeCotizacion(nueva);
-        if (!coincideConCotizacion(items, nueva)) reemplazar(cotizados);
-      } catch (error) {
-        if (controlador.signal.aborted) return;
+      setCargando(false);
 
-        const codigo = error instanceof ErrorApi ? error.codigo : "ERROR_DESCONOCIDO";
-
-        setCodigoError(codigo);
-        if (codigo === "CARRITO_SIN_ITEMS_VALIDOS") {
-          ultimaCotizacion.current = null;
-          setCotizacion(null);
-          vaciar();
-        }
-      } finally {
-        if (!controlador.signal.aborted) setCargando(false);
+      if (resultado.tipo === "error") {
+        setError("no_actualizado");
+        return;
       }
+
+      if (resultado.tipo === "sin_items_validos") {
+        ultimaCotizacion.current = null;
+        setCotizacion(null);
+        setError("sin_items_validos");
+        vaciar();
+        return;
+      }
+
+      ultimaCotizacion.current = resultado.cotizacion;
+      setCotizacion(resultado.cotizacion);
+      setError(null);
+      if (resultado.avisos.length > 0) setAvisos(resultado.avisos);
+      if (resultado.items) reemplazar(resultado.items);
     }, ESPERA_COTIZACION_MS);
 
     return () => {
       clearTimeout(espera);
       controlador.abort();
+      // Si la petición cancelada era la única en vuelo, no queda nada cargando.
+      setCargando(false);
     };
-  }, [items, reemplazar, vaciar]);
+  }, [items, reemplazar, vaciar, intento]);
 
   const descartarAvisos = useCallback(() => setAvisos([]), []);
+  const reintentar = useCallback(() => setIntento((actual) => actual + 1), []);
 
   // Sin productos no hay nada que cotizar: se muestra el carrito vacío.
   if (items.length === 0) {
-    return { cotizacion: null, avisos, codigoError, cargando: false, descartarAvisos };
+    return { cotizacion: null, avisos, error, cargando: false, descartarAvisos, reintentar };
   }
 
-  return { cotizacion, avisos, codigoError, cargando, descartarAvisos };
+  return { cotizacion, avisos, error, cargando, descartarAvisos, reintentar };
 }
