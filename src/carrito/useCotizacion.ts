@@ -26,6 +26,8 @@ export type EstadoCotizacion = {
   descartarAvisos: () => void;
   /** Vuelve a pedir la cotización después de un error. */
   reintentar: () => void;
+  /** Olvida la cotización, los avisos y el error. Se usa al vaciar el carrito. */
+  reiniciar: () => void;
 };
 
 /**
@@ -103,11 +105,17 @@ export function useCotizacion(
 
   const descartarAvisos = useCallback(() => setAvisos([]), []);
   const reintentar = useCallback(() => setIntento((actual) => actual + 1), []);
+  const reiniciar = useCallback(() => {
+    ultimaCotizacion.current = null;
+    setCotizacion(null);
+    setAvisos([]);
+    setError(null);
+  }, []);
 
   // Sin productos no hay nada que cotizar: se muestra el carrito vacío.
   if (items.length === 0) {
-    return { cotizacion: null, avisos, error, cargando: false, descartarAvisos, reintentar };
+    return { cotizacion: null, avisos, error, cargando: false, descartarAvisos, reintentar, reiniciar };
   }
 
-  return { cotizacion, avisos, error, cargando, descartarAvisos, reintentar };
+  return { cotizacion, avisos, error, cargando, descartarAvisos, reintentar, reiniciar };
 }
