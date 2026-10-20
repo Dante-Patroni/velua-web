@@ -2,18 +2,17 @@ import { Link } from "react-router-dom";
 
 import { useCarrito } from "@/carrito/useCarrito";
 import { useCotizacion } from "@/carrito/useCotizacion";
-import { carritoConfirmado, mensajeMasUnidades } from "@/carrito/cotizacion.utils";
+import { carritoConfirmado } from "@/carrito/cotizacion.utils";
+import { AvisosCarrito } from "@/components/tienda/AvisosCarrito";
 import { LineaCarrito } from "@/components/tienda/LineaCarrito";
 import { VaciarCarrito } from "@/components/tienda/VaciarCarrito";
 import { Button } from "@/components/ui/Button";
 import { Precio } from "@/components/ui/Precio";
 import {
-  MENSAJES_AVISO,
   MENSAJE_CARRITO_NO_ACTUALIZADO,
-  WHATSAPP_NUMERO,
   obtenerMensajeError,
 } from "@/lib/mappings";
-import { cn, enlaceWhatsApp } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 const claseEnlaceAccion =
   "font-bold text-dorado-texto underline decoration-dorado-hondo decoration-2 underline-offset-4 hover:text-tinta";
@@ -51,43 +50,7 @@ export function Carrito() {
       <section className="mx-auto max-w-4xl px-4 py-8 md:px-8 md:py-14">
         <h1 className="text-5xl leading-[0.98] font-medium text-tinta md:text-6xl">Tu carrito</h1>
 
-        {avisos.length > 0 && (
-          <div
-            role="status"
-            className="mt-6 flex flex-col gap-3 rounded-2xl border border-borde bg-crema-calida p-4 md:p-5"
-          >
-            <ul className="flex flex-col gap-2 text-tinta">
-              {avisos.map((aviso, indice) => {
-                const enlaceTope =
-                  aviso.motivo === "AJUSTADO_POR_TOPE"
-                    ? enlaceWhatsApp(WHATSAPP_NUMERO, mensajeMasUnidades(aviso.producto))
-                    : null;
-
-                return (
-                  <li key={`${aviso.varianteId}-${aviso.motivo}-${indice}`}>
-                    {MENSAJES_AVISO[aviso.motivo](aviso)}
-                    {enlaceTope && (
-                      <>
-                        {" "}
-                        <a
-                          href={enlaceTope}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={claseEnlaceAccion}
-                        >
-                          Escribinos por WhatsApp
-                        </a>
-                      </>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-            <Button variante="enlace" className="self-start text-sm" onClick={descartarAvisos}>
-              Entendido
-            </Button>
-          </div>
-        )}
+        <AvisosCarrito avisos={avisos} onDescartar={descartarAvisos} />
 
         {error && (
           <div
