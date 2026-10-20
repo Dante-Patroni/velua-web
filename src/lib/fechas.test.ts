@@ -18,4 +18,12 @@ describe("formatearDiaMes", () => {
     expect(formatearDiaMes("")).toBeNull();
     expect(formatearDiaMes("05/11/2026")).toBeNull();
   });
+
+  it("devuelve null si el mes o el día están fuera de rango", () => {
+    expect(formatearDiaMes("2026-13-05")).toBeNull();
+    expect(formatearDiaMes("2026-00-05")).toBeNull();
+    expect(formatearDiaMes("2026-11-45")).toBeNull();
+    expect(formatearDiaMes("2026-11-00")).toBeNull();
+    expect(formatearDiaMes("2026-12-31")).toBe("31/12");
+  });
 });
