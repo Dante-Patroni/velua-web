@@ -9,7 +9,12 @@ import type { Variante } from "@/types";
 import { WHATSAPP_NUMERO } from "@/lib/mappings";
 import { cn, enlaceWhatsApp } from "@/lib/utils";
 import { varianteInicial } from "./CompraProducto.utils";
-import { hayOferta, mensajeAvisarme } from "./TarjetaProducto.utils";
+import {
+  etiquetaProximamente,
+  hayOferta,
+  mensajeAvisarme,
+  mensajeConsultar,
+} from "./TarjetaProducto.utils";
 
 const claseEnlaceAccion =
   "text-sm font-bold text-dorado-texto underline decoration-dorado-hondo decoration-2 underline-offset-4 hover:text-tinta";
@@ -17,6 +22,10 @@ const claseEnlaceAccion =
 type CompraProductoProps = {
   nombre: string;
   variantes: Variante[];
+  /** Lo decide el servidor: si es true, el producto todavía no se puede comprar. */
+  proximamente: boolean;
+  disponibleDesde: string | null;
+  diasRestantes: number | null;
 };
 
 /**
@@ -24,12 +33,21 @@ type CompraProductoProps = {
  * cantidad y "Agregar al carrito". El carrito guarda solo el id de la variante
  * y la cantidad; el precio que se ve acá es informativo y el total lo calcula
  * el cotizador. Sin stock no se puede agregar: ofrece "Avisarme" por WhatsApp.
+ * Si el producto es próximamente no hay cantidad ni "Agregar al carrito": se
+ * muestra cuándo sale y "Consultar" por WhatsApp. Ocultar el botón es solo
+ * experiencia de usuario; la API rechaza igual el producto en `/cotizar`.
  * Hay que montarlo con `key` del producto, así al pasar de una ficha a otra el
  * estado vuelve a empezar.
- * @param props El nombre del producto y sus variantes activas.
+ * @param props El nombre del producto, sus variantes activas y su estado de lanzamiento.
  * @returns El bloque de compra.
  */
-export function CompraProducto({ nombre, variantes }: CompraProductoProps) {
+export function CompraProducto({
+  nombre,
+  variantes,
+  proximamente,
+  disponibleDesde,
+  diasRestantes,
+}: CompraProductoProps) {
   const { agregar } = useCarrito();
   const [varianteId, setVarianteId] = useState(() => varianteInicial(variantes)?.id);
   const [cantidad, setCantidad] = useState(1);
@@ -39,10 +57,14 @@ export function CompraProducto({ nombre, variantes }: CompraProductoProps) {
   if (!variante) return null;
 
   const { precio, precioAnterior, hayStock } = variante;
-  const enOferta = hayStock && hayOferta(precio, precioAnterior);
-  const avisarme = hayStock
-    ? null
-    : enlaceWhatsApp(WHATSAPP_NUMERO, mensajeAvisarme(`${nombre} (${variante.nombre})`));
+  const enOferta = !proximamente && hayStock && hayOferta(precio, precioAnterior);
+  const avisarme =
+    proximamente || hayStock
+      ? null
+      : enlaceWhatsApp(WHATSAPP_NUMERO, mensajeAvisarme(`${nombre} (${variante.nombre})`));
+  const consultar = proximamente
+    ? enlaceWhatsApp(WHATSAPP_NUMERO, mensajeConsultar(nombre, disponibleDesde))
+    : null;
 
   const elegirVariante = (id: number) => {
     setVarianteId(id);
@@ -107,7 +129,16 @@ export function CompraProducto({ nombre, variantes }: CompraProductoProps) {
         )}
       </div>
 
-      {hayStock ? (
+      {proximamente ? (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+          <p className="font-bold text-etiqueta">{etiquetaProximamente(disponibleDesde, diasRestantes)}</p>
+          {consultar && (
+            <a href={consultar} target="_blank" rel="noopener noreferrer" className={claseEnlaceAccion}>
+              Consultar
+            </a>
+          )}
+        </div>
+      ) : hayStock ? (
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
             <span id="etiqueta-cantidad" className="text-sm text-texto-suave">

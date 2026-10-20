@@ -181,6 +181,20 @@ export interface paths {
                     };
                 };
                 404: components["responses"]["NoEncontrado"];
+                /** @description Demasiadas consultas de numeros inexistentes desde la misma direccion. Solo cuentan las fallidas: consultar un pedido propio no suma. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "LIMITE_SUPERADO"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
             };
         };
         put?: never;
@@ -722,6 +736,106 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/contrasena": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Cambiar la contraseña
+         * @description Exige la contraseña actual. Si la nueva cumple la política, la guarda, cierra todas las demás sesiones y deja una cookie nueva en esta. Limitado a 5 intentos con la contraseña actual incorrecta cada 15 minutos.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CambioContrasenaEntrada"];
+                };
+            };
+            responses: {
+                /** @description Contraseña cambiada. La cookie nueva viene en el encabezado Set-Cookie. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description CONTRASENA_ACTUAL_INCORRECTA (con details.contrasenaActual) o DATOS_INVALIDOS (con details.contrasenaNueva, el motivo para mostrar). */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "CONTRASENA_ACTUAL_INCORRECTA",
+                         *       "details": {
+                         *         "contrasenaActual": "La contraseña actual no es correcta."
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Sin sesión, token inválido o vencido, o sesión revocada (SESION_REVOCADA). */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "SESION_REVOCADA"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Usuario desactivado */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "USUARIO_INACTIVO"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Demasiados intentos con la contraseña actual incorrecta */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "LIMITE_SUPERADO"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;
@@ -2137,6 +2251,19 @@ export interface components {
             /** @description True si al menos una variante activa tiene stock. */
             hayStock: boolean;
             destacado: boolean;
+            /**
+             * Format: date
+             * @description Día desde el que se vende (AAAA-MM-DD, hora de Argentina). Null si no tiene fecha de lanzamiento.
+             * @example 2026-11-05
+             */
+            disponibleDesde: string | null;
+            /** @description True si todavía no salió a la venta. Mostrar el aviso y no ofrecer agregar al carrito. */
+            proximamente: boolean;
+            /**
+             * @description Días que faltan. Null si no es próximamente o si la fecha no es válida. Lo calcula el servidor: no usar el reloj del navegador.
+             * @example 19
+             */
+            diasRestantes: number | null;
         };
         /** @description Ficha completa del producto. */
         ProductoDetalle: {
@@ -2152,6 +2279,19 @@ export interface components {
             ingredientes?: string | null;
             modoUso?: string | null;
             destacado: boolean;
+            /**
+             * Format: date
+             * @description Día desde el que se vende (AAAA-MM-DD, hora de Argentina). Null si no tiene fecha de lanzamiento.
+             * @example 2026-11-05
+             */
+            disponibleDesde: string | null;
+            /** @description True si todavía no salió a la venta. Mostrar el aviso y no ofrecer agregar al carrito. */
+            proximamente: boolean;
+            /**
+             * @description Días que faltan. Null si no es próximamente o si la fecha no es válida. Lo calcula el servidor: no usar el reloj del navegador.
+             * @example 19
+             */
+            diasRestantes: number | null;
             categoria: components["schemas"]["Categoria"];
             /** @description Todas las imagenes, ordenadas. La primera es la principal. */
             imagenes: components["schemas"]["Imagen"][];
@@ -2182,6 +2322,11 @@ export interface components {
              *     ]
              */
             permisos: string[];
+        };
+        CambioContrasenaEntrada: {
+            contrasenaActual: string;
+            /** @description Mínimo 12 caracteres y hasta 72 bytes. No puede ser una contraseña común ni contener el mail o el nombre de la marca. Sin reglas de mayúsculas ni símbolos. */
+            contrasenaNueva: string;
         };
         /** @description Categoria vista desde el panel. Incluye las inactivas. */
         CategoriaAdmin: {
