@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  MAX_ITEMS_CARRITO,
   agregarItem,
   cambiarCantidadItem,
   contarUnidades,
@@ -73,5 +74,24 @@ describe("contarUnidades", () => {
 
   it("un carrito vacío tiene cero unidades", () => {
     expect(contarUnidades([])).toBe(0);
+  });
+});
+
+describe("máximo de líneas del carrito", () => {
+  const lleno: ItemCarrito[] = Array.from({ length: MAX_ITEMS_CARRITO }, (_, i) => ({
+    varianteId: i + 1,
+    cantidad: 1,
+  }));
+
+  it("no agrega una variante nueva si ya hay 30 líneas", () => {
+    expect(agregarItem(lleno, 999)).toBe(lleno);
+  });
+
+  it("sí suma unidades a una variante que ya está, aunque el carrito esté lleno", () => {
+    expect(agregarItem(lleno, 1, 2)[0]).toEqual({ varianteId: 1, cantidad: 3 });
+  });
+
+  it("no acepta cantidades que no son enteros seguros", () => {
+    expect(agregarItem([], 1, 1e21)).toEqual([]);
   });
 });

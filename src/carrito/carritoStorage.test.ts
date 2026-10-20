@@ -52,6 +52,45 @@ describe("interpretarCarrito", () => {
     expect(interpretarCarrito(sucio)).toEqual([{ varianteId: 1, cantidad: 1 }]);
   });
 
+  it("descarta negativos, NaN, nulos, textos numéricos y enteros que no son seguros", () => {
+    const sucio = JSON.stringify([
+      { varianteId: 1, cantidad: 1 },
+      { varianteId: -2, cantidad: 1 },
+      { varianteId: 3, cantidad: -1 },
+      { varianteId: null, cantidad: 1 },
+      { varianteId: 5, cantidad: "2" },
+      { varianteId: 6, cantidad: 1e21 },
+      { varianteId: 7 },
+      {},
+    ]);
+
+    expect(interpretarCarrito(sucio)).toEqual([{ varianteId: 1, cantidad: 1 }]);
+  });
+
+  it("si el contenido no es una lista, lo descarta", () => {
+    expect(interpretarCarrito(JSON.stringify({ varianteId: 1, cantidad: 1 }))).toEqual([]);
+    expect(interpretarCarrito(JSON.stringify("hola"))).toEqual([]);
+  });
+
+  it("conserva como máximo 30 líneas, el tope del contrato", () => {
+    const muchas = JSON.stringify(
+      Array.from({ length: 35 }, (_, i) => ({ varianteId: i + 1, cantidad: 1 })),
+    );
+    const carrito = interpretarCarrito(muchas);
+
+    expect(carrito).toHaveLength(30);
+    expect(carrito[0]).toEqual({ varianteId: 1, cantidad: 1 });
+    expect(carrito[29]).toEqual({ varianteId: 30, cantidad: 1 });
+  });
+
+  it("exactamente 30 líneas pasan completas", () => {
+    const treinta = JSON.stringify(
+      Array.from({ length: 30 }, (_, i) => ({ varianteId: i + 1, cantidad: 2 })),
+    );
+
+    expect(interpretarCarrito(treinta)).toHaveLength(30);
+  });
+
   it("junta una variante repetida en una sola línea", () => {
     const repetido = JSON.stringify([
       { varianteId: 7, cantidad: 1 },

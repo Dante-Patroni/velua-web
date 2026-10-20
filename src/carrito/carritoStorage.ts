@@ -1,4 +1,4 @@
-import { esEnteroPositivo } from "./carrito.utils";
+import { MAX_ITEMS_CARRITO, esEnteroPositivo } from "./carrito.utils";
 import type { ItemCarrito } from "./types";
 
 /** Clave del carrito en localStorage. Con versión, por si cambia la forma. */
@@ -24,7 +24,8 @@ const almacenPorDefecto = (): Almacen | null => {
  * @description Convierte lo guardado en un carrito válido. Descarta todo lo que
  * no sea { varianteId, cantidad } con enteros positivos, y con eso también
  * cualquier precio o nombre que haya guardado una versión anterior. Si una
- * variante aparece dos veces, junta las cantidades.
+ * variante aparece dos veces, junta las cantidades. Conserva como máximo
+ * MAX_ITEMS_CARRITO líneas.
  * @param crudo Texto leído del almacén.
  * @returns El carrito saneado. Vacío si el texto no sirve.
  */
@@ -51,7 +52,10 @@ export const interpretarCarrito = (crudo: string | null): ItemCarrito[] => {
     }
   }
 
-  return [...cantidades].map(([varianteId, cantidad]) => ({ varianteId, cantidad }));
+  // Lo que pase del máximo del contrato se descarta: la API rechazaría el carrito entero.
+  return [...cantidades]
+    .slice(0, MAX_ITEMS_CARRITO)
+    .map(([varianteId, cantidad]) => ({ varianteId, cantidad }));
 };
 
 /**
