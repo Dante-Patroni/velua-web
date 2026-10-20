@@ -130,6 +130,7 @@ export function leerProductoNuevo(datos: FormData) {
     ingredientes: texto(datos, "ingredientes") ?? null,
     modoUso: texto(datos, "modoUso") ?? null,
     destacado: datos.get("destacado") === "true",
+    disponibleDesde: texto(datos, "disponibleDesde") ?? null,
     variantes: indices.map((i) => leerVariante(datos, `variantes.${i}.`)),
   };
 }
@@ -152,6 +153,8 @@ export function leerCambiosProducto(datos: FormData): ProductoCambios {
   if (datos.has("ingredientes")) cambios.ingredientes = texto(datos, "ingredientes") ?? null;
   if (datos.has("modoUso")) cambios.modoUso = texto(datos, "modoUso") ?? null;
   if (datos.has("destacado")) cambios.destacado = datos.get("destacado") === "true";
+  if (datos.has("disponibleDesde"))
+    cambios.disponibleDesde = texto(datos, "disponibleDesde") ?? null;
 
   return cambios;
 }
