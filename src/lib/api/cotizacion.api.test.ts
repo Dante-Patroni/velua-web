@@ -22,4 +22,23 @@ describe("cotizarCarrito", () => {
       signal: señal,
     });
   });
+
+  it("con zona y medio de pago los manda junto con el carrito, para el checkout", async () => {
+    vi.mocked(apiFetch).mockResolvedValue({});
+
+    await cotizarCarrito([{ varianteId: 16, cantidad: 1 }], undefined, {
+      zonaEnvioId: 2,
+      medioPago: "mercadopago",
+    });
+
+    expect(apiFetch).toHaveBeenCalledWith("/cotizar", {
+      method: "POST",
+      body: JSON.stringify({
+        items: [{ varianteId: 16, cantidad: 1 }],
+        zonaEnvioId: 2,
+        medioPago: "mercadopago",
+      }),
+      signal: undefined,
+    });
+  });
 });

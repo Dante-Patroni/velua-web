@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   carritoConfirmado,
+  claveCotizacion,
   coincideConCotizacion,
   itemsDeCotizacion,
   mensajeMasUnidades,
@@ -247,5 +248,25 @@ describe("carritoConfirmado", () => {
 
   it("sin cotización no está confirmado", () => {
     expect(carritoConfirmado([{ varianteId: 1, cantidad: 8 }], null, false)).toBe(false);
+  });
+});
+
+describe("claveCotizacion", () => {
+  it("la misma zona y medio de pago dan la misma clave", () => {
+    expect(claveCotizacion({ zonaEnvioId: 2, medioPago: "mercadopago" })).toBe(
+      claveCotizacion({ medioPago: "mercadopago", zonaEnvioId: 2 }),
+    );
+  });
+
+  it("otra zona o otro medio de pago dan otra clave: el total cambia", () => {
+    const base = claveCotizacion({ zonaEnvioId: 2, medioPago: "mercadopago" });
+
+    expect(claveCotizacion({ zonaEnvioId: 3, medioPago: "mercadopago" })).not.toBe(base);
+    expect(claveCotizacion({ zonaEnvioId: 2, medioPago: "transferencia" })).not.toBe(base);
+  });
+
+  it("sin opciones y con valores nulos son lo mismo: retiro, sin medio de pago", () => {
+    expect(claveCotizacion()).toBe(claveCotizacion({ zonaEnvioId: null, medioPago: null }));
+    expect(claveCotizacion()).not.toBe(claveCotizacion({ zonaEnvioId: 2 }));
   });
 });

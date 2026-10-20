@@ -1,6 +1,13 @@
 import { ErrorApi } from "@/lib/apiFetch";
 import { formatearDiaMes } from "@/lib/fechas";
-import type { AvisoCotizacion, CodigoError, ContextoError, MotivoAviso } from "@/types";
+import type {
+  AvisoCotizacion,
+  CodigoError,
+  ContextoError,
+  EstadoPago,
+  EstadoPedido,
+  MotivoAviso,
+} from "@/types";
 
 type Enlace = { ruta: string; texto: string };
 
@@ -125,6 +132,52 @@ export const MENSAJES_AVISO: Record<MotivoAviso, (aviso: AvisoCotizacion) => str
     aviso.maximo === undefined
       ? `Ajustamos la cantidad de ${nombreEnAviso(aviso)} al máximo por compra.`
       : `Podés llevar hasta ${aviso.maximo} de ${nombreEnAviso(aviso)} por compra. Ajustamos la cantidad.`,
+};
+
+/**
+ * Dominios a los que se puede mandar a la clienta a pagar. El link viene de
+ * nuestra API, pero antes de redirigir se comprueba que sea https y de Mercado
+ * Pago: la redirección saca a la clienta del sitio y no debe poder apuntar a
+ * cualquier lado.
+ */
+export const DOMINIOS_MERCADO_PAGO: readonly string[] = ["mercadopago.com.ar", "mercadopago.com"];
+
+/**
+ * Qué se le dice a la clienta según el estado del pago del pedido. Es un
+ * Record sobre el enum generado: si la API suma un estado y falta acá, la
+ * compilación rompe.
+ */
+export const TEXTOS_ESTADO_PAGO: Record<EstadoPago, { titulo: string; detalle: string }> = {
+  pendiente: {
+    titulo: "Estamos esperando tu pago",
+    detalle:
+      "Cuando Mercado Pago nos avise, vas a ver acá la confirmación. Si ya pagaste, puede tardar unos minutos.",
+  },
+  aprobado: {
+    titulo: "¡Recibimos tu pago!",
+    detalle: "Ya estamos preparando tu pedido. Te escribimos con novedades.",
+  },
+  rechazado: {
+    titulo: "El pago no fue aprobado",
+    detalle: "Podés intentar de nuevo mientras sigamos guardando tus productos.",
+  },
+  devuelto: {
+    titulo: "Devolvimos tu pago",
+    detalle: "Si tenés dudas, escribinos por WhatsApp.",
+  },
+  cancelado: {
+    titulo: "El pedido fue cancelado",
+    detalle: "Si querés, podés armar uno nuevo desde el carrito.",
+  },
+};
+
+/** Cómo se nombra cada estado del pedido (el envío), también tipado sobre el enum generado. */
+export const ETIQUETAS_ESTADO_PEDIDO: Record<EstadoPedido, string> = {
+  nuevo: "Recibido",
+  en_preparacion: "En preparación",
+  enviado: "Enviado",
+  entregado: "Entregado",
+  cancelado: "Cancelado",
 };
 
 /**

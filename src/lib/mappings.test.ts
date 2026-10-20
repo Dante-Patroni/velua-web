@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { ErrorApi } from "./apiFetch";
 import {
+  ETIQUETAS_ESTADO_PEDIDO,
   MENSAJES_AVISO,
   MENSAJES_ERROR,
+  TEXTOS_ESTADO_PAGO,
   MENSAJE_ERROR_POR_DEFECTO,
   mensajeDeError,
   obtenerMensajeError,
@@ -157,5 +159,33 @@ describe("MENSAJES_AVISO", () => {
         maximo: 5,
       }),
     ).toBe("Podés llevar hasta 5 de Éclat Noir por compra. Ajustamos la cantidad.");
+  });
+});
+
+describe("estados del pedido", () => {
+  it("cada estado de pago tiene título y detalle, sin mostrar el código", () => {
+    for (const [estado, { titulo, detalle }] of Object.entries(TEXTOS_ESTADO_PAGO)) {
+      expect(titulo.length).toBeGreaterThan(5);
+      expect(detalle.length).toBeGreaterThan(10);
+      expect(titulo).not.toContain(estado.toUpperCase());
+    }
+    expect(Object.keys(TEXTOS_ESTADO_PAGO).sort()).toEqual([
+      "aprobado",
+      "cancelado",
+      "devuelto",
+      "pendiente",
+      "rechazado",
+    ]);
+  });
+
+  it("cada estado del pedido tiene su etiqueta", () => {
+    expect(Object.keys(ETIQUETAS_ESTADO_PEDIDO).sort()).toEqual([
+      "cancelado",
+      "en_preparacion",
+      "entregado",
+      "enviado",
+      "nuevo",
+    ]);
+    expect(ETIQUETAS_ESTADO_PEDIDO.en_preparacion).toBe("En preparación");
   });
 });

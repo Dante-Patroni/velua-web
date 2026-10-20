@@ -513,9 +513,12 @@ entonces, un combo es un producto común con su propio stock, en la categoría
 Combos. No implementes selector, casilleros ni descuento de stock por
 componente antes del H8: las reglas están en DECISIONES.md.
 
-**Checkout con Mercado Pago y página del pedido.** No se implementan hasta que
-esté el contrato final del pago. Lo único que se adelanta son los textos de los
-códigos de error en `lib/mappings.ts`.
+**Checkout con transferencia.** El checkout con Mercado Pago y la página del
+pedido (`/pedido/:numero`) ya están implementados. La transferencia sigue
+esperando la t07: no se ofrece como medio de pago ni se muestra su descuento
+hasta que esté. La página del pedido toma el estado solo de
+`GET /pedidos/{numero}`, nunca de los parámetros que Mercado Pago agrega a la
+URL de vuelta.
 
 ---
 

@@ -1,4 +1,5 @@
 import { ErrorApi } from "@/lib/apiFetch";
+import type { OpcionesCotizacion } from "@/lib/api/cotizacion.api";
 import type { AvisoCotizacion, Cotizacion } from "@/types";
 import type { ItemCarrito } from "./types";
 
@@ -30,6 +31,19 @@ export const coincideConCotizacion = (
 
   return items.every(({ varianteId, cantidad }) => cotizadas.get(varianteId) === cantidad);
 };
+
+/**
+ * @description Identifica con qué zona y medio de pago se cotizó. Dos
+ * cotizaciones del mismo carrito con distinta zona son distintas: el envío
+ * cambia el total. Sirve para saber si lo cotizado sigue valiendo.
+ * @param opciones Zona de envío y medio de pago, o nada para el carrito.
+ * @returns Una cadena estable: la misma zona y medio dan siempre la misma clave.
+ */
+export const claveCotizacion = (opciones: OpcionesCotizacion = {}): string =>
+  JSON.stringify({
+    zonaEnvioId: opciones.zonaEnvioId ?? null,
+    medioPago: opciones.medioPago ?? null,
+  });
 
 /**
  * @description Decide si lo que la clienta ve está confirmado por la API: el
