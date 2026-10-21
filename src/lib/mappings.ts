@@ -181,6 +181,13 @@ export const ETIQUETAS_ESTADO_PEDIDO: Record<EstadoPedido, string> = {
 };
 
 /**
+ * Lo que dice la ficha cuando el carrito ya tiene el máximo de productos
+ * distintos que acepta la API y la clienta quiere sumar uno más.
+ */
+export const MENSAJE_CARRITO_LLENO =
+  "Tu carrito ya tiene el máximo de productos distintos. Finalizá la compra o quitá alguno para seguir.";
+
+/**
  * Cuando no se pudo cotizar (sin conexión, error de la API o demasiados
  * pedidos). El carrito queda como estaba: lo que se ve puede no estar al día.
  */

@@ -5,6 +5,7 @@ import {
   agregarItem,
   cambiarCantidadItem,
   contarUnidades,
+  puedeAgregarItem,
   quitarItem,
 } from "@/carrito/carrito.utils";
 import type { ItemCarrito } from "@/carrito/types";
@@ -93,5 +94,30 @@ describe("máximo de líneas del carrito", () => {
 
   it("no acepta cantidades que no son enteros seguros", () => {
     expect(agregarItem([], 1, 1e21)).toEqual([]);
+  });
+});
+
+describe("puedeAgregarItem", () => {
+  const lleno: ItemCarrito[] = Array.from({ length: MAX_ITEMS_CARRITO }, (_, i) => ({
+    varianteId: i + 1,
+    cantidad: 1,
+  }));
+
+  it("hay lugar mientras el carrito tenga menos de 30 líneas", () => {
+    expect(puedeAgregarItem([], 1)).toBe(true);
+    expect(puedeAgregarItem(lleno.slice(0, MAX_ITEMS_CARRITO - 1), 999)).toBe(true);
+  });
+
+  it("con 30 líneas, una variante nueva no entra", () => {
+    expect(puedeAgregarItem(lleno, 999)).toBe(false);
+  });
+
+  it("con 30 líneas, una variante que ya está sí se puede agregar: suma unidades", () => {
+    expect(puedeAgregarItem(lleno, 5)).toBe(true);
+  });
+
+  it("coincide con lo que hace agregarItem: no agrega justo cuando dice que no se puede", () => {
+    expect(agregarItem(lleno, 999)).toBe(lleno);
+    expect(agregarItem(lleno, 5)).not.toBe(lleno);
   });
 });
