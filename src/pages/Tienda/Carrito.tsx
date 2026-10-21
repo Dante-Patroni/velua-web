@@ -88,10 +88,11 @@ export function Carrito() {
         ) : (
           <div className="mt-8 grid gap-8 md:grid-cols-[1fr_20rem] md:gap-12" aria-busy={cargando}>
             <div>
-              {lineas.map((linea) => (
+              {lineas.map((linea, indice) => (
                 <LineaCarrito
                   key={linea.varianteId}
                   linea={linea}
+                  prioridad={indice === 0}
                   cantidad={cantidadActual.get(linea.varianteId) ?? linea.cantidad}
                   actualizando={cantidadActual.get(linea.varianteId) !== linea.cantidad}
                   onCambiarCantidad={(cantidad) => cambiarCantidad(linea.varianteId, cantidad)}
