@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Form, Link, useActionData, useLoaderData, useNavigation, useRevalidator } from "react-router-dom";
 
+import { NumeroPedido } from "@/components/tienda/NumeroPedido";
 import { Button } from "@/components/ui/Button";
 import { Precio } from "@/components/ui/Precio";
 import { formatearFechaHora } from "@/lib/formato";
@@ -91,11 +92,12 @@ export function Pedido() {
       <title>{`Pedido ${pedido.numero} · Veluá`}</title>
 
       <section className="mx-auto max-w-3xl px-4 py-8 md:px-8 md:py-14">
-        <p className="text-xs font-bold tracking-[0.18em] text-etiqueta uppercase">Pedido {pedido.numero}</p>
-        <h1 className="mt-2 text-5xl leading-[0.98] font-medium text-tinta md:text-6xl">{textos.titulo}</h1>
+        <h1 className="text-5xl leading-[0.98] font-medium text-tinta md:text-6xl">{textos.titulo}</h1>
         <p role="status" className="mt-4 text-lg text-texto-suave">
           {textos.detalle}
         </p>
+
+        <NumeroPedido numero={pedido.numero} />
 
         {pedido.estadoPago === "pendiente" && pedido.expiraEn && (
           <p className="mt-2 text-sm text-texto-suave">
