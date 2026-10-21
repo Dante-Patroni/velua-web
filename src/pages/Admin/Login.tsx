@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { obtenerMensajeError } from "@/lib/mappings";
 import type { ErrorLogin } from "./Login.action";
+import { InputContrasena } from "@/components/ui/InputContrasena";
 
 /**
  * @description Pantalla de ingreso al panel de administración.
@@ -52,10 +53,9 @@ export function Login() {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="password">Contraseña</Label>
-            <Input
+            <InputContrasena
               id="password"
               name="password"
-              type="password"
               autoComplete="current-password"
               required
               aria-describedby={error ? "error-login" : undefined}

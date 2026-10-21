@@ -209,10 +209,13 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
     DATOS_INVALIDOS: "Revisá los datos marcados.",
     JSON_INVALIDO:
       "No pudimos procesar la información enviada. Probá de nuevo.",
+    CUERPO_DEMASIADO_GRANDE: "La información enviada es demasiado grande.",
     NO_ENCONTRADO: "No encontramos lo que buscabas.",
     NO_AUTORIZADO: "Tenés que iniciar sesión para continuar.",
     TOKEN_INVALIDO: "Tu sesión no es válida. Iniciá sesión de nuevo.",
     TOKEN_EXPIRADO: "Tu sesión venció. Iniciá sesión de nuevo.",
+    SESION_REVOCADA: "Tu sesión se cerró porque se cambió la contraseña. Ingresá de nuevo.",
+    CONTRASENA_ACTUAL_INCORRECTA: "La contraseña actual no es correcta.",
     CREDENCIALES_INVALIDAS: "El mail o la contraseña no son correctos.",
     USUARIO_INACTIVO: "Este usuario está desactivado.",
     SIN_PERMISO: "No tenés permiso para hacer esto.",
@@ -274,6 +277,7 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
     NO_AUTORIZADO: "Tu sesión terminó. Ingresá de nuevo.",
     TOKEN_INVALIDO: "Tu sesión terminó. Ingresá de nuevo.",
     TOKEN_EXPIRADO: "Tu sesión venció. Ingresá de nuevo.",
+    SESION_REVOCADA: "Tu sesión se cerró porque se cambió la contraseña. Ingresá de nuevo.",
   },
   panel: {
     CONFLICTO_DE_DATOS: "Ese slug ya está en uso. Elegí otro.",
@@ -286,6 +290,12 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
       "Esa categoría tiene productos, así que no puede agrupar colecciones. Mové sus productos a otra antes.",
     PRODUCTO_CON_VENTAS:
       "Este producto ya se vendió, así que no se puede borrar. Despublicalo para que no aparezca en la tienda.",
+  },
+
+  cuenta: {
+    DATOS_INVALIDOS: "Revisá la contraseña nueva.",
+    LIMITE_SUPERADO:
+      "Hiciste demasiados intentos con la contraseña actual. Esperá 15 minutos y volvé a probar.",
   },
 };
 
