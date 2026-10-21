@@ -2555,6 +2555,8 @@ export interface components {
             productoNombre?: string;
             /** @example eclat-noir */
             productoSlug?: string | null;
+            /** @description Foto principal del producto, la de menor orden. Null si no tiene fotos. El tamaño lo pide el frontend a Cloudinary. */
+            imagen: components["schemas"]["Imagen"] | null;
             /** @example 100 g */
             varianteNombre?: string;
             /**
