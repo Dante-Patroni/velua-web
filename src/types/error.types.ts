@@ -42,7 +42,10 @@ export type CodigoErrorApi =
   | "PROCESADOR_NO_DISPONIBLE"
   | "STOCK_INSUFICIENTE"
   | "TOTAL_CAMBIO"
-  | "ZONA_INVALIDA";
+  | "ZONA_INVALIDA"
+  | "SESION_REVOCADA"
+  | "CONTRASENA_ACTUAL_INCORRECTA"
+  | "CUERPO_DEMASIADO_GRANDE";
 
 /**
  * Códigos propios del frontend, para fallas que no traen respuesta de la API:
@@ -54,4 +57,4 @@ export type CodigoErrorCliente = "ERROR_DE_RED" | "ERROR_DESCONOCIDO";
 export type CodigoError = CodigoErrorApi | CodigoErrorCliente;
 
 /** Pantalla o flujo donde se muestra el error. Define el tono del mensaje. */
-export type ContextoError = "general" | "tienda" | "login" | "panel" | "ficha" | "checkout";
+export type ContextoError = "general" | "tienda" | "login" | "panel" | "ficha" | "checkout" | "cuenta";
