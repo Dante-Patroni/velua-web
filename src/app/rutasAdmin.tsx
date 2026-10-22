@@ -8,7 +8,7 @@ import type { RouteObject } from "react-router-dom";
  * Este archivo no puede tener imports estáticos de código del panel.
  */
 export const rutasAdmin: RouteObject[] = [
-      {
+  {
     path: "admin/login",
     lazy: async () => {
       const [{ Login }, { accionLogin }] = await Promise.all([
@@ -21,11 +21,12 @@ export const rutasAdmin: RouteObject[] = [
   {
     path: "admin",
     lazy: async () => {
-      const [{ AdminLayout }, { authLoader }] = await Promise.all([
+      const [{ AdminLayout }, { authLoader }, { ErrorPanel }] = await Promise.all([
         import("@/components/layout/AdminLayout"),
         import("@/auth/authService"),
+        import("@/components/layout/ErrorPanel"),
       ]);
-      return { Component: AdminLayout, loader: authLoader };
+      return { Component: AdminLayout, loader: authLoader, ErrorBoundary: ErrorPanel };
     },
     children: [
       {
@@ -45,7 +46,7 @@ export const rutasAdmin: RouteObject[] = [
           return { Component: Productos, loader: cargarProductos, action: accionProductos };
         },
       },
-            {
+      {
         path: "categorias",
         lazy: async () => {
           const [{ Categorias }, { cargarCategorias, accionCategorias }] =
@@ -59,9 +60,21 @@ export const rutasAdmin: RouteObject[] = [
             action: accionCategorias,
           };
         },
+
+      },
+      {
+        path: "mi-cuenta",
+        lazy: async () => {
+          const [{ MiCuenta }, { accionMiCuenta }] = await Promise.all([
+            import("@/pages/Admin/MiCuenta"),
+            import("@/pages/Admin/MiCuenta.action"),
+          ]);
+          return { Component: MiCuenta, action: accionMiCuenta };
+        },
       },
 
-            {
+
+      {
         path: "productos/nuevo",
         lazy: async () => {
           const [{ Producto }, { cargarFicha, accionFicha }] = await Promise.all([

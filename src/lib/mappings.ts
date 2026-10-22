@@ -32,6 +32,7 @@ export const ENLACES_ADMIN: readonly Enlace[] = [
   { ruta: "/admin", texto: "Pedidos" },
   { ruta: "/admin/productos", texto: "Productos" },
   { ruta: "/admin/categorias", texto: "Categorías" },
+  { ruta: "/admin/mi-cuenta", texto: "Mi cuenta" },
 ];
 
 /** Enlaces fijos del menú de la tienda, después de las colecciones. */
