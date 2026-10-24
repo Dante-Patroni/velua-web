@@ -4,12 +4,17 @@ import { Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Precio } from "@/components/ui/Precio";
 import type { ItemCotizado } from "@/types";
-import { cn } from "@/lib/utils";
+import { cn, srcsetCloudinaryCuadrada, textoAlternativo, urlCloudinaryCuadrada } from "@/lib/utils";
 import { TexturaBotanica } from "./TexturaBotanica";
+
+/** Lado de la miniatura que se pide a Cloudinary, a densidad normal. */
+const LADO_MINIATURA = 160;
 
 type LineaCarritoProps = {
   /** La línea tal como la devolvió la cotización. */
   linea: ItemCotizado;
+  /** Carga la foto sin esperar: solo para la primera línea, que es la primera visible. */
+  prioridad?: boolean;
   /** Cantidad que la clienta tiene ahora. Puede ir por delante de la cotización. */
   cantidad: number;
   /** true si la cantidad cambió y falta que la cotización responda. */
@@ -21,25 +26,40 @@ type LineaCarritoProps = {
 /**
  * @description Una línea del carrito: producto, presentación, precio unitario,
  * cantidad y subtotal de la línea. Todos los importes vienen de la cotización
- * y solo se formatean. Sin foto, porque la cotización todavía no la trae: va la
- * textura botánica, que es un estado normal. Mientras la cantidad cambió y la
+ * y solo se formatean. La miniatura es la foto principal del producto, pedida a
+ * Cloudinary a 160 × 160; si el producto no tiene fotos va la textura botánica,
+ * que es un estado normal. Si la foto no trae texto alternativo, se usa el
+ * nombre del producto. Mientras la cantidad cambió y la
  * cotización no respondió, el subtotal se atenúa para no mostrarlo como vigente.
  * @param props La línea cotizada, la cantidad actual y los manejadores.
  * @returns La línea del carrito.
  */
 export function LineaCarrito({
   linea,
+  prioridad,
   cantidad,
   actualizando,
   onCambiarCantidad,
   onQuitar,
 }: LineaCarritoProps) {
-  const { productoNombre, productoSlug, varianteNombre, precioUnitario, subtotal } = linea;
+  const { productoNombre, productoSlug, varianteNombre, precioUnitario, subtotal, imagen } = linea;
   const nombre = productoNombre ?? "Producto";
 
   return (
     <article className="flex gap-4 border-b border-borde py-5 first:pt-0 md:gap-6">
-      <TexturaBotanica aria-hidden className="size-24 shrink-0 rounded-xl border border-borde md:size-32" />
+      {imagen ? (
+        <img
+          src={urlCloudinaryCuadrada(imagen.url, LADO_MINIATURA)}
+          srcSet={srcsetCloudinaryCuadrada(imagen.url, LADO_MINIATURA)}
+          alt={textoAlternativo(imagen.alt, nombre)}
+          width={LADO_MINIATURA}
+          height={LADO_MINIATURA}
+          loading={prioridad ? "eager" : "lazy"}
+          className="size-24 shrink-0 rounded-xl border border-borde object-cover md:size-32"
+        />
+      ) : (
+        <TexturaBotanica aria-hidden className="size-24 shrink-0 rounded-xl border border-borde md:size-32" />
+      )}
 
       <div className="flex min-w-0 flex-1 flex-col gap-3">
         <div className="flex flex-col gap-0.5">

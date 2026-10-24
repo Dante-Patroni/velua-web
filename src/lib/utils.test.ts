@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { enlaceWhatsApp, srcsetCloudinary, urlCloudinary } from "@/lib/utils";
+import {
+  enlaceWhatsApp,
+  srcsetCloudinary,
+  srcsetCloudinaryCuadrada,
+  textoAlternativo,
+  urlCloudinary,
+  urlCloudinaryCuadrada,
+} from "@/lib/utils";
 
 const FOTO = "https://res.cloudinary.com/velua/image/upload/v1712/productos/eclat-noir.jpg";
 
@@ -44,4 +51,38 @@ describe("enlaceWhatsApp", () => {
   it("ignora un mensaje vacío", () => {
     expect(enlaceWhatsApp("5493584000000", "   ")).toBe("https://wa.me/5493584000000");
   });
+});
+
+describe("urlCloudinaryCuadrada", () => {
+  it("pide una miniatura cuadrada recortada al centro, con f_auto y q_auto", () => {
+    expect(urlCloudinaryCuadrada(FOTO, 160)).toBe(
+      "https://res.cloudinary.com/velua/image/upload/c_fill,w_160,h_160,f_auto,q_auto/v1712/productos/eclat-noir.jpg",
+    );
+  });
+
+  it("si la URL no es de Cloudinary la devuelve igual", () => {
+    expect(urlCloudinaryCuadrada("https://example.com/foto.jpg", 160)).toBe("https://example.com/foto.jpg");
+  });
+});
+
+describe("srcsetCloudinaryCuadrada", () => {
+  it("incluye la versión normal y el doble", () => {
+    expect(srcsetCloudinaryCuadrada(FOTO, 160)).toBe(
+      "https://res.cloudinary.com/velua/image/upload/c_fill,w_160,h_160,f_auto,q_auto/v1712/productos/eclat-noir.jpg 1x, " +
+        "https://res.cloudinary.com/velua/image/upload/c_fill,w_320,h_320,f_auto,q_auto/v1712/productos/eclat-noir.jpg 2x",
+    );
+  });
+});
+
+describe("textoAlternativo", () => {
+  it("usa el texto alternativo de la imagen si lo hay", () => {
+    expect(textoAlternativo("Jabón negro con vetas doradas", "Éclat Noir")).toBe("Jabón negro con vetas doradas");
+  });
+
+  it.each([["vacío", ""], ["solo espacios", "   "], ["null", null], ["undefined", undefined]])(
+    "con el alt %s usa el nombre del producto",
+    (_nombre, alt) => {
+      expect(textoAlternativo(alt, "Éclat Noir")).toBe("Éclat Noir");
+    },
+  );
 });
