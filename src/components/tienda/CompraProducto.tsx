@@ -4,9 +4,10 @@ import { Minus, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/Button";
 import { Precio } from "@/components/ui/Precio";
+import { puedeAgregarItem } from "@/carrito/carrito.utils";
 import { useCarrito } from "@/carrito/useCarrito";
 import type { Variante } from "@/types";
-import { WHATSAPP_NUMERO } from "@/lib/mappings";
+import { MENSAJE_CARRITO_LLENO, WHATSAPP_NUMERO } from "@/lib/mappings";
 import { cn, enlaceWhatsApp } from "@/lib/utils";
 import { varianteInicial } from "./CompraProducto.utils";
 import {
@@ -48,10 +49,10 @@ export function CompraProducto({
   disponibleDesde,
   diasRestantes,
 }: CompraProductoProps) {
-  const { agregar } = useCarrito();
+  const { items, agregar } = useCarrito();
   const [varianteId, setVarianteId] = useState(() => varianteInicial(variantes)?.id);
   const [cantidad, setCantidad] = useState(1);
-  const [agregado, setAgregado] = useState(false);
+  const [resultado, setResultado] = useState<"agregado" | "lleno" | null>(null);
 
   const variante = variantes.find(({ id }) => id === varianteId) ?? variantes[0];
   if (!variante) return null;
@@ -69,17 +70,23 @@ export function CompraProducto({
   const elegirVariante = (id: number) => {
     setVarianteId(id);
     setCantidad(1);
-    setAgregado(false);
+    setResultado(null);
   };
 
   const cambiarCantidad = (nueva: number) => {
     setCantidad(Math.max(1, nueva));
-    setAgregado(false);
+    setResultado(null);
   };
 
   const agregarAlCarrito = () => {
+    // Con el carrito en el máximo de líneas, agregar no hace nada: no se dice que se agregó.
+    if (!puedeAgregarItem(items, variante.id)) {
+      setResultado("lleno");
+      return;
+    }
+
     agregar(variante.id, cantidad);
-    setAgregado(true);
+    setResultado("agregado");
   };
 
   return (
@@ -188,14 +195,13 @@ export function CompraProducto({
       )}
 
       {/* Siempre en el DOM, para que los lectores de pantalla anuncien el cambio. */}
-      <p role="status" className="min-h-6 text-sm text-salvia-hondo">
-        {agregado && (
-          <>
-            Lo agregamos a tu carrito.{" "}
-            <Link to="/carrito" className={claseEnlaceAccion}>
-              Ver carrito
-            </Link>
-          </>
+      <p role="status" className={cn("min-h-6 text-sm", resultado === "lleno" ? "text-error" : "text-salvia-hondo")}>
+        {resultado === "agregado" && "Lo agregamos a tu carrito. "}
+        {resultado === "lleno" && `${MENSAJE_CARRITO_LLENO} `}
+        {resultado && (
+          <Link to="/carrito" className={claseEnlaceAccion}>
+            Ver carrito
+          </Link>
         )}
       </p>
     </div>

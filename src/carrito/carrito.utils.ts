@@ -14,6 +14,17 @@ export const esEnteroPositivo = (valor: unknown): valor is number =>
   typeof valor === "number" && Number.isSafeInteger(valor) && valor > 0;
 
 /**
+ * @description Indica si una variante se puede agregar al carrito: o ya está
+ * (se suman unidades a su línea) o todavía hay lugar para una línea nueva.
+ * Con MAX_ITEMS_CARRITO líneas distintas, una variante nueva no entra.
+ * @param items Carrito actual.
+ * @param varianteId Variante que se quiere agregar.
+ * @returns true si agregarla modifica el carrito.
+ */
+export const puedeAgregarItem = (items: ItemCarrito[], varianteId: number): boolean =>
+  items.length < MAX_ITEMS_CARRITO || items.some((item) => item.varianteId === varianteId);
+
+/**
  * @description Agrega unidades de una variante. Si ya estaba en el carrito,
  * suma a la línea existente en vez de duplicarla. No aplica topes: el máximo
  * por compra y el stock los decide el backend al cotizar. Sí respeta el máximo
