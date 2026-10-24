@@ -1,9 +1,10 @@
-import { NavLink, Outlet, ScrollRestoration, useLoaderData } from "react-router-dom";
+import { Form, NavLink, Outlet, ScrollRestoration, useLoaderData } from "react-router-dom";
 
 import { AuthProvider } from "@/auth/AuthContext";
 import type { authLoader } from "@/auth/authService";
 import { ENLACES_ADMIN } from "@/lib/mappings";
 import { cn } from "@/lib/utils";
+import { LogOut } from "lucide-react";
 
 /**
  * @description Layout del panel. Recibe el usuario del authLoader y lo expone
@@ -39,6 +40,17 @@ export function AdminLayout() {
                   </NavLink>
                 </li>
               ))}
+              <li>
+                <Form method="post" action="/admin/salir" replace>
+                  <button
+                    type="submit"
+                    className="flex h-11 w-full items-center gap-2 rounded-lg px-3 text-sm whitespace-nowrap text-tinta hover:bg-crema-calida"
+                  >
+                    <LogOut aria-hidden className="size-4" />
+                    Cerrar sesión
+                  </button>
+                </Form>
+              </li>
             </ul>
           </nav>
         </aside>
