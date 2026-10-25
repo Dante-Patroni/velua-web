@@ -1,5 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, test } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 
 import { formatearPrecio } from "@/lib/formato";
 import type { PedidoAdminFila } from "@/types";
@@ -21,9 +22,12 @@ const fila = (cambios: Partial<PedidoAdminFila> = {}): PedidoAdminFila => ({
   ...cambios,
 });
 
+/** Renderiza dentro de un router de memoria: Link lo necesita. */
+const render = (ui: React.ReactElement) => renderToStaticMarkup(<MemoryRouter>{ui}</MemoryRouter>);
+
 describe("ListaPedidos", () => {
   test("muestra como texto un nombre con HTML, sin interpretarlo", () => {
-    const html = renderToStaticMarkup(
+    const html = render(
       <ListaPedidos datos={[fila({ clienteNombre: '<img src=x onerror="alert(1)">' })]} />
     );
 
@@ -32,15 +36,22 @@ describe("ListaPedidos", () => {
   });
 
   test("muestra el total formateado tal como viene de la API", () => {
-    const html = renderToStaticMarkup(<ListaPedidos datos={[fila()]} />);
+    const html = render(<ListaPedidos datos={[fila()]} />);
     expect(html).toContain(formatearPrecio("39350.00"));
   });
 
   test("traduce los estados con sus etiquetas y no muestra el código crudo", () => {
-    const html = renderToStaticMarkup(<ListaPedidos datos={[fila()]} />);
+    const html = render(<ListaPedidos datos={[fila()]} />);
 
     expect(html).toContain("Pagado");
     expect(html).toContain("En preparación");
     expect(html).not.toContain("en_preparacion");
+  });
+
+  test("el link del pedido usa el id, no el número comercial", () => {
+    const html = render(<ListaPedidos datos={[fila()]} />);
+
+    expect(html).toContain('href="/admin/pedidos/12"');
+    expect(html).not.toContain('href="/admin/pedidos/VEL-');
   });
 });

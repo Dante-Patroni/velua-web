@@ -143,8 +143,7 @@ function Pago({ pedido }: { pedido: PedidoAdminFila }) {
 
 /**
  * @description Lista de pedidos: tabla en escritorio y tarjetas en teléfono.
- * No usa hooks del router, así se puede probar sola. Todo lo que escribe la
- * clienta se muestra como texto: React lo escapa.
+ * Usa Link: en los tests se renderiza dentro de un MemoryRouter.
  * @param props Pedidos a mostrar.
  * @param props.datos Filas del listado.
  * @returns La tabla y las tarjetas.
@@ -169,7 +168,12 @@ export function ListaPedidos({ datos }: { datos: PedidoAdminFila[] }) {
             {datos.map((p) => (
               <tr key={p.id} className="border-b border-borde last:border-0">
                 <td className="px-4 py-4">
-                  <span className="block font-medium text-tinta">{p.numero}</span>
+                  <Link
+                    to={`/admin/pedidos/${p.id}`}
+                    className="block font-medium text-tinta underline-offset-4 hover:text-dorado-texto hover:underline"
+                  >
+                    {p.numero}
+                  </Link>
                   <span className="block text-xs text-texto-suave">
                     {formatearFechaHora(p.creadoEn)}
                   </span>
@@ -199,7 +203,12 @@ export function ListaPedidos({ datos }: { datos: PedidoAdminFila[] }) {
           <li key={p.id} className="rounded-lg border border-borde bg-crema-clara p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <span className="block font-medium text-tinta">{p.numero}</span>
+                <Link
+                  to={`/admin/pedidos/${p.id}`}
+                  className="block font-medium text-tinta underline-offset-4 hover:text-dorado-texto hover:underline"
+                >
+                  {p.numero}
+                </Link>
                 <span className="block text-xs text-texto-suave">
                   {formatearFechaHora(p.creadoEn)}
                 </span>

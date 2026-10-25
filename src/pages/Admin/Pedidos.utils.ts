@@ -1,4 +1,4 @@
-import type { EstadoPago, EstadoPedido, PedidoAdminFila } from "@/types";
+import type { EstadoPago, EstadoPedido, PedidoAdminDetalle, PedidoAdminFila } from "@/types";
 
 /**
  * Etiqueta de cada estado de pago. Es un Record: si la API agrega un estado,
@@ -52,3 +52,39 @@ export const ETIQUETAS_ENTREGA: Record<PedidoAdminFila["metodoEntrega"], string>
   envio: "Envío",
   retiro: "Retiro",
 };
+
+/** Un evento del historial del pedido. */
+type EventoPedido = PedidoAdminDetalle["eventos"][number];
+
+/**
+ * Origen de cada evento. Dice desde dónde se hizo el cambio, no quién:
+ * el evento trae el id del usuario, no su nombre.
+ */
+export const ETIQUETAS_ORIGEN: Record<EventoPedido["origen"], string> = {
+  checkout: "Checkout",
+  webhook: "Mercado Pago",
+  job: "Automático",
+  panel: "Panel",
+  cliente: "Clienta",
+};
+
+/** Qué parte del pedido cambió. */
+export const ETIQUETAS_CAMPO: Record<EventoPedido["campo"], string> = {
+  pago: "Pago",
+  preparacion: "Preparación",
+  aviso: "Aviso",
+};
+
+/**
+ * @description Etiqueta de un estado del historial. Los de pago y preparación
+ * usan sus etiquetas; los avisos se muestran como vienen, siempre como texto.
+ * @param campo Qué parte del pedido cambió.
+ * @param estado Estado anterior o nuevo, o null si no había.
+ * @returns La etiqueta para mostrar.
+ */
+export function etiquetaEstadoEvento(campo: EventoPedido["campo"], estado: string | null): string {
+  if (estado === null) return "—";
+  if (campo === "pago" && esEstadoPago(estado)) return ETIQUETAS_ESTADO_PAGO[estado];
+  if (campo === "preparacion" && esEstadoPedido(estado)) return ETIQUETAS_ESTADO_PEDIDO[estado];
+  return estado;
+}
