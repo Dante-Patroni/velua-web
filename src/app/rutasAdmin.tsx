@@ -32,8 +32,11 @@ export const rutasAdmin: RouteObject[] = [
       {
         index: true,
         lazy: async () => {
-          const { Pedidos } = await import("@/pages/Admin/Pedidos");
-          return { Component: Pedidos };
+          const [{ Pedidos }, { cargarPedidos }] = await Promise.all([
+            import("@/pages/Admin/Pedidos"),
+            import("@/pages/Admin/Pedidos.action"),
+          ]);
+          return { Component: Pedidos, loader: cargarPedidos };
         },
       },
       {

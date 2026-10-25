@@ -1,4 +1,4 @@
-import type { EstadoPago, EstadoPedido } from "@/types";
+import type { EstadoPago, EstadoPedido, PedidoAdminFila } from "@/types";
 
 /**
  * Etiqueta de cada estado de pago. Es un Record: si la API agrega un estado,
@@ -40,3 +40,15 @@ export const esEstadoPago = (valor: string | null): valor is EstadoPago =>
  */
 export const esEstadoPedido = (valor: string | null): valor is EstadoPedido =>
     ESTADOS_PEDIDO.includes(valor as EstadoPedido);
+
+/** Etiqueta del medio de pago. */
+export const ETIQUETAS_MEDIO_PAGO: Record<PedidoAdminFila["medioPago"], string> = {
+  mercadopago: "Mercado Pago",
+  transferencia: "Transferencia",
+};
+
+/** Etiqueta del método de entrega. */
+export const ETIQUETAS_ENTREGA: Record<PedidoAdminFila["metodoEntrega"], string> = {
+  envio: "Envío",
+  retiro: "Retiro",
+};
