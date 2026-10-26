@@ -1413,6 +1413,104 @@ export interface paths {
         };
         trace?: never;
     };
+    "/admin/pedidos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar los pedidos
+         * @description Del más nuevo al más viejo. La lista muestra solo lo necesario para ubicar un pedido: los datos de contacto y la dirección van en el detalle. Máximo 50 por página.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    estadoPago?: components["schemas"]["EstadoPago"];
+                    estadoPedido?: components["schemas"]["EstadoPedido"];
+                    /** @description Numero de pagina, empezando en 1. */
+                    pagina?: components["parameters"]["Pagina"];
+                    /** @description Cantidad de elementos por pagina. */
+                    limite?: components["parameters"]["Limite"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Página de pedidos */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            datos: components["schemas"]["PedidoAdminFila"][];
+                            meta: components["schemas"]["Meta"];
+                        };
+                    };
+                };
+                400: components["responses"]["DatosInvalidos"];
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/pedidos/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detalle de un pedido
+         * @description Contacto, entrega, totales con sus descuentos, pago, ítems e historial de eventos. No incluye datos internos del procesador de pagos.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Id del recurso. */
+                    id: components["parameters"]["IdRuta"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description El pedido */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PedidoAdminDetalle"];
+                    };
+                };
+                400: components["responses"]["DatosInvalidos"];
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                404: components["responses"]["NoEncontrado"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/productos/{id}/imagenes": {
         parameters: {
             query?: never;
@@ -2724,6 +2822,147 @@ export interface components {
                 subtotal?: string;
             }[];
             totales?: components["schemas"]["TotalesCotizacion"];
+        };
+        /**
+         * @description Sale de TRANSICIONES_PAGO: es la misma lista que valida la API.
+         * @enum {string}
+         */
+        EstadoPago: "pendiente" | "rechazado" | "aprobado" | "cancelado" | "devuelto";
+        /**
+         * @description Sale de TRANSICIONES_PREPARACION: es la misma lista que valida la API.
+         * @enum {string}
+         */
+        EstadoPedido: "nuevo" | "en_preparacion" | "enviado" | "entregado" | "cancelado";
+        /** @description Fila de la lista de pedidos del panel. Sin contacto ni dirección: van en el detalle. */
+        PedidoAdminFila: {
+            /** @example 12 */
+            id: number;
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /** Format: date-time */
+            creadoEn: string;
+            /**
+             * @description Lo escribe la clienta: mostrarlo siempre como texto, nunca como HTML.
+             * @example Lucía Fernández
+             */
+            clienteNombre: string;
+            /**
+             * @description Cadena decimal. No operar en el frontend.
+             * @example 23500.00
+             */
+            total: string;
+            /** @enum {string} */
+            medioPago: "mercadopago" | "transferencia";
+            estadoPago: components["schemas"]["EstadoPago"];
+            estadoPedido: components["schemas"]["EstadoPedido"];
+            /** @enum {string} */
+            metodoEntrega: "envio" | "retiro";
+            /**
+             * Format: date-time
+             * @description Hasta cuándo queda apartado el stock. Si venció lo dice estadoPago: no usar el reloj del navegador.
+             */
+            expiraEn: string | null;
+        };
+        /** @description Detalle de un pedido en el panel. No incluye datos internos del procesador de pagos. Lo que escribe la clienta (nombre, dirección, notas) se muestra siempre como texto. */
+        PedidoAdminDetalle: {
+            /** @example 12 */
+            id: number;
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /** Format: date-time */
+            creadoEn: string;
+            /**
+             * @description Lo escribe la clienta: mostrarlo siempre como texto, nunca como HTML.
+             * @example Lucía Fernández
+             */
+            clienteNombre: string;
+            /**
+             * @description Cadena decimal. No operar en el frontend.
+             * @example 23500.00
+             */
+            total: string;
+            /** @enum {string} */
+            medioPago: "mercadopago" | "transferencia";
+            estadoPago: components["schemas"]["EstadoPago"];
+            estadoPedido: components["schemas"]["EstadoPedido"];
+            /** @enum {string} */
+            metodoEntrega: "envio" | "retiro";
+            /**
+             * Format: date-time
+             * @description Hasta cuándo queda apartado el stock. Si venció lo dice estadoPago: no usar el reloj del navegador.
+             */
+            expiraEn: string | null;
+            cliente: {
+                nombre: string;
+                /** Format: email */
+                email: string;
+                telefono: string;
+                documento: string | null;
+            };
+            entrega: {
+                /** @enum {string} */
+                metodo: "envio" | "retiro";
+                /** @description Nombre de la zona. Null si es para retirar. */
+                zona: string | null;
+                /** @description Null si es para retirar. La base no exige cada campo: mostrar un guion si alguno falta. */
+                direccion: {
+                    calle: string | null;
+                    numero: string | null;
+                    extra: string | null;
+                    ciudad: string | null;
+                    provincia: string | null;
+                    cp: string | null;
+                } | null;
+                seguimiento: string | null;
+            };
+            /** @description Todos como cadena decimal. No operar en el frontend. */
+            totales: {
+                /** @example 36500.00 */
+                subtotal: string;
+                /** @example 0.00 */
+                descuentoCupon: string;
+                /**
+                 * @description Descuento por medio de pago. Se RESTA del subtotal.
+                 * @example 3650.00
+                 */
+                ajusteMedioPago: string;
+                /** @example 6500.00 */
+                costoEnvio: string;
+                /** @example 39350.00 */
+                total: string;
+            };
+            pago: {
+                /** @description Id del pago en Mercado Pago. */
+                pagoId: string | null;
+                metodo: string | null;
+                /**
+                 * Format: date-time
+                 * @description Cuándo la clienta avisó que transfirió.
+                 */
+                comprobanteInformadoEn: string | null;
+            };
+            notasCliente: string | null;
+            notasInternas: string | null;
+            items: {
+                producto: string;
+                variante: string;
+                sku: string | null;
+                precioUnitario: string;
+                cantidad: number;
+                subtotal: string;
+            }[];
+            eventos: {
+                /** @enum {string} */
+                campo: "pago" | "preparacion" | "aviso";
+                estadoAnterior: string | null;
+                estadoNuevo: string;
+                /** @enum {string} */
+                origen: "checkout" | "webhook" | "job" | "panel" | "cliente";
+                usuarioId: number | null;
+                detalle: string | null;
+                /** Format: date-time */
+                creadoEn: string;
+            }[];
         };
     };
     responses: {

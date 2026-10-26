@@ -7,6 +7,9 @@ import type {
   EstadoPago,
   EstadoPedido,
   MotivoAviso,
+  EventoPedido,
+  MedioPago,
+  MetodoEntrega,
 } from "@/types";
 
 type Enlace = { ruta: string; texto: string };
@@ -189,6 +192,49 @@ export const ETIQUETAS_ESTADO_PEDIDO: Record<EstadoPedido, string> = {
   enviado: "Enviado",
   entregado: "Entregado",
   cancelado: "Cancelado",
+};
+
+/**
+ * Etiqueta corta de cada estado de pago, para el panel. La tienda usa
+ * TEXTOS_ESTADO_PAGO, que le habla a la clienta.
+ */
+export const ETIQUETAS_ESTADO_PAGO: Record<EstadoPago, string> = {
+  pendiente: "Pendiente",
+  aprobado: "Pagado",
+  rechazado: "Rechazado",
+  cancelado: "Cancelado",
+  devuelto: "Devuelto",
+};
+
+/** Cómo se nombra cada medio de pago. */
+export const ETIQUETAS_MEDIO_PAGO: Record<MedioPago, string> = {
+  mercadopago: "Mercado Pago",
+  transferencia: "Transferencia",
+};
+
+/** Cómo se nombra cada método de entrega. */
+export const ETIQUETAS_ENTREGA: Record<MetodoEntrega, string> = {
+  envio: "Envío",
+  retiro: "Retiro",
+};
+
+/**
+ * Desde dónde se hizo cada cambio del historial del pedido. Es el origen, no
+ * quién: el evento trae el id del usuario, no su nombre.
+ */
+export const ETIQUETAS_ORIGEN_EVENTO: Record<EventoPedido["origen"], string> = {
+  checkout: "Checkout",
+  webhook: "Mercado Pago",
+  job: "Automático",
+  panel: "Panel",
+  cliente: "Clienta",
+};
+
+/** Qué parte del pedido cambió en cada evento del historial. */
+export const ETIQUETAS_CAMPO_EVENTO: Record<EventoPedido["campo"], string> = {
+  pago: "Pago",
+  preparacion: "Preparación",
+  aviso: "Aviso",
 };
 
 /**
