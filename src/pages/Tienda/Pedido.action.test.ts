@@ -35,7 +35,6 @@ describe("cargarPedido", () => {
     await expect(cargarPedido(cargar())).resolves.toEqual({
       pedido,
       error: null,
-      consultadoEn: expect.any(Number),
     });
     expect(obtenerPedido).toHaveBeenCalledWith("VEL-4K7Q2X", expect.any(AbortSignal));
   });
@@ -70,7 +69,6 @@ describe("cargarPedido", () => {
     await expect(cargarPedido(cargar())).resolves.toEqual({
       pedido: null,
       error: codigo,
-      consultadoEn: expect.any(Number),
     });
   });
 

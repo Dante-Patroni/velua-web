@@ -18,7 +18,6 @@ import {
   INTERVALO_CONSULTA_PEDIDO_MS,
   debeConsultarPedido,
   intentosAgotados,
-  pedidoVencido,
   puedePagarPedido,
 } from "./Pedido.utils";
 
@@ -36,7 +35,7 @@ const claseEnlaceAccion =
  * @returns La página del pedido.
  */
 export function Pedido() {
-  const { pedido, error, consultadoEn } = useLoaderData<typeof cargarPedido>();
+  const { pedido, error } = useLoaderData<typeof cargarPedido>();
   // react-router serializa el tipo y pierde el discriminante `ok`; se vuelve a afirmar el tipo real.
   const resultadoPago = useActionData() as ResultadoPago | undefined;
   const navegacion = useNavigation();
@@ -84,11 +83,10 @@ export function Pedido() {
     );
   }
 
-  // Pasada la hora de la reserva los productos ya no están apartados: no se ofrece pagar.
-  const vencido = pedidoVencido(pedido.expiraEn, consultadoEn);
-  const textos =
-    vencido && pedido.estadoPago === "pendiente" ? TEXTO_PEDIDO_VENCIDO : TEXTOS_ESTADO_PAGO[pedido.estadoPago];
-  const puedePagar = puedePagarPedido(pedido, consultadoEn);
+  // La reserva vencida la informa la API al intentar pagar: no se adivina con el reloj del navegador.
+  const vencido = falloPago?.codigo === "PEDIDO_VENCIDO";
+  const textos = vencido ? TEXTO_PEDIDO_VENCIDO : TEXTOS_ESTADO_PAGO[pedido.estadoPago];
+  const puedePagar = puedePagarPedido(pedido) && !vencido;
   const enlaceAyuda = enlaceWhatsApp(WHATSAPP_NUMERO, `Hola, tengo una consulta por mi pedido ${pedido.numero}.`);
 
   return (
@@ -120,13 +118,7 @@ export function Pedido() {
           </div>
         )}
 
-        {vencido && pedido.estadoPago === "rechazado" && (
-          <p role="alert" className="mt-4 rounded-2xl border border-borde bg-crema-calida p-4 text-error">
-            {TEXTO_PEDIDO_VENCIDO.detalle}
-          </p>
-        )}
-
-        {falloPago && (
+        {falloPago && !vencido && (
           <p role="alert" className="mt-4 rounded-2xl border border-borde bg-crema-calida p-4 text-error">
             {obtenerMensajeError(falloPago.codigo, "checkout")}
           </p>

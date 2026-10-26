@@ -13,8 +13,6 @@ import type { PedidoPublico } from "@/types";
 export type DatosPedido = {
   pedido: PedidoPublico | null;
   error: string | null;
-  /** Momento de la consulta, en milisegundos: con él se decide si la reserva ya venció. */
-  consultadoEn: number;
 };
 
 /** Resultado de pedir un link de pago. */
@@ -35,12 +33,12 @@ export async function cargarPedido({ request, params }: LoaderFunctionArgs): Pro
   try {
     const pedido = await obtenerPedido(params.numero ?? "", request.signal);
 
-    return { pedido, error: null, consultadoEn: Date.now() };
+    return { pedido, error: null };
   } catch (error) {
     if (error instanceof ErrorApi) {
       if (error.status === 404) throw new Response(null, { status: 404, statusText: "Not Found" });
 
-      return { pedido: null, error: error.codigo, consultadoEn: Date.now() };
+      return { pedido: null, error: error.codigo };
     }
 
     throw error;

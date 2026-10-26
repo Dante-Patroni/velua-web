@@ -4,7 +4,6 @@ import {
   MAX_CONSULTAS_PEDIDO,
   debeConsultarPedido,
   intentosAgotados,
-  pedidoVencido,
   puedePagarPedido,
 } from "@/pages/Tienda/Pedido.utils";
 
@@ -58,59 +57,24 @@ describe("intentosAgotados", () => {
   });
 });
 
-describe("pedidoVencido", () => {
-  const LIMITE = "2026-10-26T20:00:00.000Z";
-  const limite = Date.parse(LIMITE);
-
-  it("no venció antes del límite", () => {
-    expect(pedidoVencido(LIMITE, limite - 1)).toBe(false);
-  });
-
-  it("venció en el instante del límite y después", () => {
-    expect(pedidoVencido(LIMITE, limite)).toBe(true);
-    expect(pedidoVencido(LIMITE, limite + 60_000)).toBe(true);
-  });
-
-  it("sin fecha no vence", () => {
-    expect(pedidoVencido(null, limite)).toBe(false);
-    expect(pedidoVencido(undefined, limite)).toBe(false);
-    expect(pedidoVencido("", limite)).toBe(false);
-  });
-
-  it("con una fecha ilegible no se declara vencido: lo decide la API", () => {
-    expect(pedidoVencido("mañana", limite)).toBe(false);
-  });
-});
-
 describe("puedePagarPedido", () => {
-  const LIMITE = "2026-10-26T20:00:00.000Z";
-  const limite = Date.parse(LIMITE);
-  const base = { medioPago: "mercadopago", estadoPago: "pendiente", expiraEn: LIMITE } as const;
+  const base = { medioPago: "mercadopago", estadoPago: "pendiente" } as const;
 
-  it("ofrece pagar un pedido pendiente con la reserva vigente", () => {
-    expect(puedePagarPedido(base, limite - 1)).toBe(true);
+  it("ofrece pagar un pedido pendiente", () => {
+    expect(puedePagarPedido(base)).toBe(true);
   });
 
-  it("ofrece pagar de nuevo un pedido rechazado con la reserva vigente", () => {
-    expect(puedePagarPedido({ ...base, estadoPago: "rechazado" }, limite - 1)).toBe(true);
-  });
-
-  it("no ofrece pagar si el pedido venció, esté pendiente o rechazado", () => {
-    expect(puedePagarPedido(base, limite)).toBe(false);
-    expect(puedePagarPedido({ ...base, estadoPago: "rechazado" }, limite + 1)).toBe(false);
+  it("ofrece pagar de nuevo un pedido rechazado", () => {
+    expect(puedePagarPedido({ ...base, estadoPago: "rechazado" })).toBe(true);
   });
 
   it("no ofrece pagar un pedido ya pagado, devuelto o cancelado", () => {
     for (const estadoPago of ["aprobado", "devuelto", "cancelado"] as const) {
-      expect(puedePagarPedido({ ...base, estadoPago }, limite - 1)).toBe(false);
+      expect(puedePagarPedido({ ...base, estadoPago })).toBe(false);
     }
   });
 
   it("no ofrece pagar un pedido de transferencia", () => {
-    expect(puedePagarPedido({ ...base, medioPago: "transferencia" }, limite - 1)).toBe(false);
-  });
-
-  it("sin fecha de vencimiento ofrece pagar: no hay con qué declararlo vencido", () => {
-    expect(puedePagarPedido({ ...base, expiraEn: null }, limite + 1_000_000)).toBe(true);
+    expect(puedePagarPedido({ ...base, medioPago: "transferencia" })).toBe(false);
   });
 });
