@@ -45,3 +45,38 @@ export const debeConsultarPedido = ({
  */
 export const intentosAgotados = (intentos: number, estadoPago: EstadoPago | undefined): boolean =>
   estadoPago === "pendiente" && intentos >= MAX_CONSULTAS_PEDIDO;
+
+/**
+ * @description Indica si la reserva del pedido ya venció: pasó el instante
+ * hasta el que la API guarda los productos. Es solo una guía para no ofrecer
+ * "Pagar" cuando seguro va a fallar: la decisión real la toma la API, que
+ * responde PEDIDO_VENCIDO si se intenta pagar igual. `ahora` lo recibe quien
+ * llama para poder probarlo y para usar el momento de la consulta.
+ * @param expiraEn Instante de vencimiento (fecha y hora ISO), o null si no vence.
+ * @param ahora Momento actual, en milisegundos.
+ * @returns true si venció. Sin fecha o con una fecha ilegible, false.
+ */
+export const pedidoVencido = (expiraEn: string | null | undefined, ahora: number): boolean => {
+  if (!expiraEn) return false;
+
+  const limite = Date.parse(expiraEn);
+
+  return Number.isFinite(limite) && ahora >= limite;
+};
+
+/**
+ * @description Decide si se ofrece pagar (o pagar de nuevo) con Mercado Pago:
+ * solo un pedido de Mercado Pago, con el pago pendiente o rechazado y la
+ * reserva vigente. Un pedido vencido no se ofrece: los productos ya no están
+ * apartados.
+ * @param pedido Medio de pago, estado del pago y vencimiento del pedido.
+ * @param ahora Momento actual, en milisegundos.
+ * @returns true si corresponde mostrar el botón de pagar.
+ */
+export const puedePagarPedido = (
+  pedido: Pick<PedidoPublico, "medioPago" | "estadoPago" | "expiraEn">,
+  ahora: number,
+): boolean =>
+  pedido.medioPago === "mercadopago" &&
+  (pedido.estadoPago === "pendiente" || pedido.estadoPago === "rechazado") &&
+  !pedidoVencido(pedido.expiraEn, ahora);

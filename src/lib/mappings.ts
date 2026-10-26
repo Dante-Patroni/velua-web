@@ -172,6 +172,16 @@ export const TEXTOS_ESTADO_PAGO: Record<EstadoPago, { titulo: string; detalle: s
   },
 };
 
+/**
+ * Lo que se le dice a la clienta cuando el pedido sigue pendiente pero la
+ * reserva ya venció: los productos dejaron de estar apartados y no se puede
+ * pagar. El mismo texto que el código PEDIDO_VENCIDO de la API.
+ */
+export const TEXTO_PEDIDO_VENCIDO = {
+  titulo: "Tu pedido venció",
+  detalle: "Pasó el tiempo en que guardamos tus productos. Podés armarlo de nuevo desde el catálogo.",
+} as const;
+
 /** Cómo se nombra cada estado del pedido (el envío), también tipado sobre el enum generado. */
 export const ETIQUETAS_ESTADO_PEDIDO: Record<EstadoPedido, string> = {
   nuevo: "Recibido",
