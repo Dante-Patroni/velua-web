@@ -6,7 +6,7 @@ import { TarjetaColeccion } from "@/components/tienda/TarjetaColeccion";
 import { cn } from "@/lib/utils";
 import { ID_RUTA_TIENDA, type cargarTiendaLayout } from "@/components/layout/TiendaLayout.action";
 import type { cargarPortada } from "./Portada.action";
-import ilustracion from "@/assets/ilustracion-calendulas.webp";
+import imagenPortada from "@/assets/portada-manos-jabon.webp";
 
 /** Lo que propone Velua a quien la elige. Texto de la marca. */
 const PROMESAS = [
@@ -43,12 +43,12 @@ export function Portada() {
     <>
       <section className="relative">
         <img
-          src={ilustracion}
+          src={imagenPortada}
           alt=""
-          width={1600}
-          height={1600}
+          width={1915}
+          height={821}
           fetchPriority="high"
-          className="h-[300px] w-full object-cover md:absolute md:inset-0 md:h-full"
+          className="h-[300px] w-full object-[80%_center] object-cover md:absolute md:inset-0 md:h-full"
         />
         {/* El degradado mantiene el texto legible sea cual sea la imagen de fondo. */}
         <div
