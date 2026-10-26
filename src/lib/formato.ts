@@ -60,3 +60,19 @@ export function formatearFechaHora(instante: string | null | undefined): string 
 
   return Number.isNaN(fecha.getTime()) ? FECHA_NO_DISPONIBLE : FORMATO_FECHA_HORA.format(fecha);
 }
+
+/**
+ * @description Indica si un importe es mayor que cero, para decidir si se
+ * muestra una fila de descuento. Convierte a número solo para comparar, nunca
+ * para operar (regla 5.3): sin esta guarda aparecerían filas de "descuento de
+ * $ 0".
+ * @param valor Importe como cadena decimal, tal como lo manda la API.
+ * @returns true si hay un importe positivo.
+ */
+export function hayImporte(valor: string | null | undefined): boolean {
+  if (valor === null || valor === undefined || valor.trim() === "") return false;
+
+  const numero = Number(valor);
+
+  return Number.isFinite(numero) && numero > 0;
+}
