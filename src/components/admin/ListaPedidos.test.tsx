@@ -5,7 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { formatearPrecio } from "@/lib/formato";
 import type { PedidoAdminFila } from "@/types";
 
-import { ListaPedidos } from "./Pedidos";
+import { ListaPedidos } from "./ListaPedidos";
 
 /** Fila de ejemplo, con lo que se cambie en cada test. */
 const fila = (cambios: Partial<PedidoAdminFila> = {}): PedidoAdminFila => ({
