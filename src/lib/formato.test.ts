@@ -4,6 +4,7 @@ import {
   FECHA_NO_DISPONIBLE,
   PRECIO_NO_DISPONIBLE,
   formatearFechaHora,
+  hayImporte,
   formatearPrecio,
 } from "./formato";
 
@@ -64,4 +65,18 @@ describe("formatearFechaHora", () => {
     expect(formatearFechaHora("")).toBe(FECHA_NO_DISPONIBLE);
     expect(formatearFechaHora("mañana")).toBe(FECHA_NO_DISPONIBLE);
   });
+});
+
+describe("hayImporte", () => {
+  it("es true con un importe mayor que cero", () => {
+    expect(hayImporte("3650.00")).toBe(true);
+    expect(hayImporte("0.01")).toBe(true);
+  });
+
+  it.each([["cero", "0.00"], ["cero sin decimales", "0"], ["vacío", ""], ["solo espacios", "  "], ["null", null], ["undefined", undefined], ["texto", "abc"], ["negativo", "-5.00"]])(
+    "es false con %s: no se muestra una fila de descuento",
+    (_nombre, valor) => {
+      expect(hayImporte(valor)).toBe(false);
+    },
+  );
 });

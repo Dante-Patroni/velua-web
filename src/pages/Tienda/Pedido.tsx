@@ -4,10 +4,11 @@ import { Form, Link, useActionData, useLoaderData, useNavigation, useRevalidator
 import { NumeroPedido } from "@/components/tienda/NumeroPedido";
 import { Button } from "@/components/ui/Button";
 import { Precio } from "@/components/ui/Precio";
-import { formatearFechaHora } from "@/lib/formato";
+import { formatearFechaHora, hayImporte } from "@/lib/formato";
 import {
   ETIQUETAS_ESTADO_PEDIDO,
   TEXTOS_ESTADO_PAGO,
+  TEXTO_PEDIDO_VENCIDO,
   WHATSAPP_NUMERO,
   obtenerMensajeError,
 } from "@/lib/mappings";
@@ -16,7 +17,9 @@ import type { ResultadoPago, cargarPedido } from "./Pedido.action";
 import {
   INTERVALO_CONSULTA_PEDIDO_MS,
   debeConsultarPedido,
+  falloPorVencimiento,
   intentosAgotados,
+  puedePagarPedido,
 } from "./Pedido.utils";
 
 const claseEnlaceAccion =
@@ -81,10 +84,10 @@ export function Pedido() {
     );
   }
 
-  const textos = TEXTOS_ESTADO_PAGO[pedido.estadoPago];
-  const puedePagar =
-    pedido.medioPago === "mercadopago" &&
-    (pedido.estadoPago === "pendiente" || pedido.estadoPago === "rechazado");
+  // La reserva vencida la informa la API al intentar pagar: no se adivina con el reloj del navegador.
+  const vencido = falloPorVencimiento(falloPago?.codigo);
+  const textos = vencido ? TEXTO_PEDIDO_VENCIDO : TEXTOS_ESTADO_PAGO[pedido.estadoPago];
+  const puedePagar = puedePagarPedido(pedido, falloPago?.codigo);
   const enlaceAyuda = enlaceWhatsApp(WHATSAPP_NUMERO, `Hola, tengo una consulta por mi pedido ${pedido.numero}.`);
 
   return (
@@ -99,7 +102,7 @@ export function Pedido() {
 
         <NumeroPedido numero={pedido.numero} />
 
-        {pedido.estadoPago === "pendiente" && pedido.expiraEn && (
+        {pedido.estadoPago === "pendiente" && pedido.expiraEn && !vencido && (
           <p className="mt-2 text-sm text-texto-suave">
             Guardamos tus productos hasta el {formatearFechaHora(pedido.expiraEn)}.
           </p>
@@ -116,7 +119,7 @@ export function Pedido() {
           </div>
         )}
 
-        {falloPago && (
+        {falloPago && !vencido && (
           <p role="alert" className="mt-4 rounded-2xl border border-borde bg-crema-calida p-4 text-error">
             {obtenerMensajeError(falloPago.codigo, "checkout")}
           </p>
@@ -170,6 +173,26 @@ export function Pedido() {
                 <Precio valor={pedido.totales.subtotal} className="text-xl" />
               </dd>
             </div>
+            {hayImporte(pedido.totales.descuentoCupon) && pedido.totales.descuentoCupon && (
+              <div className="flex items-baseline justify-between gap-4">
+                <dt className="text-texto-suave">Descuento por cupón</dt>
+                <dd className="flex items-baseline gap-1">
+                  <span aria-hidden>−</span>
+                  <span className="sr-only">Menos </span>
+                  <Precio valor={pedido.totales.descuentoCupon} className="text-xl text-salvia-hondo" />
+                </dd>
+              </div>
+            )}
+            {hayImporte(pedido.totales.ajusteMedioPago) && pedido.totales.ajusteMedioPago && (
+              <div className="flex items-baseline justify-between gap-4">
+                <dt className="text-texto-suave">Descuento por medio de pago</dt>
+                <dd className="flex items-baseline gap-1">
+                  <span aria-hidden>−</span>
+                  <span className="sr-only">Menos </span>
+                  <Precio valor={pedido.totales.ajusteMedioPago} className="text-xl text-salvia-hondo" />
+                </dd>
+              </div>
+            )}
             {pedido.totales.costoEnvio && (
               <div className="flex items-baseline justify-between gap-4">
                 <dt className="text-texto-suave">Envío</dt>
