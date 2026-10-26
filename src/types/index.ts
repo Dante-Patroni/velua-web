@@ -44,6 +44,9 @@ export type VarianteCambios = Esquemas["VarianteCambios"];
 export type CategoriaEntrada = Esquemas["CategoriaEntrada"];
 export type CategoriaCambios = Esquemas["CategoriaCambios"];
 
+// Pedidos del panel
+export type PedidoAdminFila = Esquemas["PedidoAdminFila"];
+export type PedidoAdminDetalle = Esquemas["PedidoAdminDetalle"];
 
 /** Respuesta del listado público de productos. */
 export type ListadoProductos = { datos: ProductoListado[]; meta: Meta };
@@ -51,4 +54,10 @@ export type ListadoProductos = { datos: ProductoListado[]; meta: Meta };
 /** Respuesta del listado de productos del panel. */
 export type ListadoProductosAdmin = { datos: ProductoAdminFila[]; meta: Meta };
 
+/** Respuesta del listado de pedidos del panel. */
+export type ListadoPedidosAdmin = { datos: PedidoAdminFila[]; meta: Meta };
+
+export type MedioPago = PedidoAdminFila["medioPago"];
+export type MetodoEntrega = PedidoAdminFila["metodoEntrega"];
+export type EventoPedido = PedidoAdminDetalle["eventos"][number];
 export type * from "./error.types";
