@@ -12,7 +12,7 @@ import {
   ETIQUETAS_ESTADO_PAGO,
   ETIQUETAS_ESTADO_PEDIDO,
   ETIQUETAS_MEDIO_PAGO,
-} from "./Pedidos.utils";
+} from "@/lib/mappings";
 
 /**
  * @description Franja de filtros. Envía por GET, así los filtros quedan en la

@@ -5,14 +5,14 @@ import { formatearFechaHora, formatearPrecio } from "@/lib/formato";
 import type { PedidoAdminDetalle } from "@/types";
 import type { DatosPedido } from "./Pedido.action";
 import {
-  ETIQUETAS_CAMPO,
+  ETIQUETAS_CAMPO_EVENTO,
   ETIQUETAS_ENTREGA,
   ETIQUETAS_ESTADO_PAGO,
   ETIQUETAS_ESTADO_PEDIDO,
   ETIQUETAS_MEDIO_PAGO,
-  ETIQUETAS_ORIGEN,
-  etiquetaEstadoEvento,
-} from "./Pedidos.utils";
+  ETIQUETAS_ORIGEN_EVENTO,
+} from "@/lib/mappings";
+import { etiquetaEstadoEvento } from "./Pedidos.utils";
 
 /**
  * @description Texto para mostrar, o un guion si viene vacío o null. La base no
@@ -164,11 +164,11 @@ export function DetallePedido({ pedido }: { pedido: PedidoAdminDetalle }) {
                 <li key={i} className="flex flex-wrap justify-between gap-2 py-2 text-sm">
                   <span className="text-texto-suave">{formatearFechaHora(e.creadoEn)}</span>
                   <span className="text-tinta">
-                    {ETIQUETAS_CAMPO[e.campo]}: {etiquetaEstadoEvento(e.campo, e.estadoAnterior)} →{" "}
+                    {ETIQUETAS_CAMPO_EVENTO[e.campo]}: {etiquetaEstadoEvento(e.campo, e.estadoAnterior)} →{" "}
                     {etiquetaEstadoEvento(e.campo, e.estadoNuevo)}
                     {e.detalle && <span className="block text-xs text-texto-suave">{e.detalle}</span>}
                   </span>
-                  <span className="text-texto-suave">Origen: {ETIQUETAS_ORIGEN[e.origen]}</span>
+                  <span className="text-texto-suave">Origen: {ETIQUETAS_ORIGEN_EVENTO[e.origen]}</span>
                 </li>
               ))}
             </ol>
