@@ -141,6 +141,20 @@ export interface paths {
                         "application/json": components["schemas"]["Error"];
                     };
                 };
+                /** @description PROCESADOR_NO_CONFIGURADO. Se eligió Mercado Pago y no está configurado: no se crea el pedido ni se aparta stock. El frontend muestra que el pago online no está disponible. */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "PROCESADOR_NO_CONFIGURADO"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
             };
         };
         delete?: never;
