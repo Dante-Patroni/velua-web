@@ -19,6 +19,7 @@ export function Login() {
   const enviando = navegacion.state === "submitting";
   const expiro = parametros.get("volver") !== null;
   const revocada = parametros.get("motivo") === "revocada";
+  const salio = parametros.get("motivo") === "salio";
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-crema px-4 py-12">
@@ -36,6 +37,15 @@ export function Login() {
             {revocada
               ? "Tu sesión se cerró porque se cambió la contraseña. Si no fuiste vos, avisá enseguida."
               : "Tu sesión venció. Ingresá de nuevo para continuar."}
+          </p>
+        )}
+
+        {salio && !error && (
+          <p
+            className="mb-4 rounded-sm border border-borde bg-crema-calida px-4 py-3 text-sm text-texto-suave"
+            role="status"
+          >
+            Cerraste la sesión.
           </p>
         )}
 

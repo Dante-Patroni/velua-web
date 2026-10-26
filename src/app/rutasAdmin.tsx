@@ -19,6 +19,13 @@ export const rutasAdmin: RouteObject[] = [
     },
   },
   {
+    path: "admin/salir",
+    lazy: async () => {
+      const { accionSalir, cargarSalir } = await import("@/pages/Admin/Salir.action");
+      return { loader: cargarSalir, action: accionSalir };
+    },
+  },
+  {
     path: "admin",
     lazy: async () => {
       const [{ AdminLayout }, { authLoader }, { ErrorPanel }] = await Promise.all([
