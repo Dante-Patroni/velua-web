@@ -1,6 +1,4 @@
-import { useEffect } from "react";
 import { Link, useLoaderData } from "react-router-dom";
-
 import { formatearFechaHora, formatearPrecio } from "@/lib/formato";
 import type { PedidoAdminDetalle } from "@/types";
 import type { DatosPedido } from "./Pedido.action";
@@ -186,17 +184,10 @@ export function DetallePedido({ pedido }: { pedido: PedidoAdminDetalle }) {
 export function Pedido() {
   const { pedido } = useLoaderData() as DatosPedido;
 
-  // El historial del navegador guarda los títulos: va el número, nunca el nombre.
-  useEffect(() => {
-    const anterior = document.title;
-    document.title = `Pedido ${pedido.numero} · Panel Velua`;
-    return () => {
-      document.title = anterior;
-    };
-  }, [pedido.numero]);
-
   return (
     <div className="flex flex-col gap-6 p-4 sm:p-6">
+      {/* El historial del navegador guarda los títulos: va el número, nunca el nombre. */}
+      <title>{`Pedido ${pedido.numero} · Panel Velua`}</title>
       <header>
         <Link to="/admin" className="text-sm text-texto-suave underline underline-offset-4">
           ← Pedidos
