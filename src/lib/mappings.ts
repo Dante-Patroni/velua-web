@@ -54,6 +54,31 @@ export const PROMESAS_TIENDA: readonly string[] = [
   "Hecho a mano en Río Cuarto",
 ];
 
+/** Marcador de los textos de La marca que todavía no escribió la marca. Hay que reemplazarlos antes de abrir. */
+const TEXTO_PENDIENTE = "[Texto pendiente: lo escribe la marca]";
+
+/** Una parte de la página La marca: pequeña etiqueta, título y párrafos. */
+export type SeccionMarca = {
+  id: string;
+  etiqueta: string;
+  titulo: string;
+  parrafos: readonly string[];
+};
+
+/** Presentación de la página La marca, debajo del título. */
+export const INTRODUCCION_MARCA = TEXTO_PENDIENTE;
+
+/**
+ * Las partes de la página La marca, en orden. El texto es de la marca: hasta
+ * que lo escriba, cada párrafo es el marcador. Una sección sin párrafos no se
+ * dibuja, así que una que la marca decida no usar se vacía y desaparece.
+ */
+export const SECCIONES_MARCA: readonly SeccionMarca[] = [
+  { id: "historia", etiqueta: "Nuestra historia", titulo: "Cómo empezó Veluá", parrafos: [TEXTO_PENDIENTE] },
+  { id: "proceso", etiqueta: "El proceso", titulo: "Hecho a mano, en lotes chicos", parrafos: [TEXTO_PENDIENTE] },
+  { id: "ingredientes", etiqueta: "Ingredientes", titulo: "Lo que sí y lo que no", parrafos: [TEXTO_PENDIENTE] },
+];
+
 /** Cuenta de Instagram de la marca. El handle lleva punto. */
 export const INSTAGRAM = {
   handle: "@velua.nature",
