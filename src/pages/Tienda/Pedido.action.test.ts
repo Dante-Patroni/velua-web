@@ -32,10 +32,7 @@ describe("cargarPedido", () => {
   it("devuelve el pedido tal como lo informa la API", async () => {
     vi.mocked(obtenerPedido).mockResolvedValue(pedido);
 
-    await expect(cargarPedido(cargar())).resolves.toEqual({
-      pedido,
-      error: null,
-    });
+    await expect(cargarPedido(cargar())).resolves.toEqual({ pedido, error: null });
     expect(obtenerPedido).toHaveBeenCalledWith("VEL-4K7Q2X", expect.any(AbortSignal));
   });
 
@@ -66,10 +63,7 @@ describe("cargarPedido", () => {
   ])("%s no tira la página: devuelve el código", async (codigo, status) => {
     vi.mocked(obtenerPedido).mockRejectedValue(new ErrorApi(codigo, status));
 
-    await expect(cargarPedido(cargar())).resolves.toEqual({
-      pedido: null,
-      error: codigo,
-    });
+    await expect(cargarPedido(cargar())).resolves.toEqual({ pedido: null, error: codigo });
   });
 
   it("deja pasar una navegación cancelada", async () => {

@@ -254,7 +254,7 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
     TOTAL_CAMBIO: "El total cambió desde la última vez que lo viste. Revisalo antes de pagar.",
     ZONA_INVALIDA: "No pudimos reconocer la zona de envío. Revisala y probá de nuevo.",
     PEDIDO_NO_PAGABLE: "Este pedido no se puede pagar desde acá. Si tenés dudas, escribinos por WhatsApp.",
-    PEDIDO_VENCIDO: "Tu pedido venció: pasó el tiempo en que guardamos tus productos. Podés armarlo de nuevo desde el carrito.",
+    PEDIDO_VENCIDO: "Tu pedido venció: pasó el tiempo en que guardamos tus productos. Podés armarlo de nuevo desde el catálogo.",
     PEDIDO_YA_PAGADO: "Tu pago ya está acreditado.",
     PAGO_EN_PROCESO:
       "Tenés un pago en proceso. Si querés pagar de otra forma, escribinos por WhatsApp.",

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   MAX_CONSULTAS_PEDIDO,
   debeConsultarPedido,
+  falloPorVencimiento,
   intentosAgotados,
   puedePagarPedido,
 } from "@/pages/Tienda/Pedido.utils";
@@ -76,5 +77,23 @@ describe("puedePagarPedido", () => {
 
   it("no ofrece pagar un pedido de transferencia", () => {
     expect(puedePagarPedido({ ...base, medioPago: "transferencia" })).toBe(false);
+  });
+
+  it("no vuelve a ofrecer pagar si la API respondió PEDIDO_VENCIDO", () => {
+    expect(puedePagarPedido(base, "PEDIDO_VENCIDO")).toBe(false);
+    expect(puedePagarPedido({ ...base, estadoPago: "rechazado" }, "PEDIDO_VENCIDO")).toBe(false);
+  });
+
+  it("sigue ofreciendo pagar tras otro fallo, como un procesador caído", () => {
+    expect(puedePagarPedido(base, "PROCESADOR_NO_DISPONIBLE")).toBe(true);
+    expect(puedePagarPedido(base, undefined)).toBe(true);
+  });
+});
+
+describe("falloPorVencimiento", () => {
+  it("solo con el código PEDIDO_VENCIDO", () => {
+    expect(falloPorVencimiento("PEDIDO_VENCIDO")).toBe(true);
+    expect(falloPorVencimiento("PEDIDO_YA_PAGADO")).toBe(false);
+    expect(falloPorVencimiento(undefined)).toBe(false);
   });
 });

@@ -47,12 +47,27 @@ export const intentosAgotados = (intentos: number, estadoPago: EstadoPago | unde
   estadoPago === "pendiente" && intentos >= MAX_CONSULTAS_PEDIDO;
 
 /**
+ * @description Indica si el último intento de pago falló porque la reserva del
+ * pedido venció. Lo informa la API (PEDIDO_VENCIDO): no se adivina con el reloj
+ * del navegador.
+ * @param codigoFallo Código de error de la respuesta de POST /pago, si falló.
+ * @returns true si el fallo fue por vencimiento.
+ */
+export const falloPorVencimiento = (codigoFallo: string | undefined): boolean => codigoFallo === "PEDIDO_VENCIDO";
+
+/**
  * @description Decide si se ofrece pagar (o pagar de nuevo) con Mercado Pago:
- * solo un pedido de Mercado Pago con el pago pendiente o rechazado. No mira el
- * reloj: si la reserva ya venció, la API responde PEDIDO_VENCIDO al intentar
- * pagar y la página lo muestra en ese momento.
+ * solo un pedido de Mercado Pago con el pago pendiente o rechazado, y mientras
+ * el último intento de pago no haya fallado por vencimiento. No mira el reloj:
+ * si la reserva ya venció, la API responde PEDIDO_VENCIDO al intentar pagar.
  * @param pedido Medio de pago y estado del pago del pedido.
+ * @param codigoFallo Código de error del último intento de pago, si falló.
  * @returns true si corresponde mostrar el botón de pagar.
  */
-export const puedePagarPedido = (pedido: Pick<PedidoPublico, "medioPago" | "estadoPago">): boolean =>
-  pedido.medioPago === "mercadopago" && (pedido.estadoPago === "pendiente" || pedido.estadoPago === "rechazado");
+export const puedePagarPedido = (
+  pedido: Pick<PedidoPublico, "medioPago" | "estadoPago">,
+  codigoFallo?: string,
+): boolean =>
+  pedido.medioPago === "mercadopago" &&
+  (pedido.estadoPago === "pendiente" || pedido.estadoPago === "rechazado") &&
+  !falloPorVencimiento(codigoFallo);

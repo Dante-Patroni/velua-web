@@ -17,6 +17,7 @@ import type { ResultadoPago, cargarPedido } from "./Pedido.action";
 import {
   INTERVALO_CONSULTA_PEDIDO_MS,
   debeConsultarPedido,
+  falloPorVencimiento,
   intentosAgotados,
   puedePagarPedido,
 } from "./Pedido.utils";
@@ -84,9 +85,9 @@ export function Pedido() {
   }
 
   // La reserva vencida la informa la API al intentar pagar: no se adivina con el reloj del navegador.
-  const vencido = falloPago?.codigo === "PEDIDO_VENCIDO";
+  const vencido = falloPorVencimiento(falloPago?.codigo);
   const textos = vencido ? TEXTO_PEDIDO_VENCIDO : TEXTOS_ESTADO_PAGO[pedido.estadoPago];
-  const puedePagar = puedePagarPedido(pedido) && !vencido;
+  const puedePagar = puedePagarPedido(pedido, falloPago?.codigo);
   const enlaceAyuda = enlaceWhatsApp(WHATSAPP_NUMERO, `Hola, tengo una consulta por mi pedido ${pedido.numero}.`);
 
   return (

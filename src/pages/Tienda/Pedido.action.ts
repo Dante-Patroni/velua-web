@@ -10,10 +10,7 @@ import type { PedidoPublico } from "@/types";
  * código de la API cuando la consulta falló sin ser un 404 (límite de
  * consultas, red, 500): la página lo traduce y deja de consultar sola.
  */
-export type DatosPedido = {
-  pedido: PedidoPublico | null;
-  error: string | null;
-};
+export type DatosPedido = { pedido: PedidoPublico | null; error: string | null };
 
 /** Resultado de pedir un link de pago. */
 export type ResultadoPago = { ok: true; destino: DestinoPago } | { ok: false; codigo: string };
@@ -31,9 +28,7 @@ export type ResultadoPago = { ok: true; destino: DestinoPago } | { ok: false; co
  */
 export async function cargarPedido({ request, params }: LoaderFunctionArgs): Promise<DatosPedido> {
   try {
-    const pedido = await obtenerPedido(params.numero ?? "", request.signal);
-
-    return { pedido, error: null };
+    return { pedido: await obtenerPedido(params.numero ?? "", request.signal), error: null };
   } catch (error) {
     if (error instanceof ErrorApi) {
       if (error.status === 404) throw new Response(null, { status: 404, statusText: "Not Found" });
