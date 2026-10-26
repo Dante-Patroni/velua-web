@@ -57,4 +57,7 @@ export type ListadoProductosAdmin = { datos: ProductoAdminFila[]; meta: Meta };
 /** Respuesta del listado de pedidos del panel. */
 export type ListadoPedidosAdmin = { datos: PedidoAdminFila[]; meta: Meta };
 
+export type MedioPago = PedidoAdminFila["medioPago"];
+export type MetodoEntrega = PedidoAdminFila["metodoEntrega"];
+export type EventoPedido = PedidoAdminDetalle["eventos"][number];
 export type * from "./error.types";
