@@ -258,6 +258,13 @@ export const MENSAJE_ERROR_POR_DEFECTO =
 type DiccionarioErrores = Partial<Record<CodigoError, string>>;
 
 /**
+ * Ayuda del login mientras no exista la recuperación por mail (t42). Nombra un
+ * rol y no una persona: el login es público, y un nombre facilita el engaño.
+ */
+export const AYUDA_OLVIDE_CONTRASENA =
+  "Pedile al administrador del panel que la restablezca. Después, cambiala desde Mi cuenta.";
+
+/**
  * Mensajes legibles por código de dominio, agrupados por contexto. El mismo
  * código dice cosas distintas según dónde aparece.
  *
