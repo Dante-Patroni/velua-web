@@ -9,6 +9,7 @@ import {
   MENSAJE_ERROR_POR_DEFECTO,
   mensajeDeError,
   obtenerMensajeError,
+  AYUDA_OLVIDE_CONTRASENA,
 } from "./mappings";
 
 // Lista de códigos de la API (OpenAPI y errorMapper.js). Se repite acá a propósito: si alguien borra un
@@ -188,4 +189,11 @@ describe("estados del pedido", () => {
     ]);
     expect(ETIQUETAS_ESTADO_PEDIDO.en_preparacion).toBe("En preparación");
   });
+
+  describe("AYUDA_OLVIDE_CONTRASENA", () => {
+  it("nombra un rol, no a una persona: el login es público", () => {
+    expect(AYUDA_OLVIDE_CONTRASENA).toMatch(/administrador/);
+    expect(AYUDA_OLVIDE_CONTRASENA).not.toMatch(/Dante|Pablo|Veronica/i);
+  });
+});
 });

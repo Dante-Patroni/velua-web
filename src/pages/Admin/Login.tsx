@@ -3,9 +3,10 @@ import { Form, useActionData, useNavigation, useSearchParams } from "react-route
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
-import { obtenerMensajeError } from "@/lib/mappings";
+import { AYUDA_OLVIDE_CONTRASENA, obtenerMensajeError } from "@/lib/mappings";
 import type { ErrorLogin } from "./Login.action";
 import { InputContrasena } from "@/components/ui/InputContrasena";
+
 
 /**
  * @description Pantalla de ingreso al panel de administración.
@@ -89,6 +90,12 @@ export function Login() {
             {enviando ? "Ingresando…" : "Ingresar"}
           </Button>
         </Form>
+        <details className="mt-6 text-sm text-texto-suave">
+          <summary className="cursor-pointer text-dorado-texto underline underline-offset-4">
+            ¿Olvidaste tu contraseña?
+          </summary>
+          <p className="mt-2">{AYUDA_OLVIDE_CONTRASENA}</p>
+        </details>
       </div>
     </main>
   );
