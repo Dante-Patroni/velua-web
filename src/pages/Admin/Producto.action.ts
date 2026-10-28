@@ -12,7 +12,9 @@ import {
   listarCategoriasAdmin,
   obtenerProducto,
 } from "@/lib/api/catalogoAdmin.api";
+
 import { ErrorApi } from "@/lib/apiFetch";
+import { leerIdRuta } from "@/lib/idRuta";
 import type {
   CategoriaAdmin,
   ProductoAdmin,
@@ -52,8 +54,11 @@ export async function cargarFicha({
     return { producto: null, categorias: (await categorias).datos };
   }
 
+  const id = leerIdRuta(params.id);
+  if (id === null) throw new ErrorApi("NO_ENCONTRADO", 404);
+
   const [producto, listaCategorias] = await Promise.all([
-    obtenerProducto(params.id, request.signal),
+    obtenerProducto(id, request.signal),
     categorias,
   ]);
 
@@ -160,6 +165,13 @@ export function leerCambiosProducto(datos: FormData): ProductoCambios {
 }
 
 /**
+ * @description Lee el id de variante que manda el formulario.
+ * @param datos Datos del formulario.
+ * @returns El id como número, o null si no es válido.
+ */
+const leerVarianteId = (datos: FormData) => leerIdRuta(String(datos.get("varianteId")));
+
+/**
  * @description Action de la ficha. React Router permite una sola action por
  * ruta, pero esta pantalla tiene siete operaciones: cada formulario manda un
  * campo oculto `intencion` y acá se despacha según ese valor.
@@ -169,33 +181,43 @@ export function leerCambiosProducto(datos: FormData): ProductoCambios {
 export async function accionFicha({ params, request }: ActionFunctionArgs) {
   const datos = await request.formData();
   const intencion = String(datos.get("intencion") ?? "");
-  const productoId = params.id;
 
   try {
-    switch (intencion) {
-      case "crear": {
-        const creado = await crearProducto(leerProductoNuevo(datos));
-        return redirect(`/admin/productos/${creado.id}?creado=1`);
-      }
+    if (intencion === "crear") {
+      const creado = await crearProducto(leerProductoNuevo(datos));
+      return redirect(`/admin/productos/${creado.id}?creado=1`);
+    }
 
+    // Todo lo demás es sobre un producto que ya existe: el id de la URL tiene que
+    // ser válido, o no se manda ninguna petición (Client-Side Path Traversal).
+    const productoId = leerIdRuta(params.id);
+    if (productoId === null) {
+      return { codigo: "NO_ENCONTRADO", intencion } satisfies ErrorFicha;
+    }
+
+    switch (intencion) {
       case "guardar":
-        await actualizarProducto(productoId!, leerCambiosProducto(datos));
+        await actualizarProducto(productoId, leerCambiosProducto(datos));
         return null;
 
       case "estado-producto":
-        await cambiarEstadoProducto(Number(productoId), datos.get("activo") === "true");
+        await cambiarEstadoProducto(productoId, datos.get("activo") === "true");
         return null;
 
       case "borrar":
-        await borrarProducto(productoId!);
+        await borrarProducto(productoId);
         return redirect("/admin/productos?borrado=1");
 
       case "agregar-variante":
-        await agregarVariante(productoId!, leerVariante(datos));
+        await agregarVariante(productoId, leerVariante(datos));
         return null;
 
-      case "guardar-variante":
-        await actualizarVariante(productoId!, String(datos.get("varianteId")), {
+      case "guardar-variante": {
+        const varianteId = leerVarianteId(datos);
+        if (varianteId === null) {
+          return { codigo: "DATOS_INVALIDOS", intencion } satisfies ErrorFicha;
+        }
+        await actualizarVariante(productoId, varianteId, {
           nombre: texto(datos, "nombre"),
           sku: texto(datos, "sku") ?? null,
           precio: texto(datos, "precio"),
@@ -203,14 +225,16 @@ export async function accionFicha({ params, request }: ActionFunctionArgs) {
           stock: datos.has("stock") ? Number(datos.get("stock")) : undefined,
         });
         return null;
+      }
 
-      case "estado-variante":
-        await cambiarEstadoVariante(
-          productoId!,
-          String(datos.get("varianteId")),
-          datos.get("activa") === "true"
-        );
+      case "estado-variante": {
+        const varianteId = leerVarianteId(datos);
+        if (varianteId === null) {
+          return { codigo: "DATOS_INVALIDOS", intencion } satisfies ErrorFicha;
+        }
+        await cambiarEstadoVariante(productoId, varianteId, datos.get("activa") === "true");
         return null;
+      }
 
       default:
         return { codigo: "DATOS_INVALIDOS", intencion } satisfies ErrorFicha;
