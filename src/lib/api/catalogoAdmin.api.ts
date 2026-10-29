@@ -63,7 +63,7 @@ export const listarProductos = (filtros: FiltrosProductos = {}, signal?: AbortSi
  * @returns El producto con sus variantes e imágenes.
  * @throws {ErrorApi} NO_ENCONTRADO si no existe.
  */
-export const obtenerProducto = (id: number | string, signal?: AbortSignal) =>
+export const obtenerProducto = (id: number, signal?: AbortSignal) =>
   apiFetch<ProductoAdmin>(`/admin/productos/${id}`, { signal });
 
 /**
@@ -97,7 +97,7 @@ export const listarCategoriasAdmin = (signal?: AbortSignal) =>
  * @throws {ErrorApi} NO_ENCONTRADO, o PRODUCTO_CON_VENTAS si alguna variante
  *   figura en un pedido: en ese caso hay que despublicarlo, no borrarlo.
  */
-export const borrarProducto = (id: number | string) =>
+export const borrarProducto = (id: number) =>
   apiFetch<void>(`/admin/productos/${id}`, { method: "DELETE" });
  
 /**
@@ -107,7 +107,7 @@ export const borrarProducto = (id: number | string) =>
  * @returns El producto con la variante agregada.
  * @throws {ErrorApi} DATOS_INVALIDOS, o CONFLICTO_DE_DATOS si el SKU ya existe.
  */
-export const agregarVariante = (productoId: number | string, datos: VarianteEntrada) =>
+export const agregarVariante = (productoId: number, datos: VarianteEntrada) =>
   apiFetch<ProductoAdmin>(`/admin/productos/${productoId}/variantes`, {
     method: "POST",
     body: JSON.stringify(datos),
@@ -123,8 +123,8 @@ export const agregarVariante = (productoId: number | string, datos: VarianteEntr
  * @throws {ErrorApi} NO_ENCONTRADO si la variante no es de ese producto, DATOS_INVALIDOS o CONFLICTO_DE_DATOS.
  */
 export const actualizarVariante = (
-  productoId: number | string,
-  varianteId: number | string,
+  productoId: number,
+  varianteId: number,
   cambios: VarianteCambios
 ) =>
   apiFetch<ProductoAdmin>(`/admin/productos/${productoId}/variantes/${varianteId}`, {
@@ -143,8 +143,8 @@ export const actualizarVariante = (
  *   activa: quedaría un producto visible que no se puede comprar.
  */
 export const cambiarEstadoVariante = (
-  productoId: number | string,
-  varianteId: number | string,
+  productoId: number,
+  varianteId: number,
   activa: boolean
 ) =>
   apiFetch<ProductoAdmin>(
@@ -174,7 +174,7 @@ export const crearProducto = (datos: ProductoEntrada) =>
  * @returns El producto actualizado.
  * @throws {ErrorApi} NO_ENCONTRADO, DATOS_INVALIDOS o CONFLICTO_DE_DATOS.
  */
-export const actualizarProducto = (id: number | string, cambios: ProductoCambios) =>
+export const actualizarProducto = (id: number, cambios: ProductoCambios) =>
   apiFetch<ProductoAdmin>(`/admin/productos/${id}`, {
     method: "PATCH",
     body: JSON.stringify(cambios),
@@ -204,7 +204,7 @@ export const crearCategoria = (datos: CategoriaEntrada) =>
  * @returns La categoría actualizada.
  * @throws {ErrorApi} NO_ENCONTRADO, DATOS_INVALIDOS o CONFLICTO_DE_DATOS.
  */
-export const actualizarCategoria = (id: number | string, cambios: CategoriaCambios) =>
+export const actualizarCategoria = (id: number, cambios: CategoriaCambios) =>
   apiFetch<CategoriaAdmin>(`/admin/categorias/${id}`, {
     method: "PATCH",
     body: JSON.stringify(cambios),
@@ -221,7 +221,7 @@ export const actualizarCategoria = (id: number | string, cambios: CategoriaCambi
  * @returns La categoría con su estado nuevo.
  * @throws {ErrorApi} NO_ENCONTRADO.
  */
-export const cambiarEstadoCategoria = (id: number | string, activa: boolean) =>
+export const cambiarEstadoCategoria = (id: number, activa: boolean) =>
   apiFetch<CategoriaAdmin>(`/admin/categorias/${id}/estado`, {
     method: "PATCH",
     body: JSON.stringify({ activa }),
