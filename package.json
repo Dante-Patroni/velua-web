@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest",
+    "test:ci": "vitest run",
     "preview": "vite preview",
     "tipos": "openapi-typescript https://raw.githubusercontent.com/Dante-Patroni/velua-api/main/docs/openapi.json -o src/types/api.generated.ts"
   },
