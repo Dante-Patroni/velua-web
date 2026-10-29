@@ -22,7 +22,7 @@ export const MAXIMO_IMAGENES = 8;
  * @throws {ErrorApi} NO_ENCONTRADO si el producto no existe.
  */
 export const listarImagenes = (
-  productoId: number | string,
+  productoId: number,
   signal?: AbortSignal,
 ) => apiFetch<Galeria>(`/admin/productos/${productoId}/imagenes`, { signal });
 
@@ -41,7 +41,7 @@ export const listarImagenes = (
  *   ARCHIVO_DEMASIADO_GRANDE, LIMITE_IMAGENES o ERROR_AL_SUBIR.
  */
 export const subirImagen = (
-  productoId: number | string,
+  productoId: number,
   archivo: File,
   alt?: string,
 ) => {
@@ -64,8 +64,8 @@ export const subirImagen = (
  * @throws {ErrorApi} NO_ENCONTRADO si la imagen no es de ese producto.
  */
 export const actualizarAlt = (
-  productoId: number | string,
-  imagenId: number | string,
+  productoId: number,
+  imagenId: number,
   alt: string | null,
 ) =>
   apiFetch<Galeria>(`/admin/productos/${productoId}/imagenes/${imagenId}`, {
@@ -81,8 +81,8 @@ export const actualizarAlt = (
  * @throws {ErrorApi} NO_ENCONTRADO si la imagen no es de ese producto.
  */
 export const borrarImagen = (
-  productoId: number | string,
-  imagenId: number | string,
+  productoId: number,
+  imagenId: number,
 ) =>
   apiFetch<Galeria>(`/admin/productos/${productoId}/imagenes/${imagenId}`, {
     method: "DELETE",
@@ -97,7 +97,7 @@ export const borrarImagen = (
  * @returns La galería en el orden nuevo.
  * @throws {ErrorApi} DATOS_INVALIDOS si la lista está incompleta.
  */
-export const reordenarImagenes = (productoId: number | string, ids: number[]) =>
+export const reordenarImagenes = (productoId: number, ids: number[]) =>
   apiFetch<Galeria>(`/admin/productos/${productoId}/imagenes/orden`, {
     method: "PUT",
     body: JSON.stringify({ ids }),
@@ -113,7 +113,7 @@ export const reordenarImagenes = (productoId: number | string, ids: number[]) =>
  *   ARCHIVO_DEMASIADO_GRANDE, NO_ENCONTRADO o ERROR_AL_SUBIR.
  */
 export const subirImagenCategoria = (
-  categoriaId: number | string,
+  categoriaId: number,
   archivo: File,
 ) => {
   const cuerpo = new FormData();
@@ -131,7 +131,7 @@ export const subirImagenCategoria = (
  * @returns La colección sin imagen.
  * @throws {ErrorApi} NO_ENCONTRADO si la colección no existe.
  */
-export const quitarImagenCategoria = (categoriaId: number | string) =>
+export const quitarImagenCategoria = (categoriaId: number) =>
   apiFetch<CategoriaAdmin>(`/admin/categorias/${categoriaId}/imagen`, {
     method: "DELETE",
   });

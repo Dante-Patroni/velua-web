@@ -1,8 +1,4 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router-dom";
-import {
-  quitarImagenCategoria,
-  subirImagenCategoria,
-} from "@/lib/api/imagenes.api";
 
 import {
   actualizarCategoria,
@@ -11,7 +7,9 @@ import {
   listarCategoriasAdmin,
   reordenarCategorias,
 } from "@/lib/api/catalogoAdmin.api";
+import { quitarImagenCategoria, subirImagenCategoria } from "@/lib/api/imagenes.api";
 import { ErrorApi } from "@/lib/apiFetch";
+import { leerIdRuta } from "@/lib/idRuta";
 import type { CategoriaAdmin, CategoriaCambios } from "@/types";
 
 /** Lo que el loader deja disponible para la pantalla. */
@@ -86,6 +84,16 @@ export function leerCambiosCategoria(datos: FormData): CategoriaCambios {
 
   return cambios;
 }
+
+/**
+ * @description Lee el id de categoría que manda el formulario.
+ * @param datos Datos del formulario.
+ * @returns El id como número, o null si falta o no es válido.
+ */
+const leerIdCategoria = (datos: FormData): number | null => {
+  const valor = datos.get("id");
+  return typeof valor === "string" ? leerIdRuta(valor) : null;
+};
 /**
  * @description Action de la pantalla. Como en la ficha de producto, cada
  * formulario manda un campo oculto `intencion` y acá se despacha según su valor.
@@ -95,9 +103,10 @@ export function leerCambiosCategoria(datos: FormData): CategoriaCambios {
 export async function accionCategorias({ request }: ActionFunctionArgs) {
   const datos = await request.formData();
   const intencion = String(datos.get("intencion") ?? "");
-  const id = datos.has("id") ? Number(datos.get("id")) : undefined;
+  const id = leerIdCategoria(datos);
 
   try {
+    // Estas dos no trabajan sobre una categoría puntual: no usan el id.
     switch (intencion) {
       case "crear":
         await crearCategoria({
@@ -105,14 +114,6 @@ export async function accionCategorias({ request }: ActionFunctionArgs) {
           descripcion: texto(datos, "descripcion") ?? null,
           padreId: leerPadreId(datos) ?? null,
         });
-        return null;
-
-      case "guardar":
-        await actualizarCategoria(id!, leerCambiosCategoria(datos));
-        return null;
-
-      case "estado":
-        await cambiarEstadoCategoria(id!, datos.get("activa") === "true");
         return null;
 
       case "orden": {
@@ -123,29 +124,38 @@ export async function accionCategorias({ request }: ActionFunctionArgs) {
         await reordenarCategorias(ids);
         return null;
       }
+    }
+
+    // El resto trabaja sobre una categoría existente: sin un id válido no se
+    // manda ninguna petición.
+    if (id === null) {
+      return { codigo: "DATOS_INVALIDOS", intencion } satisfies ErrorCategorias;
+    }
+
+    switch (intencion) {
+      case "guardar":
+        await actualizarCategoria(id, leerCambiosCategoria(datos));
+        return null;
+
+      case "estado":
+        await cambiarEstadoCategoria(id, datos.get("activa") === "true");
+        return null;
 
       case "subir-imagen": {
         const archivo = datos.get("imagen");
         if (!(archivo instanceof File) || archivo.size === 0) {
-          return {
-            codigo: "ARCHIVO_REQUERIDO",
-            intencion,
-            id,
-          } satisfies ErrorCategorias;
+          return { codigo: "ARCHIVO_REQUERIDO", intencion, id } satisfies ErrorCategorias;
         }
-        await subirImagenCategoria(id!, archivo);
+        await subirImagenCategoria(id, archivo);
         return null;
       }
 
       case "quitar-imagen":
-        await quitarImagenCategoria(id!);
+        await quitarImagenCategoria(id);
         return null;
 
       default:
-        return {
-          codigo: "DATOS_INVALIDOS",
-          intencion,
-        } satisfies ErrorCategorias;
+        return { codigo: "DATOS_INVALIDOS", intencion } satisfies ErrorCategorias;
     }
   } catch (error) {
     if (error instanceof ErrorApi) {
@@ -153,7 +163,7 @@ export async function accionCategorias({ request }: ActionFunctionArgs) {
         codigo: error.codigo,
         details: error.details,
         intencion,
-        id,
+        ...(id === null ? {} : { id }),
       } satisfies ErrorCategorias;
     }
     throw error;
