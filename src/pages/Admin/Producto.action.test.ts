@@ -154,7 +154,6 @@ describe("leerProductoNuevo", () => {
   });
 });
 
-
 describe("leerCambiosProducto", () => {
   it("solo incluye los campos que vinieron en el formulario", () => {
     // El backend deja sin tocar lo que no llega: mandar todo pisaria datos
@@ -187,129 +186,128 @@ describe("leerCambiosProducto", () => {
   it("no toca la fecha si el campo no vino", () => {
     expect(leerCambiosProducto(form([["nombre", "X"]]))).not.toHaveProperty("disponibleDesde");
   });
+});
 
+/** Ids que llegan de la URL ya decodificados por react-router. */
+const IDS_INVALIDOS = ["../categorias", "1/../../categorias", "..%2Fcategorias", "12abc", "0", "1e2"];
 
-  /** Ids que llegan de la URL ya decodificados por react-router. */
-  const IDS_INVALIDOS = ["../categorias", "1/../../categorias", "..%2Fcategorias", "12abc", "0", "1e2"];
+/** Operaciones de la ficha que trabajan sobre un producto existente. */
+const INTENCIONES_CON_ID = [
+  "guardar",
+  "estado-producto",
+  "borrar",
+  "agregar-variante",
+  "guardar-variante",
+  "estado-variante",
+];
 
-  /** Operaciones de la ficha que trabajan sobre un producto existente. */
-  const INTENCIONES_CON_ID = [
-    "guardar",
-    "estado-producto",
-    "borrar",
-    "agregar-variante",
-    "guardar-variante",
-    "estado-variante",
-  ];
+/** Arma los argumentos del loader, con o sin id. */
+const argumentosCarga = (id?: string) =>
+  ({
+    request: new Request("http://localhost/admin/productos/x"),
+    params: id === undefined ? {} : { id },
+    context: {},
+  }) as unknown as LoaderFunctionArgs;
 
-  /** Arma los argumentos del loader, con o sin id. */
-  const argumentosCarga = (id?: string) =>
-    ({
-      request: new Request("http://localhost/admin/productos/x"),
-      params: id === undefined ? {} : { id },
-      context: {},
-    }) as unknown as LoaderFunctionArgs;
+/** Ejecuta la action como lo haría el router, con el id de la ruta y los campos dados. */
+const ejecutar = (id: string | undefined, pares: Array<[string, string]>) => {
+  const request = new Request("http://localhost/admin/productos/x", {
+    method: "POST",
+    body: new URLSearchParams(pares),
+  });
+  return accionFicha({ request, params: id === undefined ? {} : { id }, context: undefined } as never);
+};
 
-  /** Ejecuta la action como lo haría el router, con el id de la ruta y los campos dados. */
-  const ejecutar = (id: string | undefined, pares: Array<[string, string]>) => {
-    const request = new Request("http://localhost/admin/productos/x", {
-      method: "POST",
-      body: new URLSearchParams(pares),
-    });
-    return accionFicha({ request, params: id === undefined ? {} : { id }, context: undefined } as never);
-  };
+describe("cargarFicha", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-  describe("cargarFicha", () => {
-    beforeEach(() => vi.clearAllMocks());
+  it("con un id válido pide ese producto, como número", async () => {
+    vi.mocked(api.obtenerProducto).mockResolvedValue({ id: 12 } as ProductoAdmin);
 
-    it("con un id válido pide ese producto, como número", async () => {
-      vi.mocked(api.obtenerProducto).mockResolvedValue({ id: 12 } as ProductoAdmin);
+    await cargarFicha(argumentosCarga("12"));
 
-      await cargarFicha(argumentosCarga("12"));
-
-      expect(api.obtenerProducto).toHaveBeenCalledWith(12, expect.any(AbortSignal));
-    });
-
-    it("con un id inválido responde no encontrado sin pedir el producto", async () => {
-      for (const id of IDS_INVALIDOS) {
-        await expect(cargarFicha(argumentosCarga(id)), id).rejects.toMatchObject({
-          codigo: "NO_ENCONTRADO",
-          status: 404,
-        });
-      }
-      expect(api.obtenerProducto).not.toHaveBeenCalled();
-    });
-
-    it("sin id es un producto nuevo: no pide ninguno", async () => {
-      await expect(cargarFicha(argumentosCarga())).resolves.toMatchObject({ producto: null });
-      expect(api.obtenerProducto).not.toHaveBeenCalled();
-    });
+    expect(api.obtenerProducto).toHaveBeenCalledWith(12, expect.any(AbortSignal));
   });
 
-  describe("accionFicha", () => {
-    beforeEach(() => vi.clearAllMocks());
+  it("con un id inválido responde no encontrado sin pedir el producto", async () => {
+    for (const id of IDS_INVALIDOS) {
+      await expect(cargarFicha(argumentosCarga(id)), id).rejects.toMatchObject({
+        codigo: "NO_ENCONTRADO",
+        status: 404,
+      });
+    }
+    expect(api.obtenerProducto).not.toHaveBeenCalled();
+  });
 
-    it("con un id inválido, ninguna operación llama a la API", async () => {
-      for (const id of IDS_INVALIDOS) {
-        for (const intencion of INTENCIONES_CON_ID) {
-          const resultado = await ejecutar(id, [
-            ["intencion", intencion],
-            ["varianteId", "5"],
-          ]);
-          expect(resultado, `${intencion} con ${id}`).toMatchObject({ codigo: "NO_ENCONTRADO" });
-        }
-      }
+  it("sin id es un producto nuevo: no pide ninguno", async () => {
+    await expect(cargarFicha(argumentosCarga())).resolves.toMatchObject({ producto: null });
+    expect(api.obtenerProducto).not.toHaveBeenCalled();
+  });
+});
 
-      for (const escritura of [
-        api.actualizarProducto,
-        api.cambiarEstadoProducto,
-        api.borrarProducto,
-        api.agregarVariante,
-        api.actualizarVariante,
-        api.cambiarEstadoVariante,
-      ]) {
-        expect(escritura).not.toHaveBeenCalled();
-      }
-    });
+describe("accionFicha", () => {
+  beforeEach(() => vi.clearAllMocks());
 
-    it("borrar con un id válido manda el número", async () => {
-      await ejecutar("12", [["intencion", "borrar"]]);
-
-      expect(api.borrarProducto).toHaveBeenCalledWith(12);
-    });
-
-    it("una variante con id inválido no se toca", async () => {
-      for (const intencion of ["guardar-variante", "estado-variante"]) {
-        const resultado = await ejecutar("12", [
+  it("con un id inválido, ninguna operación llama a la API", async () => {
+    for (const id of IDS_INVALIDOS) {
+      for (const intencion of INTENCIONES_CON_ID) {
+        const resultado = await ejecutar(id, [
           ["intencion", intencion],
-          ["varianteId", "../5"],
+          ["varianteId", "5"],
         ]);
-        expect(resultado, intencion).toMatchObject({ codigo: "DATOS_INVALIDOS" });
+        expect(resultado, `${intencion} con ${id}`).toMatchObject({ codigo: "NO_ENCONTRADO" });
       }
+    }
 
-      expect(api.actualizarVariante).not.toHaveBeenCalled();
-      expect(api.cambiarEstadoVariante).not.toHaveBeenCalled();
-    });
+    for (const escritura of [
+      api.actualizarProducto,
+      api.cambiarEstadoProducto,
+      api.borrarProducto,
+      api.agregarVariante,
+      api.actualizarVariante,
+      api.cambiarEstadoVariante,
+    ]) {
+      expect(escritura).not.toHaveBeenCalled();
+    }
+  });
 
-    it("una variante con id válido se actualiza con los dos números", async () => {
-      await ejecutar("12", [
-        ["intencion", "guardar-variante"],
-        ["varianteId", "5"],
-        ["nombre", "100 g"],
+  it("borrar con un id válido manda el número", async () => {
+    await ejecutar("12", [["intencion", "borrar"]]);
+
+    expect(api.borrarProducto).toHaveBeenCalledWith(12);
+  });
+
+  it("una variante con id inválido no se toca", async () => {
+    for (const intencion of ["guardar-variante", "estado-variante"]) {
+      const resultado = await ejecutar("12", [
+        ["intencion", intencion],
+        ["varianteId", "../5"],
       ]);
+      expect(resultado, intencion).toMatchObject({ codigo: "DATOS_INVALIDOS" });
+    }
 
-      expect(api.actualizarVariante).toHaveBeenCalledWith(12, 5, expect.anything());
-    });
+    expect(api.actualizarVariante).not.toHaveBeenCalled();
+    expect(api.cambiarEstadoVariante).not.toHaveBeenCalled();
+  });
 
-    it("crear no necesita id", async () => {
-      vi.mocked(api.crearProducto).mockResolvedValue({ id: 30 } as ProductoAdmin);
+  it("una variante con id válido se actualiza con los dos números", async () => {
+    await ejecutar("12", [
+      ["intencion", "guardar-variante"],
+      ["varianteId", "5"],
+      ["nombre", "100 g"],
+    ]);
 
-      await ejecutar(undefined, [
-        ["intencion", "crear"],
-        ["nombre", "Nuevo"],
-      ]);
+    expect(api.actualizarVariante).toHaveBeenCalledWith(12, 5, expect.anything());
+  });
 
-      expect(api.crearProducto).toHaveBeenCalledTimes(1);
-    });
+  it("crear no necesita id", async () => {
+    vi.mocked(api.crearProducto).mockResolvedValue({ id: 30 } as ProductoAdmin);
+
+    await ejecutar(undefined, [
+      ["intencion", "crear"],
+      ["nombre", "Nuevo"],
+    ]);
+
+    expect(api.crearProducto).toHaveBeenCalledTimes(1);
   });
 });
