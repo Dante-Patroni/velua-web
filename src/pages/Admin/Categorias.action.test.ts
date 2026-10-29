@@ -9,7 +9,6 @@ import {
 import { quitarImagenCategoria, subirImagenCategoria } from "@/lib/api/imagenes.api";
 import { accionCategorias } from "@/pages/Admin/Categorias.action";
 
-
 vi.mock("@/lib/api/catalogoAdmin.api", () => ({
   actualizarCategoria: vi.fn(),
   cambiarEstadoCategoria: vi.fn(),
@@ -66,8 +65,8 @@ describe("accionCategorias · crear", () => {
       expect.objectContaining({ padreId: null })
     );
   });
+});
 
-  
 describe("accionCategorias · id del formulario", () => {
   beforeEach(() => vi.clearAllMocks());
 
@@ -125,5 +124,4 @@ describe("accionCategorias · id del formulario", () => {
 
     expect(reordenarCategorias).toHaveBeenCalledWith([3, 1, 2]);
   });
-});
 });

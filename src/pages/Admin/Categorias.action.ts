@@ -1,9 +1,4 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router-dom";
-import { leerIdRuta } from "@/lib/idRuta";
-import {
-  quitarImagenCategoria,
-  subirImagenCategoria,
-} from "@/lib/api/imagenes.api";
 
 import {
   actualizarCategoria,
@@ -12,7 +7,9 @@ import {
   listarCategoriasAdmin,
   reordenarCategorias,
 } from "@/lib/api/catalogoAdmin.api";
+import { quitarImagenCategoria, subirImagenCategoria } from "@/lib/api/imagenes.api";
 import { ErrorApi } from "@/lib/apiFetch";
+import { leerIdRuta } from "@/lib/idRuta";
 import type { CategoriaAdmin, CategoriaCambios } from "@/types";
 
 /** Lo que el loader deja disponible para la pantalla. */
