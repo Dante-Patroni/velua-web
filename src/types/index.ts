@@ -47,6 +47,10 @@ export type CategoriaCambios = Esquemas["CategoriaCambios"];
 // Pedidos del panel
 export type PedidoAdminFila = Esquemas["PedidoAdminFila"];
 export type PedidoAdminDetalle = Esquemas["PedidoAdminDetalle"];
+export type PreparacionEntrada = Esquemas["PreparacionEntrada"];
+export type PreparacionResultado = Esquemas["PreparacionResultado"];
+export type CancelacionEntrada = Esquemas["CancelacionEntrada"];
+export type CancelacionResultado = Esquemas["CancelacionResultado"];
 
 /** Respuesta del listado público de productos. */
 export type ListadoProductos = { datos: ProductoListado[]; meta: Meta };

@@ -1,5 +1,14 @@
 import { apiFetch } from "@/lib/apiFetch";
-import type { EstadoPago, EstadoPedido, ListadoPedidosAdmin, PedidoAdminDetalle } from "@/types";
+import type {
+    CancelacionEntrada,
+    CancelacionResultado,
+    EstadoPago,
+    EstadoPedido,
+    ListadoPedidosAdmin,
+    PedidoAdminDetalle,
+    PreparacionEntrada,
+    PreparacionResultado,
+} from "@/types";
 
 /** Filtros del listado de pedidos del panel. */
 export type FiltrosPedidos = {
@@ -47,3 +56,35 @@ export const listarPedidos = (filtros: FiltrosPedidos = {}, signal?: AbortSignal
  */
 export const obtenerPedidoAdmin = (id: number, signal?: AbortSignal) =>
     apiFetch<PedidoAdminDetalle>(`/admin/pedidos/${id}`, { signal });
+
+/**
+ * @description Cambia el estado de preparación de un pedido: en preparación,
+ * enviado o entregado. La API decide si el paso es válido.
+ * @param id Id del pedido, ya validado como entero positivo.
+ * @param entrada Estado nuevo y, para enviar, el código de seguimiento.
+ * @returns Si cambió y el número. `cambiado: false` es un doble clic, no un error.
+ * @throws {ErrorApi} TRANSICION_INVALIDA, PAGO_NO_APROBADO, SEGUIMIENTO_REQUERIDO
+ *   o DATOS_INVALIDOS; NO_ENCONTRADO; 401 o 403 como el listado.
+ */
+export const cambiarPreparacion = (id: number, entrada: PreparacionEntrada) =>
+    apiFetch<PreparacionResultado>(`/admin/pedidos/${id}/preparacion`, {
+        method: "PATCH",
+        body: JSON.stringify(entrada),
+    });
+
+/**
+ * @description Cancela a mano un pedido nuevo y sin pagar, y repone el stock.
+ * Solo admin. Un pedido con link de Mercado Pago no se cancela acá: lo cancela
+ * el job, que consulta a Mercado Pago.
+ * @param id Id del pedido, ya validado como entero positivo.
+ * @param entrada Motivo para el historial y la confirmación de que no llegó la
+ *   transferencia (true solo si la clienta avisó que transfirió).
+ * @returns Si se canceló y el número. `cancelado: false` si ya estaba cancelado.
+ * @throws {ErrorApi} DATOS_INVALIDOS o TRANSICION_INVALIDA (400); PEDIDO_PAGADO,
+ *   COMPROBANTE_INFORMADO o PAGO_EN_CURSO (409); NO_ENCONTRADO; 401 o 403.
+ */
+export const cancelarPedido = (id: number, entrada: CancelacionEntrada) =>
+    apiFetch<CancelacionResultado>(`/admin/pedidos/${id}/cancelacion`, {
+        method: "POST",
+        body: JSON.stringify(entrada),
+    });

@@ -319,6 +319,9 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
     ORIGEN_NO_PERMITIDO: "No pudimos completar la operación. Probá recargando la página.",
     ERROR_INTERNO: "Tuvimos un problema de nuestro lado. Probá de nuevo en unos minutos.",
     SEGUIMIENTO_REQUERIDO: "Falta cargar el código de seguimiento del envío.",
+    PEDIDO_PAGADO: "Este pedido ya está pagado. Para cancelarlo, primero hay que devolver el pago.",
+    COMPROBANTE_INFORMADO: "La clienta avisó que transfirió. Revisá el banco y confirmá que el dinero no llegó antes de cancelar.",
+    PAGO_EN_CURSO: "Este pedido tiene un link de Mercado Pago y no se cancela a mano. Si no se paga, el sistema lo cancela al vencer, después de consultar a Mercado Pago.",
     SIN_VARIANTES: "El producto necesita al menos una variante.",
     ULTIMA_VARIANTE_ACTIVA:
       "No podés desactivar la última variante activa del producto.",
