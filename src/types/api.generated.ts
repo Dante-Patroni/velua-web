@@ -1511,6 +1511,144 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/pedidos/{id}/preparacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Avanzar la preparación de un pedido
+         * @description Preparar, despachar o marcar como entregado, de a un paso y solo con el pago aprobado. Para despachar un envío hace falta el código de seguimiento, y al despacharlo se encola un mail a la clienta. Lo pueden hacer el admin y el operador. Queda en el historial con el usuario de la sesión.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Id del recurso. */
+                    id: components["parameters"]["IdRuta"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PreparacionEntrada"];
+                };
+            };
+            responses: {
+                /** @description Estado actualizado, o sin cambios si ya estaba en ese estado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PreparacionResultado"];
+                    };
+                };
+                /** @description DATOS_INVALIDOS (con details), TRANSICION_INVALIDA (salto de estado), PAGO_NO_APROBADO o SEGUIMIENTO_REQUERIDO. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "PAGO_NO_APROBADO"
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                404: components["responses"]["NoEncontrado"];
+            };
+        };
+        trace?: never;
+    };
+    "/admin/pedidos/{id}/cancelacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancelar un pedido sin pagar
+         * @description Solo el admin. Solo pedidos nuevos con el pago pendiente o rechazado: uno pagado se devuelve primero. Devuelve el stock una sola vez y encola un mail a la clienta, sin el motivo. Si la clienta informó una transferencia, hace falta confirmaSinPago en true. Cancelar dos veces no es un error. Un pedido con link de Mercado Pago no se cancela a mano: lo cancela el job al vencer, después de consultar a Mercado Pago.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Id del recurso. */
+                    id: components["parameters"]["IdRuta"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CancelacionEntrada"];
+                };
+            };
+            responses: {
+                /** @description Pedido cancelado, o sin cambios si ya estaba cancelado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CancelacionResultado"];
+                    };
+                };
+                /** @description DATOS_INVALIDOS (con details) o TRANSICION_INVALIDA (pedido devuelto o que ya no está en nuevo). */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "DATOS_INVALIDOS",
+                         *       "details": {
+                         *         "motivo": "El motivo lleva de 5 a 500 caracteres"
+                         *       }
+                         *     }
+                         */
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                404: components["responses"]["NoEncontrado"];
+                /** @description PEDIDO_PAGADO (primero hay que devolver el pago), COMPROBANTE_INFORMADO (falta confirmaSinPago) o PAGO_EN_CURSO (el pedido tiene link de Mercado Pago: lo cancela el job). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/productos/{id}/imagenes": {
         parameters: {
             query?: never;
@@ -2940,6 +3078,8 @@ export interface components {
                  * @description Cuándo la clienta avisó que transfirió.
                  */
                 comprobanteInformadoEn: string | null;
+                /** @description True si alguna vez se creó un link de pago de Mercado Pago. Un pedido así no se cancela a mano (PAGO_EN_CURSO): lo cancela el job, que consulta a Mercado Pago. Sirve para deshabilitar el botón y explicar por qué; la API rechaza igual. */
+                tieneLinkMercadoPago: boolean;
             };
             notasCliente: string | null;
             notasInternas: string | null;
@@ -2963,6 +3103,52 @@ export interface components {
                 /** Format: date-time */
                 creadoEn: string;
             }[];
+        };
+        PreparacionEntrada: {
+            /**
+             * @description Sale de AVANCES_PREPARACION: la misma lista que valida la API. Cancelar tiene su propia ruta.
+             * @enum {string}
+             */
+            estado: "en_preparacion" | "enviado" | "entregado";
+            /**
+             * @description Código del correo. Obligatorio para pasar a enviado si el método es envío. En un retiro no se guarda.
+             * @example AR123456789
+             */
+            seguimiento?: string;
+        };
+        PreparacionResultado: {
+            /** @description False si el pedido ya estaba en ese estado: un doble clic no es un error. */
+            cambiado: boolean;
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /**
+             * @description Solo cuando cambiado es false.
+             * @enum {string}
+             */
+            motivo?: "YA_REGISTRADO";
+        };
+        CancelacionEntrada: {
+            /**
+             * @description Nota interna para el historial, sin contar los espacios de los extremos. No se le manda a la clienta.
+             * @example La clienta pidió cancelar por WhatsApp
+             */
+            motivo: string;
+            /**
+             * @description Obligatorio en true si la clienta informó una transferencia: confirma que se revisó el banco y el dinero no llegó. Solo vale el booleano, no el texto "true".
+             * @default false
+             */
+            confirmaSinPago: boolean;
+        };
+        CancelacionResultado: {
+            /** @description False si ya estaba cancelado. */
+            cancelado: boolean;
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /**
+             * @description Solo cuando cancelado es false.
+             * @enum {string}
+             */
+            motivo?: "YA_CANCELADO";
         };
     };
     responses: {

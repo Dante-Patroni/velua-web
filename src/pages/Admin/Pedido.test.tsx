@@ -47,7 +47,7 @@ const detalle = (cambios: Partial<PedidoAdminDetalle> = {}): PedidoAdminDetalle 
     costoEnvio: "6500.00",
     total: "39350.00",
   },
-  pago: { pagoId: "987654", metodo: "visa", comprobanteInformadoEn: null },
+  pago: { pagoId: "987654", metodo: "visa", comprobanteInformadoEn: null, tieneLinkMercadoPago: true },
   notasCliente: null,
   notasInternas: null,
   items: [
@@ -108,7 +108,7 @@ describe("DetallePedido", () => {
         pedido={detalle({
           metodoEntrega: "retiro",
           entrega: { metodo: "retiro", zona: null, direccion: null, seguimiento: null },
-          pago: { pagoId: null, metodo: null, comprobanteInformadoEn: null },
+          pago: { pagoId: null, metodo: null, comprobanteInformadoEn: null, tieneLinkMercadoPago: false },
           items: [{ ...base.items[0], sku: null }],
           eventos: [],
         })}
