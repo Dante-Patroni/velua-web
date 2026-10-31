@@ -31,7 +31,7 @@ const ESTADO_POR_INTENCION = {
   entregar: "entregado",
 } as const satisfies Record<string, PreparacionEntrada["estado"]>;
 
-type IntencionPreparacion = keyof typeof ESTADO_POR_INTENCION;
+export type IntencionPreparacion = keyof typeof ESTADO_POR_INTENCION;
 
 /**
  * @description Dice si la intención es uno de los botones de preparación.
