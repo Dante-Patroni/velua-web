@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/apiFetch";
+import { segmentoRuta } from "@/lib/segmentoRuta";
 import type { Categoria, ListadoProductos, ProductoDetalle } from "@/types";
 
 /** Respuesta de GET /categorias. */
@@ -60,5 +61,5 @@ export const listarProductosTienda = (filtros: FiltrosCatalogo = {}, signal?: Ab
  * @param signal Señal para cancelar la petición si la navegación cambia.
  * @returns El producto. Si no existe o está despublicado, la API responde 404.
  */
-export const obtenerProductoTienda = (slug: string, signal?: AbortSignal) =>
-  apiFetch<ProductoDetalle>(`/productos/${encodeURIComponent(slug)}`, { signal });
+export const obtenerProductoTienda = async (slug: string, signal?: AbortSignal) =>
+  apiFetch<ProductoDetalle>(`/productos/${segmentoRuta(slug)}`, { signal });

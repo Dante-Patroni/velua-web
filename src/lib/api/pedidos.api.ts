@@ -1,4 +1,5 @@
 import { apiFetch } from "@/lib/apiFetch";
+import { segmentoRuta } from "@/lib/segmentoRuta";
 import type { PagoIniciado, PedidoCreado, PedidoEntrada, PedidoPublico, ZonaEnvio } from "@/types";
 
 /** Respuesta de GET /zonas-envio. */
@@ -36,8 +37,8 @@ export const crearPedido = (entrada: PedidoEntrada) =>
  * @returns El estado del pedido, sus líneas y sus totales.
  * @throws {ErrorApi} NO_ENCONTRADO (404) o LIMITE_SUPERADO (429).
  */
-export const obtenerPedido = (numero: string, signal?: AbortSignal) =>
-  apiFetch<PedidoPublico>(`/pedidos/${encodeURIComponent(numero)}`, { signal });
+export const obtenerPedido = async (numero: string, signal?: AbortSignal) =>
+  apiFetch<PedidoPublico>(`/pedidos/${segmentoRuta(numero)}`, { signal });
 
 /**
  * @description Genera un link de pago de Mercado Pago para un pedido pendiente
@@ -47,5 +48,5 @@ export const obtenerPedido = (numero: string, signal?: AbortSignal) =>
  * @returns El link de pago.
  * @throws {ErrorApi} PEDIDO_NO_PAGABLE, PEDIDO_VENCIDO, PEDIDO_YA_PAGADO, PAGO_EN_PROCESO o PROCESADOR_NO_DISPONIBLE.
  */
-export const iniciarPago = (numero: string) =>
-  apiFetch<PagoIniciado>(`/pedidos/${encodeURIComponent(numero)}/pago`, { method: "POST" });
+export const iniciarPago = async (numero: string) =>
+  apiFetch<PagoIniciado>(`/pedidos/${segmentoRuta(numero)}/pago`, { method: "POST" });
