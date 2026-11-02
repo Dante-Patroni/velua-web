@@ -1,10 +1,12 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { describe, expect, test } from "vitest";
 
+import { AuthProvider } from "@/auth/AuthContext";
 import { formatearPrecio } from "@/lib/formato";
-import type { PedidoAdminDetalle } from "@/types";
+import type { PedidoAdminDetalle, RolUsuario } from "@/types";
 
-import { DetallePedido } from "./Pedido";
+import { AccionesPedido, DetallePedido } from "./Pedido";
 
 const ATAQUE = '<img src=x onerror="alert(1)">';
 const ATAQUE_ESCAPADO = "&lt;img src=x onerror=&quot;alert(1)&quot;&gt;";
@@ -126,5 +128,94 @@ describe("DetallePedido", () => {
     expect(html).toContain("Origen: Mercado Pago");
     expect(html).toContain("Pago: Pendiente → Pagado");
     expect(html).not.toContain("webhook");
+  });
+});
+
+/**
+ * Renderiza las acciones con la sesión del rol pedido, dentro de un router de
+ * memoria: useFetcher lo necesita.
+ */
+const acciones = (pedido: PedidoAdminDetalle, rol: RolUsuario = "admin") => {
+  const usuario = { id: 1, nombre: "Prueba", email: "prueba@example.com", rol, permisos: [] };
+  const router = createMemoryRouter([
+    {
+      path: "/",
+      element: (
+        <AuthProvider usuario={usuario}>
+          <AccionesPedido pedido={pedido} />
+        </AuthProvider>
+      ),
+    },
+  ]);
+
+  return renderToStaticMarkup(<RouterProvider router={router} />);
+};
+
+/** Pedido nuevo, pendiente de pago, sin link de Mercado Pago: se puede cancelar. */
+const cancelable = (cambios: Partial<PedidoAdminDetalle> = {}) => {
+  const base = detalle();
+  return detalle({
+    estadoPago: "pendiente",
+    estadoPedido: "nuevo",
+    pago: { ...base.pago, tieneLinkMercadoPago: false },
+    ...cambios,
+  });
+};
+
+describe("AccionesPedido", () => {
+  test("en preparación con envío pide el seguimiento y ofrece marcar enviado", () => {
+    const html = acciones(detalle());
+
+    expect(html).toContain('name="intencion" value="enviar"');
+    expect(html).toContain('name="seguimiento"');
+    expect(html).toContain("Marcar como enviado");
+  });
+
+  test("un retiro no pide seguimiento", () => {
+    const base = detalle();
+    const html = acciones(detalle({ entrega: { ...base.entrega, metodo: "retiro" } }));
+
+    expect(html).toContain('value="enviar"');
+    expect(html).not.toContain('name="seguimiento"');
+  });
+
+  test("sin acciones posibles no muestra el bloque", () => {
+    expect(acciones(detalle({ estadoPedido: "entregado" }))).toBe("");
+  });
+
+  test("un admin puede cancelar un pedido nuevo sin pagar", () => {
+    const html = acciones(cancelable());
+
+    expect(html).toContain('value="cancelar"');
+    expect(html).toContain('name="motivo"');
+    expect(html).not.toContain('name="confirmaSinPago"');
+  });
+
+  test("un operador no ve la cancelación", () => {
+    expect(acciones(cancelable(), "operador")).toBe("");
+  });
+
+  test("con link de Mercado Pago el botón está deshabilitado y explica por qué", () => {
+    const base = detalle();
+    const html = acciones(cancelable({ pago: { ...base.pago, tieneLinkMercadoPago: true } }));
+
+    expect(html).not.toContain('value="cancelar"');
+    expect(html).toMatch(/<button[^>]*disabled[^>]*aria-describedby="aviso-mercado-pago"/);
+    expect(html).toContain("puede haber un pago en proceso");
+  });
+
+  test("si la clienta avisó que transfirió, pide la confirmación", () => {
+    const base = detalle();
+    const html = acciones(
+      cancelable({
+        pago: { ...base.pago, tieneLinkMercadoPago: false, comprobanteInformadoEn: "2026-10-30T12:00:00.000Z" },
+      }),
+    );
+
+    // React no respeta el orden de los atributos: se revisa cada uno.
+    const casilla = html.match(/<input type="checkbox"[^>]*>/)?.[0] ?? "";
+    expect(casilla).toContain('name="confirmaSinPago"');
+    expect(casilla).toContain('value="true"');
+    expect(casilla).toContain("required");
   });
 });

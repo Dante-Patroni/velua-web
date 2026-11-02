@@ -49,11 +49,11 @@ export const rutasAdmin: RouteObject[] = [
       {
         path: "pedidos/:id",
         lazy: async () => {
-          const [{ Pedido }, { cargarPedido }] = await Promise.all([
+          const [{ Pedido }, { accionPedido, cargarPedido }] = await Promise.all([
             import("@/pages/Admin/Pedido"),
             import("@/pages/Admin/Pedido.action"),
           ]);
-          return { Component: Pedido, loader: cargarPedido };
+          return { Component: Pedido, loader: cargarPedido, action: accionPedido };
         },
       },
       {
