@@ -3,7 +3,7 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { describe, expect, test } from "vitest";
 
 import { AuthProvider } from "@/auth/AuthContext";
-import { formatearPrecio } from "@/lib/formato";
+import { formatearFechaHora, formatearPrecio } from "@/lib/formato";
 import type { PedidoAdminDetalle, RolUsuario } from "@/types";
 
 import { AccionesPedido, DetallePedido } from "./Pedido";
@@ -120,6 +120,31 @@ describe("DetallePedido", () => {
     expect(html).not.toMatch(/null|undefined/);
     expect(html).toContain("Retiro");
     expect(html).toContain("Sin movimientos.");
+  });
+
+  test("con el aviso de transferencia no muestra la reserva como un plazo", () => {
+    const base = detalle();
+    const expiraEn = "2026-11-04T20:13:00.000Z";
+    const pendiente = {
+      medioPago: "transferencia" as const,
+      estadoPago: "pendiente" as const,
+      expiraEn,
+    };
+
+    const sinAviso = renderToStaticMarkup(<DetallePedido pedido={detalle(pendiente)} />);
+    expect(sinAviso).toContain(formatearFechaHora(expiraEn));
+    expect(sinAviso).not.toContain("No vence");
+
+    const conAviso = renderToStaticMarkup(
+      <DetallePedido
+        pedido={detalle({
+          ...pendiente,
+          pago: { ...base.pago, comprobanteInformadoEn: "2026-11-03T20:21:00.000Z" },
+        })}
+      />
+    );
+    expect(conAviso).toContain("No vence: la clienta avisó que transfirió");
+    expect(conAviso).not.toContain(formatearFechaHora(expiraEn));
   });
 
   test("el historial traduce el origen y los estados", () => {

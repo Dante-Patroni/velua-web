@@ -30,6 +30,12 @@ const oGuion = (valor: string | null | undefined): string =>
   valor && valor.trim() !== "" ? valor : "—";
 
 /**
+ * Con el aviso de transferencia el pedido no vence (el job lo saltea), aunque
+ * la API conserve la fecha original: mostrarla como plazo confundiría.
+ */
+const TEXTO_NO_VENCE = "No vence: la clienta avisó que transfirió";
+
+/**
  * @description Bloque con título, para separar las partes del detalle.
  * @param props Título y contenido.
  * @param props.titulo Título del bloque.
@@ -142,7 +148,10 @@ export function DetallePedido({ pedido }: { pedido: PedidoAdminDetalle }) {
           <Dato etiqueta="Estado" valor={ETIQUETAS_ESTADO_PAGO[pedido.estadoPago]} />
           <Dato etiqueta="Medio" valor={ETIQUETAS_MEDIO_PAGO[pedido.medioPago]} />
           {pedido.estadoPago === "pendiente" && pedido.expiraEn && (
-            <Dato etiqueta="Reservado hasta" valor={formatearFechaHora(pedido.expiraEn)} />
+            <Dato
+              etiqueta="Reservado hasta"
+              valor={pago.comprobanteInformadoEn ? TEXTO_NO_VENCE : formatearFechaHora(pedido.expiraEn)}
+            />
           )}
           <Dato etiqueta="Id del pago" valor={oGuion(pago.pagoId)} />
           <Dato etiqueta="Método" valor={oGuion(pago.metodo)} />
