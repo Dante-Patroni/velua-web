@@ -6,6 +6,7 @@ import { accionesDelPedido, type DatosAcciones } from "./Pedido.utils";
 const pedido = (cambios: Partial<DatosAcciones> = {}): DatosAcciones => ({
   estadoPago: "aprobado",
   estadoPedido: "nuevo",
+  medioPago: "mercadopago",
   entrega: { metodo: "envio" },
   pago: { tieneLinkMercadoPago: false, comprobanteInformadoEn: null },
   ...cambios,
@@ -73,5 +74,54 @@ describe("accionesDelPedido: cancelación", () => {
 
     expect(accionesDelPedido(conAviso).pideConfirmacionSinPago).toBe(true);
     expect(accionesDelPedido(pedido({ estadoPago: "pendiente" })).pideConfirmacionSinPago).toBe(false);
+  });
+});
+
+describe("accionesDelPedido: transferencia", () => {
+  /** Transferencia sin pagar y sin aviso: el caso en que se ofrecen los dos botones. */
+  const transferencia = (cambios: Partial<DatosAcciones> = {}) =>
+    pedido({ medioPago: "transferencia", estadoPago: "pendiente", ...cambios });
+
+  const AVISADO = { tieneLinkMercadoPago: false, comprobanteInformadoEn: "2026-11-03T12:00:00.000Z" };
+
+  test.each(["pendiente", "rechazado"] as const)(
+    "con el pago %s ofrece registrar el aviso y confirmar el pago",
+    (estadoPago) => {
+      const resultado = accionesDelPedido(transferencia({ estadoPago }));
+
+      expect(resultado.registrarAviso).toBe(true);
+      expect(resultado.confirmarPago).toBe(true);
+    },
+  );
+
+  test("con el aviso ya registrado sigue ofreciendo confirmar, pero no avisar", () => {
+    const resultado = accionesDelPedido(transferencia({ pago: AVISADO }));
+
+    expect(resultado.registrarAviso).toBe(false);
+    expect(resultado.confirmarPago).toBe(true);
+  });
+
+  test.each(["aprobado", "devuelto", "cancelado"] as const)(
+    "con el pago %s no ofrece ninguno",
+    (estadoPago) => {
+      const resultado = accionesDelPedido(transferencia({ estadoPago }));
+
+      expect(resultado.registrarAviso).toBe(false);
+      expect(resultado.confirmarPago).toBe(false);
+    },
+  );
+
+  test("con el pedido cancelado no ofrece ninguno, aunque el pago siga pendiente", () => {
+    const resultado = accionesDelPedido(transferencia({ estadoPedido: "cancelado" }));
+
+    expect(resultado.registrarAviso).toBe(false);
+    expect(resultado.confirmarPago).toBe(false);
+  });
+
+  test("con Mercado Pago no ofrece ninguno", () => {
+    const resultado = accionesDelPedido(pedido({ medioPago: "mercadopago", estadoPago: "pendiente" }));
+
+    expect(resultado.registrarAviso).toBe(false);
+    expect(resultado.confirmarPago).toBe(false);
   });
 });
