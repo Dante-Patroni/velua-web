@@ -219,3 +219,72 @@ describe("AccionesPedido", () => {
     expect(casilla).toContain("required");
   });
 });
+
+/** Transferencia nueva y sin pagar, sin aviso de la clienta. */
+const transferencia = (cambios: Partial<PedidoAdminDetalle> = {}) => {
+  const base = detalle();
+  return detalle({
+    medioPago: "transferencia",
+    estadoPago: "pendiente",
+    estadoPedido: "nuevo",
+    pago: { pagoId: null, metodo: null, comprobanteInformadoEn: null, tieneLinkMercadoPago: false },
+    totales: { ...base.totales, total: "32850.00" },
+    ...cambios,
+  });
+};
+
+describe("AccionesPedido: transferencia", () => {
+  test("un admin ve registrar el aviso, con la advertencia de que no confirma el pago", () => {
+    const html = acciones(transferencia());
+
+    expect(html).toContain("Pago por transferencia");
+    expect(html).toContain('value="registrarAviso"');
+    expect(html).toContain("Registrar aviso");
+    expect(html).toContain("El pedido deja de vencer. No confirma el pago.");
+    expect(html).toMatch(/<button[^>]*aria-describedby="explicacion-aviso"/);
+  });
+
+  test("confirmar pide la casilla obligatoria y muestra el total que manda la API", () => {
+    const html = acciones(transferencia());
+
+    expect(html).toContain('value="confirmarPago"');
+    expect(html).toContain("Confirmar pago recibido");
+    expect(html).toContain(formatearPrecio("32850.00"));
+
+    const casilla = html.match(/<input type="checkbox"[^>]*name="verificadoEnBanco"[^>]*>/)?.[0] ?? "";
+    expect(casilla).toContain('value="true"');
+    expect(casilla).toContain("required");
+  });
+
+  test("con el aviso ya registrado ofrece confirmar, pero no avisar otra vez", () => {
+    const html = acciones(
+      transferencia({
+        pago: {
+          pagoId: null,
+          metodo: null,
+          comprobanteInformadoEn: "2026-11-03T12:00:00.000Z",
+          tieneLinkMercadoPago: false,
+        },
+      }),
+    );
+
+    expect(html).not.toContain('value="registrarAviso"');
+    expect(html).toContain('value="confirmarPago"');
+  });
+
+  test("un operador no ve nada de la transferencia", () => {
+    expect(acciones(transferencia(), "operador")).toBe("");
+  });
+
+  test("con el pago aprobado no se ofrece ni avisar ni confirmar", () => {
+    const html = acciones(transferencia({ estadoPago: "aprobado" }));
+
+    expect(html).not.toContain("Pago por transferencia");
+    expect(html).not.toContain('value="confirmarPago"');
+  });
+
+  test("con Mercado Pago no aparece la parte de transferencia", () => {
+    expect(acciones(cancelable({ medioPago: "mercadopago" }))).not.toContain("Pago por transferencia");
+  });
+});
+
