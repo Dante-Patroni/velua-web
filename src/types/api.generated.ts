@@ -141,7 +141,7 @@ export interface paths {
                         "application/json": components["schemas"]["Error"];
                     };
                 };
-                /** @description PROCESADOR_NO_CONFIGURADO. Se eligió Mercado Pago y no está configurado: no se crea el pedido ni se aparta stock. El frontend muestra que el pago online no está disponible. */
+                /** @description PROCESADOR_NO_CONFIGURADO: se eligió Mercado Pago y no está configurado. MEDIO_PAGO_NO_DISPONIBLE: se eligió transferencia y no hay datos bancarios válidos. En los dos casos no se crea el pedido ni se aparta stock; el frontend ofrece el otro medio. */
                 503: {
                     headers: {
                         [name: string]: unknown;
@@ -269,6 +269,72 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pedidos/{numero}/comprobante": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Avisar que se hizo la transferencia ("Ya transferí")
+         * @description Para un pedido por transferencia con el pago pendiente o rechazado y la reserva vigente. Frena el vencimiento hasta que la dueña confirme el pago o cancele el pedido; no aprueba el pago. Sin cuerpo: el comprobante se manda por WhatsApp. Publico: el numero funciona como llave. Comparte el limite de 10 por hora por IP con la creacion de pedidos y con el pago.
+         *     Repetir el aviso responde lo mismo y no cambia nada.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    numero: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Aviso registrado, o ya estaba registrado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AvisoTransferencia"];
+                    };
+                };
+                404: components["responses"]["NoEncontrado"];
+                /** @description PEDIDO_NO_PAGABLE (no es por transferencia, o esta cancelado o devuelto), PEDIDO_YA_PAGADO (la dueña ya confirmo el pago) o PEDIDO_VENCIDO (la reserva vencio sin aviso). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Demasiados pedidos desde la misma direccion */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "LIMITE_SUPERADO"
+                         *     }
+                         */
                         "application/json": components["schemas"]["Error"];
                     };
                 };
@@ -1649,6 +1715,120 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/pedidos/{id}/aviso": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registrar que la clienta avisó una transferencia
+         * @description Solo el admin (PAGOS_CONFIRMAR). Para cuando la clienta manda el comprobante por WhatsApp sin apretar "Ya transferí". Frena el vencimiento mientras la dueña revisa el banco; no aprueba el pago. A diferencia del aviso de la clienta, vale con la reserva vencida, mientras el pedido no esté cancelado. Sin cuerpo. Repetirlo no cambia nada.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Id del recurso. */
+                    id: components["parameters"]["IdRuta"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Aviso registrado, o sin cambios si ya estaba avisado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AvisoRegistrado"];
+                    };
+                };
+                400: components["responses"]["DatosInvalidos"];
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                404: components["responses"]["NoEncontrado"];
+                /** @description PEDIDO_NO_PAGABLE (no es por transferencia, o está cancelado o devuelto) o PEDIDO_YA_PAGADO. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/pedidos/{id}/pago-confirmado": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar que el dinero de una transferencia entró
+         * @description Solo el admin (PAGOS_CONFIRMAR). Es la única forma de aprobar una transferencia: el aviso de la clienta no alcanza. No hace falta que haya aviso. Solo pedidos por transferencia con el pago pendiente o rechazado y sin cancelar, aunque la reserva haya vencido. Tiene los mismos efectos que una aprobación de Mercado Pago: el pedido deja de vencer, queda en el historial con el usuario y se encola el mail de pago confirmado. Confirmar dos veces no es un error.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Id del recurso. */
+                    id: components["parameters"]["IdRuta"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConfirmacionPagoEntrada"];
+                };
+            };
+            responses: {
+                /** @description Pago confirmado, o sin cambios si ya estaba confirmado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConfirmacionPagoResultado"];
+                    };
+                };
+                400: components["responses"]["DatosInvalidos"];
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                404: components["responses"]["NoEncontrado"];
+                /** @description PEDIDO_NO_PAGABLE (no es por transferencia, o está cancelado o devuelto). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/productos/{id}/imagenes": {
         parameters: {
             query?: never;
@@ -2934,6 +3114,13 @@ export interface components {
             /** @description Link de pago de Mercado Pago. */
             urlPago: string;
         };
+        /** @description Respuesta de "Ya transferí". Es la misma en el primer aviso y en los siguientes. */
+        AvisoTransferencia: {
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /** @enum {boolean} */
+            comprobanteInformado: true;
+        };
         /** @description Estado de un pedido sin ningun dato personal. */
         PedidoPublico: {
             /** @example VEL-4K7Q2X */
@@ -2960,6 +3147,20 @@ export interface components {
                 subtotal?: string;
             }[];
             totales?: components["schemas"]["TotalesCotizacion"];
+            /** @description Datos para transferir. Solo mientras haya que pagar: pedido por transferencia, pago pendiente o rechazado, reserva vigente (o vencida con aviso) y transferencia habilitada. En cualquier otro caso, null. */
+            transferencia?: {
+                /** @example velua.prueba.mp */
+                alias: string;
+                /** @example 0000000000000000000000 */
+                cbu: string;
+                /** @example Tienda de Prueba */
+                titular: string;
+                /**
+                 * @description Total del pedido, con el descuento ya aplicado.
+                 * @example 23500.00
+                 */
+                monto: string;
+            } | null;
         };
         /**
          * @description Sale de TRANSICIONES_PAGO: es la misma lista que valida la API.
@@ -3138,6 +3339,35 @@ export interface components {
              * @default false
              */
             confirmaSinPago: boolean;
+        };
+        AvisoRegistrado: {
+            /** @description False si ya estaba avisado. */
+            registrado: boolean;
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /**
+             * @description Solo cuando registrado es false.
+             * @enum {string}
+             */
+            motivo?: "YA_INFORMADO";
+        };
+        ConfirmacionPagoEntrada: {
+            /**
+             * @description La dueña afirma que vio el dinero en el banco. Solo vale el booleano true.
+             * @enum {boolean}
+             */
+            verificadoEnBanco: true;
+        };
+        ConfirmacionPagoResultado: {
+            /** @description False si ya estaba confirmado. */
+            confirmado: boolean;
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /**
+             * @description Solo cuando confirmado es false.
+             * @enum {string}
+             */
+            motivo?: "YA_CONFIRMADO";
         };
         CancelacionResultado: {
             /** @description False si ya estaba cancelado. */
