@@ -316,6 +316,8 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
       "No pudimos conectar con Mercado Pago, probá en unos minutos.",
     PROCESADOR_NO_CONFIGURADO:
       "El pago online no está disponible por ahora. Escribinos por WhatsApp.",
+    MEDIO_PAGO_NO_DISPONIBLE:
+      "Ese medio de pago no está disponible por ahora. Elegí otro o escribinos por WhatsApp.",
     ORIGEN_NO_PERMITIDO: "No pudimos completar la operación. Probá recargando la página.",
     ERROR_INTERNO: "Tuvimos un problema de nuestro lado. Probá de nuevo en unos minutos.",
     SEGUIMIENTO_REQUERIDO: "Falta cargar el código de seguimiento del envío.",
@@ -343,6 +345,8 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
   },
   checkout: {
     STOCK_INSUFICIENTE: "Alguien se adelantó. Revisá tu carrito antes de pagar.",
+    MEDIO_PAGO_NO_DISPONIBLE:
+      "Ese medio de pago dejó de estar disponible. Revisá las opciones y elegí otro para continuar.",
   },
   login: {
     DATOS_INVALIDOS: "Completá el mail y la contraseña.",
