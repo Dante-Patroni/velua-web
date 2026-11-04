@@ -141,7 +141,7 @@ export interface paths {
                         "application/json": components["schemas"]["Error"];
                     };
                 };
-                /** @description PROCESADOR_NO_CONFIGURADO. Se eligió Mercado Pago y no está configurado: no se crea el pedido ni se aparta stock. El frontend muestra que el pago online no está disponible. */
+                /** @description PROCESADOR_NO_CONFIGURADO: se eligió Mercado Pago y no está configurado. MEDIO_PAGO_NO_DISPONIBLE: se eligió transferencia y no hay datos bancarios válidos. En los dos casos no se crea el pedido ni se aparta stock; el frontend ofrece el otro medio. */
                 503: {
                     headers: {
                         [name: string]: unknown;
@@ -269,6 +269,72 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pedidos/{numero}/comprobante": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Avisar que se hizo la transferencia ("Ya transferí")
+         * @description Para un pedido por transferencia con el pago pendiente o rechazado y la reserva vigente. Frena el vencimiento hasta que la dueña confirme el pago o cancele el pedido; no aprueba el pago. Sin cuerpo: el comprobante se manda por WhatsApp. Publico: el numero funciona como llave. Tiene su propio limite, 20 por hora por IP, separado del de crear y pagar.
+         *     Repetir el aviso responde lo mismo y no cambia nada.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    numero: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Aviso registrado, o ya estaba registrado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AvisoTransferencia"];
+                    };
+                };
+                404: components["responses"]["NoEncontrado"];
+                /** @description PEDIDO_NO_PAGABLE (no es por transferencia, o esta cancelado o devuelto), PEDIDO_YA_PAGADO (la dueña ya confirmo el pago) o PEDIDO_VENCIDO (la reserva vencio sin aviso). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Demasiados avisos desde la misma direccion */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "error": "LIMITE_SUPERADO"
+                         *     }
+                         */
                         "application/json": components["schemas"]["Error"];
                     };
                 };
@@ -2872,6 +2938,20 @@ export interface components {
             avisos: components["schemas"]["AvisoCotizacion"][];
             totales: components["schemas"]["TotalesCotizacion"];
             envio: components["schemas"]["DetalleEnvio"];
+            /** @description Qué medios se pueden usar hoy y el total con cada uno, calculado acá (con su descuento y su envío). El checkout ofrece solo los que vienen con disponible en true y muestra estos totales sin calcular nada. */
+            mediosPago: {
+                mercadopago: components["schemas"]["MedioPagoCotizado"];
+                transferencia: components["schemas"]["MedioPagoCotizado"];
+            };
+        };
+        MedioPagoCotizado: {
+            /** @description False si el medio no está configurado en el servidor. No dice por qué: el motivo queda en el log. */
+            disponible: boolean;
+            /**
+             * @description Total con este medio, redondeado al peso. Null si no está disponible.
+             * @example 32850.00
+             */
+            total: string | null;
         };
         PedidoEntrada: {
             items: {
@@ -2934,6 +3014,13 @@ export interface components {
             /** @description Link de pago de Mercado Pago. */
             urlPago: string;
         };
+        /** @description Respuesta de "Ya transferí". Es la misma en el primer aviso y en los siguientes. */
+        AvisoTransferencia: {
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /** @enum {boolean} */
+            comprobanteInformado: true;
+        };
         /** @description Estado de un pedido sin ningun dato personal. */
         PedidoPublico: {
             /** @example VEL-4K7Q2X */
@@ -2960,6 +3047,20 @@ export interface components {
                 subtotal?: string;
             }[];
             totales?: components["schemas"]["TotalesCotizacion"];
+            /** @description Datos para transferir. Solo mientras haya que pagar: pedido por transferencia, pago pendiente o rechazado, reserva vigente (o vencida con aviso) y transferencia habilitada. En cualquier otro caso, null. */
+            transferencia?: {
+                /** @example velua.prueba.mp */
+                alias: string;
+                /** @example 0000000000000000000000 */
+                cbu: string;
+                /** @example Tienda de Prueba */
+                titular: string;
+                /**
+                 * @description Total del pedido, con el descuento ya aplicado.
+                 * @example 23500.00
+                 */
+                monto: string;
+            } | null;
         };
         /**
          * @description Sale de TRANSICIONES_PAGO: es la misma lista que valida la API.
