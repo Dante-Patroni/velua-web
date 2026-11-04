@@ -87,16 +87,12 @@ describe("página del pedido por transferencia", () => {
     expect(html).toContain('target="_blank"');
   });
 
-  it("muestra escapado un CBU o un titular con HTML", async () => {
-    const html = await renderizar({
-      transferencia: { ...datos, cbu: "<img src=x onerror=alert(1)>", titular: '<script>alert("x")</script>' },
-    });
+  it.each(["alias", "cbu", "titular"] as const)("muestra escapado un %s con HTML", async (campo) => {
+    const html = await renderizar({ transferencia: { ...datos, [campo]: "<img src=x onerror=alert(1)>" } });
 
-    expect(html).not.toContain("<img src=x");
-    // El router estático agrega su propio <script> de hidratación: se busca el del titular.
-    expect(html).not.toContain("<script>alert");
+    // El payload no aparece sin escapar, y sí aparece escapado.
+    expect(html).not.toContain("<img src=x onerror=");
     expect(html).toContain("&lt;img src=x onerror=alert(1)&gt;");
-    expect(html).toContain("&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;");
   });
 
   it("no arma enlaces con los datos bancarios", async () => {

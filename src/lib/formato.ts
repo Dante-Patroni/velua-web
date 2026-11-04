@@ -78,10 +78,12 @@ export function hayImporte(valor: string | null | undefined): boolean {
 }
 
 /**
- * @description Convierte un importe decimal de la API ("23500.00") al formato
- * que se pega en una app de banco argentina ("23500,00"). Solo cambia el
- * separador: no hace cuentas.
+ * @description Convierte un importe decimal de la API al formato que se pega en
+ * una app de banco argentina. La API redondea el total al peso, así que casi
+ * siempre termina en ".00" y se copia sin decimales ("23500"), porque algunas
+ * apps no aceptan pegarlos. Si alguna vez vinieran centavos, se copian con coma
+ * ("23500,50"). Solo es formato: no hace cuentas.
  * @param monto Importe como cadena decimal.
- * @returns El importe con coma decimal.
+ * @returns El importe sin decimales si son cero; si no, con coma decimal.
  */
-export const montoParaCopiar = (monto: string): string => monto.replace(".", ",");
+export const montoParaCopiar = (monto: string): string => monto.replace(/\.0+$/, "").replace(".", ",");

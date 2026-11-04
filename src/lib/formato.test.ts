@@ -83,8 +83,13 @@ describe("hayImporte", () => {
 });
 
 describe("montoParaCopiar", () => {
-  it("cambia el punto decimal por coma, sin tocar los dígitos", () => {
-    expect(montoParaCopiar("23500.00")).toBe("23500,00");
-    expect(montoParaCopiar("999.50")).toBe("999,50");
+  it("copia sin decimales cuando son cero", () => {
+    expect(montoParaCopiar("23500.00")).toBe("23500");
+    expect(montoParaCopiar("999.00")).toBe("999");
+  });
+
+  it("si vinieran centavos, los copia con coma", () => {
+    expect(montoParaCopiar("23500.50")).toBe("23500,50");
+    expect(montoParaCopiar("999.05")).toBe("999,05");
   });
 });
