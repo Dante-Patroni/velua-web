@@ -53,6 +53,10 @@ describe("leerPedido", () => {
     });
   });
 
+  it("acepta la transferencia y la manda tal cual al pedido", () => {
+    expect(leerPedido(formulario({ ...retiro, medioPago: "transferencia" }))?.medioPago).toBe("transferencia");
+  });
+
   it("arma un pedido con envío: zona numérica y dirección, con el extra vacío como null", () => {
     const pedido = leerPedido(formulario(envio));
 
@@ -90,7 +94,8 @@ describe("leerPedido", () => {
     ["carrito roto", { items: "no es json" }],
     ["total con formato raro", { totalEsperado: "17,000" }],
     ["total vacío", { totalEsperado: "" }],
-    ["medio de pago distinto de Mercado Pago", { medioPago: "transferencia" }],
+    ["medio de pago desconocido", { medioPago: "efectivo" }],
+    ["sin medio de pago", { medioPago: "" }],
     ["método de entrega desconocido", { metodo: "drone" }],
     ["envío sin zona", { ...envio, zonaEnvioId: "" }],
     ["envío con zona inválida", { ...envio, zonaEnvioId: "-3" }],

@@ -6,15 +6,17 @@ import { carritoConfirmado } from "@/carrito/cotizacion.utils";
 import { useCarrito } from "@/carrito/useCarrito";
 import { useCotizacion } from "@/carrito/useCotizacion";
 import { AvisosCarrito } from "@/components/tienda/AvisosCarrito";
+import { OpcionMedioPago } from "@/components/tienda/OpcionMedioPago";
 import { Button } from "@/components/ui/Button";
 import { ErrorCampo } from "@/components/ui/ErrorCampo";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Precio } from "@/components/ui/Precio";
 import { Select } from "@/components/ui/Select";
+import { hayImporte } from "@/lib/formato";
 import { MENSAJE_CARRITO_NO_ACTUALIZADO, obtenerMensajeError } from "@/lib/mappings";
 import type { ResultadoCheckout, cargarCheckout } from "./Checkout.action";
-import { debeCotizarDeNuevo, errorDeCampo } from "./Checkout.utils";
+import { type MedioPago, debeCotizarDeNuevo, errorDeCampo, mediosOfrecidos, resolverMedioPago } from "./Checkout.utils";
 
 type Metodo = "envio" | "retiro";
 
@@ -42,8 +44,10 @@ function Campo({ id, etiqueta, error, children }: CampoProps) {
 }
 
 /**
- * @description Pantalla de finalizar la compra, solo con Mercado Pago. Pide los
- * datos de la clienta y la entrega, cotiza el carrito con la zona elegida y, al
+ * @description Pantalla de finalizar la compra, con Mercado Pago o transferencia.
+ * Ofrece solo los medios que la API informa como disponibles, con el total de
+ * cada uno. Pide los datos de la clienta y la entrega, cotiza el carrito con la
+ * zona y el medio elegidos y, al
  * confirmar, crea el pedido con el total que se vio en pantalla. Todo importe
  * sale de `/cotizar`: no se suma ni se calcula acá. Los datos personales viajan
  * una sola vez hacia la API: no se guardan en el navegador ni se escriben en la
@@ -61,10 +65,11 @@ export function Checkout() {
 
   const [metodo, setMetodo] = useState<Metodo>("envio");
   const [zonaId, setZonaId] = useState<number | null>(null);
+  const [medioElegido, setMedioElegido] = useState<MedioPago>("mercadopago");
 
   const opciones = useMemo(
-    () => ({ zonaEnvioId: metodo === "envio" ? zonaId : null, medioPago: "mercadopago" as const }),
-    [metodo, zonaId],
+    () => ({ zonaEnvioId: metodo === "envio" ? zonaId : null, medioPago: medioElegido }),
+    [metodo, zonaId, medioElegido],
   );
   const { cotizacion, avisos, error, cargando, alDia, descartarAvisos, reintentar } = useCotizacion(
     items,
@@ -72,6 +77,12 @@ export function Checkout() {
     vaciar,
     opciones,
   );
+
+  const ofrecidos = mediosOfrecidos(cotizacion);
+  const medioPago = resolverMedioPago(medioElegido, cotizacion);
+
+  // Si la API dejó de ofrecer el medio elegido, se pasa al que sí ofrece y se vuelve a cotizar con él.
+  if (medioPago !== null && medioPago !== medioElegido) setMedioElegido(medioPago);
 
   const enviando = navegacion.state === "submitting";
   const fallo = resultado?.ok === false ? resultado : null;
@@ -94,7 +105,9 @@ export function Checkout() {
 
   const confirmado = carritoConfirmado(items, cotizacion, cargando) && alDia;
   const faltaZona = metodo === "envio" && zonaId === null;
-  const puedePagar = confirmado && !faltaZona && !enviando;
+  const sinMedios = cotizacion !== null && ofrecidos.length === 0;
+  const puedePagar = confirmado && !faltaZona && !enviando && medioPago !== null && !sinMedios;
+  const esTransferencia = medioPago === "transferencia";
   const campo = (nombre: string) => errorDeCampo(fallo?.details, nombre);
 
   if (resultado?.ok === true) {
@@ -155,7 +168,6 @@ export function Checkout() {
           <Form method="post" className="mt-8 grid gap-10 md:grid-cols-[1fr_22rem] md:gap-12" noValidate={false}>
             {/* El carrito viaja con solo ids y cantidades; el total esperado es el que se ve en pantalla. */}
             <input type="hidden" name="items" value={JSON.stringify(items)} />
-            <input type="hidden" name="medioPago" value="mercadopago" />
             <input type="hidden" name="totalEsperado" value={cotizacion?.totales.total ?? ""} />
 
             <div className="flex flex-col gap-10">
@@ -318,13 +330,38 @@ export function Checkout() {
                 )}
               </fieldset>
 
-              <section className={claseSeccion}>
-                <h2 className={claseTituloSeccion}>Pago</h2>
-                <p className="text-texto-suave">
-                  Pagás con Mercado Pago: tarjeta, débito o dinero en cuenta. Al confirmar te llevamos
-                  ahí, y guardamos tus productos durante una hora para que completes el pago.
-                </p>
-              </section>
+              <fieldset className={claseSeccion}>
+                <legend className={claseTituloSeccion}>Pago</legend>
+                {sinMedios && (
+                  <p role="alert" className="text-error">
+                    {obtenerMensajeError("PROCESADOR_NO_CONFIGURADO", "checkout")}
+                  </p>
+                )}
+                {!cotizacion && <p className="text-texto-suave">Estamos viendo cómo podés pagar…</p>}
+                {ofrecidos.map(({ medio, total }) =>
+                  medio === "mercadopago" ? (
+                    <OpcionMedioPago
+                      key={medio}
+                      valor={medio}
+                      titulo="Mercado Pago"
+                      detalle="Tarjeta, débito o dinero en cuenta. Al confirmar te llevamos ahí, y guardamos tus productos durante una hora para que completes el pago."
+                      total={total}
+                      elegido={medioPago === medio}
+                      onElegir={() => setMedioElegido(medio)}
+                    />
+                  ) : (
+                    <OpcionMedioPago
+                      key={medio}
+                      valor={medio}
+                      titulo="Transferencia bancaria"
+                      detalle="Al confirmar te mostramos los datos de la cuenta y hasta cuándo guardamos tus productos. Después de transferir, nos avisás desde tu pedido."
+                      total={total}
+                      elegido={medioPago === medio}
+                      onElegir={() => setMedioElegido(medio)}
+                    />
+                  ),
+                )}
+              </fieldset>
             </div>
 
             <aside className="flex h-fit flex-col gap-4 rounded-2xl border border-borde bg-crema-clara p-5 md:p-6">
@@ -364,6 +401,16 @@ export function Checkout() {
                         )}
                       </dd>
                     </div>
+                    {hayImporte(cotizacion.totales.ajusteMedioPago) && cotizacion.totales.ajusteMedioPago && (
+                      <div className="flex items-baseline justify-between gap-4">
+                        <dt className="text-texto-suave">Descuento por medio de pago</dt>
+                        <dd className="flex items-baseline gap-1">
+                          <span aria-hidden>−</span>
+                          <span className="sr-only">Menos </span>
+                          <Precio valor={cotizacion.totales.ajusteMedioPago} className="text-xl text-salvia-hondo" />
+                        </dd>
+                      </div>
+                    )}
                     <div className="flex items-baseline justify-between gap-4 border-t border-borde pt-3">
                       <dt className="font-medium text-tinta">Total</dt>
                       <dd>
@@ -386,7 +433,9 @@ export function Checkout() {
                   ? "Creando tu pedido…"
                   : cargando || !confirmado
                     ? "Actualizando tu pedido…"
-                    : "Pagar con Mercado Pago"}
+                    : esTransferencia
+                      ? "Confirmar pedido"
+                      : "Pagar con Mercado Pago"}
               </Button>
               {faltaZona && (
                 <p className="text-sm text-texto-suave">Elegí tu zona de envío para ver el total.</p>
