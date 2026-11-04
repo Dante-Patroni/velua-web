@@ -17,7 +17,7 @@ import {
   ETIQUETAS_ORIGEN_EVENTO,
   obtenerMensajeError,
 } from "@/lib/mappings";
-import { accionesDelPedido } from "./Pedido.utils";
+import { accionesDelPedido, erroresSinBoton, formulariosVisibles } from "./Pedido.utils";
 import { etiquetaEstadoEvento } from "./Pedidos.utils";
 
 /**
@@ -230,7 +230,8 @@ export function AccionesPedido({ pedido }: { pedido: PedidoAdminDetalle }) {
   const acciones = accionesDelPedido(pedido);
   const esAdmin = usuario.rol === "admin";
   const mostrarCancelacion = esAdmin && acciones.cancelacion !== null;
-  const mostrarTransferencia = esAdmin && (acciones.registrarAviso || acciones.confirmarPago);
+  const visibles = formulariosVisibles(acciones, esAdmin);
+  const mostrarTransferencia = visibles.aviso || visibles.confirmacion;
   // Mientras viaja cualquier petición, ningún botón se puede apretar: ni el
   // mismo dos veces ni otro que contradiga al primero.
   const enviando = [avance, cancelacion, aviso, confirmacion].some((f) => f.state !== "idle");
@@ -239,13 +240,35 @@ export function AccionesPedido({ pedido }: { pedido: PedidoAdminDetalle }) {
   const errorCancelacion = cancelacion.data ?? undefined;
   const errorAviso = aviso.data ?? undefined;
   const errorConfirmacion = confirmacion.data ?? undefined;
+  const errores = erroresSinBoton(
+    {
+      avance: errorAvance,
+      cancelacion: errorCancelacion,
+      aviso: errorAviso,
+      confirmacion: errorConfirmacion,
+    },
+    visibles,
+  );
   const errorSeguimiento = errorAvance?.details?.seguimiento;
   const errorMotivo = errorCancelacion?.details?.motivo;
 
-  if (acciones.avance === null && !mostrarCancelacion && !mostrarTransferencia) return null;
+  if (
+    acciones.avance === null &&
+    !mostrarCancelacion &&
+    !mostrarTransferencia &&
+    errores.length === 0
+  ) {
+    return null;
+  }
 
   return (
     <Bloque titulo="Acciones">
+      {errores.map((error) => (
+        <p key={error.intencion} role="alert" className="mb-3 text-sm text-error">
+          {obtenerMensajeError(error.codigo, "panel")}
+        </p>
+      ))}
+
       {acciones.avance !== null && (
         <avance.Form method="post" className="flex flex-col gap-3">
           <input type="hidden" name="intencion" value={acciones.avance} />
@@ -283,7 +306,7 @@ export function AccionesPedido({ pedido }: { pedido: PedidoAdminDetalle }) {
         <div className="flex flex-col gap-4">
           <h3 className="text-sm font-medium text-tinta">Pago por transferencia</h3>
 
-          {acciones.registrarAviso && (
+          {visibles.aviso && (
             <aviso.Form method="post" className="flex flex-col gap-2">
               <input type="hidden" name="intencion" value="registrarAviso" />
               <p id="explicacion-aviso" className="text-sm text-texto-suave">
@@ -308,7 +331,7 @@ export function AccionesPedido({ pedido }: { pedido: PedidoAdminDetalle }) {
             </aviso.Form>
           )}
 
-          {acciones.confirmarPago && (
+          {visibles.confirmacion && (
             // Como cancelar: aprobar un pago pide un paso más y revisar el banco.
             <details>
               <summary className="cursor-pointer text-sm text-dorado-texto">
@@ -354,7 +377,7 @@ export function AccionesPedido({ pedido }: { pedido: PedidoAdminDetalle }) {
         </div>
       )}
 
-      {mostrarCancelacion && acciones.cancelacion === "disponible" && (
+      {visibles.cancelacion && (
         // <details> abre y cierra sin estado de React: cancelar pide un paso más.
         <details className="mt-4 border-t border-borde pt-4">
           <summary className="cursor-pointer text-sm text-dorado-texto">Cancelar pedido</summary>
