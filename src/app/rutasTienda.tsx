@@ -21,7 +21,7 @@ import { Checkout } from "@/pages/Tienda/Checkout";
 import { cargarCheckout, enviarPedido } from "@/pages/Tienda/Checkout.action";
 import { LaMarca } from "@/pages/Tienda/LaMarca";
 import { Pedido } from "@/pages/Tienda/Pedido";
-import { cargarPedido, pagarPedido } from "@/pages/Tienda/Pedido.action";
+import { cargarPedido, gestionarPedido } from "@/pages/Tienda/Pedido.action";
 import { Portada } from "@/pages/Tienda/Portada";
 import { cargarPortada } from "@/pages/Tienda/Portada.action";
 import { Producto } from "@/pages/Tienda/Producto";
@@ -52,7 +52,7 @@ export const rutasTienda: RouteObject[] = [
           { path: "buscar", Component: Buscar },
           { path: "carrito", Component: Carrito },
           { path: "checkout", Component: Checkout, loader: cargarCheckout, action: enviarPedido },
-          { path: "pedido/:numero", Component: Pedido, loader: cargarPedido, action: pagarPedido },
+          { path: "pedido/:numero", Component: Pedido, loader: cargarPedido, action: gestionarPedido },
           { path: "la-marca", Component: LaMarca },
           { path: "arrepentimiento", Component: Arrepentimiento },
           { path: "terminos", Component: Terminos },

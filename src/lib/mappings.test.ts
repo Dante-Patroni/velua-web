@@ -43,6 +43,18 @@ describe("obtenerMensajeError", () => {
     );
   });
 
+  it("el límite del botón 'Ya transferí' tiene su mensaje propio, distinto del genérico", () => {
+    const mensaje = obtenerMensajeError("LIMITE_SUPERADO", "aviso");
+
+    expect(mensaje).toBe(MENSAJES_ERROR.aviso.LIMITE_SUPERADO);
+    expect(mensaje).not.toBe(MENSAJES_ERROR.general.LIMITE_SUPERADO);
+    expect(mensaje).toMatch(/WhatsApp/);
+  });
+
+  it("en el aviso, un código sin mensaje propio cae en el general", () => {
+    expect(obtenerMensajeError("ERROR_INTERNO", "aviso")).toBe(MENSAJES_ERROR.general.ERROR_INTERNO);
+  });
+
   it("dice cosas distintas del stock según la pantalla", () => {
     expect(obtenerMensajeError("STOCK_INSUFICIENTE", "ficha")).toBe(
       MENSAJES_ERROR.ficha.STOCK_INSUFICIENTE,

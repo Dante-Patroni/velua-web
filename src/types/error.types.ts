@@ -61,4 +61,4 @@ export type CodigoErrorCliente = "ERROR_DE_RED" | "ERROR_DESCONOCIDO";
 export type CodigoError = CodigoErrorApi | CodigoErrorCliente;
 
 /** Pantalla o flujo donde se muestra el error. Define el tono del mensaje. */
-export type ContextoError = "general" | "tienda" | "login" | "panel" | "ficha" | "checkout" | "cuenta";
+export type ContextoError = "general" | "tienda" | "login" | "panel" | "ficha" | "checkout" | "cuenta" | "aviso";

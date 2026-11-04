@@ -176,6 +176,27 @@ export const TEXTOS_ESTADO_PAGO: Record<EstadoPago, { titulo: string; detalle: s
 };
 
 /**
+ * Qué se le dice a la clienta de un pedido por transferencia con el pago
+ * pendiente. Textos provisorios hasta que la dueña defina los finales (t12).
+ * `informado` nunca habla de pago confirmado: avisar no es que la dueña haya
+ * verificado el dinero.
+ */
+export const TEXTOS_TRANSFERENCIA = {
+  pendiente: {
+    titulo: "Falta tu transferencia",
+    detalle: "Transferí con los datos de abajo. Después tocá “Ya transferí” para que lo sepamos.",
+  },
+  informado: {
+    titulo: "Avisaste que transferiste",
+    detalle: "Vamos a revisar el banco y te confirmamos. Mientras tanto, guardamos tus productos.",
+  },
+  sinDatos: {
+    titulo: "Estamos esperando tu transferencia",
+    detalle: "Ahora no podemos mostrarte los datos para transferir. Escribinos por WhatsApp con tu número de pedido.",
+  },
+} as const;
+
+/**
  * Lo que se le dice a la clienta cuando el pedido sigue pendiente pero la
  * reserva ya venció: los productos dejaron de estar apartados y no se puede
  * pagar. El mismo texto que el código PEDIDO_VENCIDO de la API.
@@ -368,6 +389,16 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
       "Esa categoría tiene productos, así que no puede agrupar colecciones. Mové sus productos a otra antes.",
     PRODUCTO_CON_VENTAS:
       "Este producto ya se vendió, así que no se puede borrar. Despublicalo para que no aparezca en la tienda.",
+  },
+
+  // "Ya transferí": el aviso de una transferencia desde la página del pedido.
+  aviso: {
+    LIMITE_SUPERADO:
+      "Recibimos muchos avisos desde tu conexión. Esperá unos minutos o escribinos por WhatsApp con tu número de pedido.",
+    PEDIDO_VENCIDO:
+      "Pasó el tiempo en que guardamos tus productos antes de que avisaras. Escribinos por WhatsApp con tu número de pedido.",
+    PEDIDO_YA_PAGADO: "Ya confirmamos tu pago: no hace falta que avises.",
+    PEDIDO_NO_PAGABLE: "Este pedido no admite el aviso de transferencia. Si tenés dudas, escribinos por WhatsApp.",
   },
 
   cuenta: {

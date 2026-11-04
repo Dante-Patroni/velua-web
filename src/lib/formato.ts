@@ -76,3 +76,12 @@ export function hayImporte(valor: string | null | undefined): boolean {
 
   return Number.isFinite(numero) && numero > 0;
 }
+
+/**
+ * @description Convierte un importe decimal de la API ("23500.00") al formato
+ * que se pega en una app de banco argentina ("23500,00"). Solo cambia el
+ * separador: no hace cuentas.
+ * @param monto Importe como cadena decimal.
+ * @returns El importe con coma decimal.
+ */
+export const montoParaCopiar = (monto: string): string => monto.replace(".", ",");
