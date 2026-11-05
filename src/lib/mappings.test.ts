@@ -55,6 +55,19 @@ describe("obtenerMensajeError", () => {
     );
   });
 
+  it.each([
+    ["PEDIDO_NO_PAGABLE", "Este pedido no se puede pagar desde acá. Si tenés dudas, escribinos por WhatsApp."],
+    ["PEDIDO_YA_PAGADO", "Tu pago ya está acreditado."],
+  ])("%s le habla a la dueña en el panel y no cambia lo que lee la clienta", (codigo, deLaClienta) => {
+    expect(obtenerMensajeError(codigo, "panel")).toBe(
+      MENSAJES_ERROR.panel[codigo as keyof typeof MENSAJES_ERROR.panel],
+    );
+    expect(obtenerMensajeError(codigo, "panel")).not.toBe(deLaClienta);
+    // La tienda sigue diciendo exactamente lo mismo que antes.
+    expect(obtenerMensajeError(codigo)).toBe(deLaClienta);
+    expect(obtenerMensajeError(codigo, "checkout")).toBe(deLaClienta);
+  });
+
   it("cae al contexto general si el contexto no define el código", () => {
     expect(obtenerMensajeError("SIN_PERMISO", "login")).toBe(MENSAJES_ERROR.general.SIN_PERMISO);
   });

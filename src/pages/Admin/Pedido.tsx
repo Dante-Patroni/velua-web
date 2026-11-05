@@ -17,7 +17,7 @@ import {
   ETIQUETAS_ORIGEN_EVENTO,
   obtenerMensajeError,
 } from "@/lib/mappings";
-import { accionesDelPedido } from "./Pedido.utils";
+import { accionesDelPedido, erroresSinBoton, formulariosVisibles } from "./Pedido.utils";
 import { etiquetaEstadoEvento } from "./Pedidos.utils";
 
 /**
@@ -28,6 +28,12 @@ import { etiquetaEstadoEvento } from "./Pedidos.utils";
  */
 const oGuion = (valor: string | null | undefined): string =>
   valor && valor.trim() !== "" ? valor : "—";
+
+/**
+ * Con el aviso de transferencia el pedido no vence (el job lo saltea), aunque
+ * la API conserve la fecha original: mostrarla como plazo confundiría.
+ */
+const TEXTO_NO_VENCE = "No vence: la clienta avisó que transfirió";
 
 /**
  * @description Bloque con título, para separar las partes del detalle.
@@ -142,7 +148,10 @@ export function DetallePedido({ pedido }: { pedido: PedidoAdminDetalle }) {
           <Dato etiqueta="Estado" valor={ETIQUETAS_ESTADO_PAGO[pedido.estadoPago]} />
           <Dato etiqueta="Medio" valor={ETIQUETAS_MEDIO_PAGO[pedido.medioPago]} />
           {pedido.estadoPago === "pendiente" && pedido.expiraEn && (
-            <Dato etiqueta="Reservado hasta" valor={formatearFechaHora(pedido.expiraEn)} />
+            <Dato
+              etiqueta="Reservado hasta"
+              valor={pago.comprobanteInformadoEn ? TEXTO_NO_VENCE : formatearFechaHora(pedido.expiraEn)}
+            />
           )}
           <Dato etiqueta="Id del pago" valor={oGuion(pago.pagoId)} />
           <Dato etiqueta="Método" valor={oGuion(pago.metodo)} />
@@ -196,11 +205,17 @@ const TEXTO_AVANCE: Record<IntencionPreparacion, string> = {
 const AVISO_MERCADO_PAGO =
   "Tiene un link de Mercado Pago y puede haber un pago en proceso. Si no se paga, el sistema lo cancela al vencer, después de consultar a Mercado Pago.";
 
+/** Para que la dueña no confunda registrar el aviso con confirmar el pago. */
+const EXPLICACION_AVISO =
+  "Usalo si la clienta avisó por WhatsApp que transfirió. El pedido deja de vencer. No confirma el pago.";
+
 /**
- * @description Botones para avanzar o cancelar el pedido. Muestra solo lo que
- * la API aceptaría, pero la que decide es la API: esconder un botón es
- * comodidad, no un permiso. Cancelar es solo para admin (PEDIDOS_CANCELAR).
- * Cada formulario usa su propio fetcher, así el error aparece junto a su botón.
+ * @description Botones para avanzar o cancelar el pedido, y para registrar el
+ * aviso y confirmar el pago de una transferencia. Muestra solo lo que la API
+ * aceptaría, pero la que decide es la API: esconder un botón es comodidad, no
+ * un permiso. Cancelar y lo de la transferencia son solo para admin
+ * (PEDIDOS_CANCELAR y PAGOS_CONFIRMAR). Cada formulario usa su propio fetcher,
+ * así el error aparece junto a su botón.
  * @param props Pedido a gestionar.
  * @param props.pedido Detalle de la API.
  * @returns El bloque de acciones, o null si no hay ninguna.
@@ -209,21 +224,51 @@ export function AccionesPedido({ pedido }: { pedido: PedidoAdminDetalle }) {
   const { usuario } = useAuth();
   const avance = useFetcher<ErrorAccionPedido | null>();
   const cancelacion = useFetcher<ErrorAccionPedido | null>();
+  const aviso = useFetcher<ErrorAccionPedido | null>();
+  const confirmacion = useFetcher<ErrorAccionPedido | null>();
 
   const acciones = accionesDelPedido(pedido);
-  const mostrarCancelacion = usuario.rol === "admin" && acciones.cancelacion !== null;
-  // Mientras viaja un pedido, ningún botón se puede volver a apretar.
-  const enviando = avance.state !== "idle" || cancelacion.state !== "idle";
+  const esAdmin = usuario.rol === "admin";
+  const mostrarCancelacion = esAdmin && acciones.cancelacion !== null;
+  const visibles = formulariosVisibles(acciones, esAdmin);
+  const mostrarTransferencia = visibles.aviso || visibles.confirmacion;
+  // Mientras viaja cualquier petición, ningún botón se puede apretar: ni el
+  // mismo dos veces ni otro que contradiga al primero.
+  const enviando = [avance, cancelacion, aviso, confirmacion].some((f) => f.state !== "idle");
 
   const errorAvance = avance.data ?? undefined;
   const errorCancelacion = cancelacion.data ?? undefined;
+  const errorAviso = aviso.data ?? undefined;
+  const errorConfirmacion = confirmacion.data ?? undefined;
+  const errores = erroresSinBoton(
+    {
+      avance: errorAvance,
+      cancelacion: errorCancelacion,
+      aviso: errorAviso,
+      confirmacion: errorConfirmacion,
+    },
+    visibles,
+  );
   const errorSeguimiento = errorAvance?.details?.seguimiento;
   const errorMotivo = errorCancelacion?.details?.motivo;
 
-  if (acciones.avance === null && !mostrarCancelacion) return null;
+  if (
+    acciones.avance === null &&
+    !mostrarCancelacion &&
+    !mostrarTransferencia &&
+    errores.length === 0
+  ) {
+    return null;
+  }
 
   return (
     <Bloque titulo="Acciones">
+      {errores.map((error) => (
+        <p key={error.intencion} role="alert" className="mb-3 text-sm text-error">
+          {obtenerMensajeError(error.codigo, "panel")}
+        </p>
+      ))}
+
       {acciones.avance !== null && (
         <avance.Form method="post" className="flex flex-col gap-3">
           <input type="hidden" name="intencion" value={acciones.avance} />
@@ -257,6 +302,70 @@ export function AccionesPedido({ pedido }: { pedido: PedidoAdminDetalle }) {
         </avance.Form>
       )}
 
+      {mostrarTransferencia && (
+        <div className="flex flex-col gap-4">
+          <h3 className="text-sm font-medium text-tinta">Pago por transferencia</h3>
+
+          {visibles.aviso && (
+            <aviso.Form method="post" className="flex flex-col gap-2">
+              <input type="hidden" name="intencion" value="registrarAviso" />
+              <p id="explicacion-aviso" className="text-sm text-texto-suave">
+                {EXPLICACION_AVISO}
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="submit"
+                  variante="secundario"
+                  disabled={enviando}
+                  aria-describedby="explicacion-aviso"
+                  className="w-auto"
+                >
+                  {aviso.state === "idle" ? "Registrar aviso" : "Guardando…"}
+                </Button>
+                {errorAviso && (
+                  <span role="alert" className="text-sm text-error">
+                    {obtenerMensajeError(errorAviso.codigo, "panel")}
+                  </span>
+                )}
+              </div>
+            </aviso.Form>
+          )}
+
+          {visibles.confirmacion && (
+            // Como cancelar: aprobar un pago pide un paso más y revisar el banco.
+            <details>
+              <summary className="cursor-pointer text-sm text-dorado-texto">
+                Confirmar pago recibido
+              </summary>
+              <confirmacion.Form method="post" className="mt-3 flex flex-col gap-3">
+                <input type="hidden" name="intencion" value="confirmarPago" />
+                <dl>
+                  {/* El total tal como lo manda la API, sin recalcular. */}
+                  <Dato etiqueta="Total a buscar en el banco" valor={formatearPrecio(pedido.totales.total)} />
+                </dl>
+                <p className="text-sm text-texto-suave">
+                  El pago queda aprobado y se le avisa a la clienta por mail. No se puede deshacer.
+                </p>
+                <label className="flex items-start gap-2 text-sm text-tinta">
+                  <input type="checkbox" name="verificadoEnBanco" value="true" required className="mt-1" />
+                  <span>Revisé el banco y el dinero de este pedido entró.</span>
+                </label>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button type="submit" disabled={enviando} className="w-auto">
+                    {confirmacion.state === "idle" ? "Sí, confirmar el pago" : "Confirmando…"}
+                  </Button>
+                  {errorConfirmacion && (
+                    <span role="alert" className="text-sm text-error">
+                      {obtenerMensajeError(errorConfirmacion.codigo, "panel")}
+                    </span>
+                  )}
+                </div>
+              </confirmacion.Form>
+            </details>
+          )}
+        </div>
+      )}
+
       {mostrarCancelacion && acciones.cancelacion === "mercado-pago" && (
         <div className="mt-4 border-t border-borde pt-4">
           <Button type="button" variante="secundario" disabled aria-describedby="aviso-mercado-pago" className="w-auto">
@@ -268,7 +377,7 @@ export function AccionesPedido({ pedido }: { pedido: PedidoAdminDetalle }) {
         </div>
       )}
 
-      {mostrarCancelacion && acciones.cancelacion === "disponible" && (
+      {visibles.cancelacion && (
         // <details> abre y cierra sin estado de React: cancelar pide un paso más.
         <details className="mt-4 border-t border-borde pt-4">
           <summary className="cursor-pointer text-sm text-dorado-texto">Cancelar pedido</summary>

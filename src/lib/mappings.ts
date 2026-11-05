@@ -364,6 +364,10 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
       "Esa categoría tiene productos, así que no puede agrupar colecciones. Mové sus productos a otra antes.",
     PRODUCTO_CON_VENTAS:
       "Este producto ya se vendió, así que no se puede borrar. Despublicalo para que no aparezca en la tienda.",
+    // La tienda le habla a la clienta con estos códigos; en el panel, a la dueña.
+    PEDIDO_NO_PAGABLE:
+      "Este pedido ya no admite cambios en el pago: no es por transferencia, o está cancelado. Recargá la página para ver su estado.",
+    PEDIDO_YA_PAGADO: "El pago de este pedido ya está confirmado.",
   },
 
   cuenta: {
