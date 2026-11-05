@@ -1715,6 +1715,120 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/pedidos/{id}/aviso": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registrar que la clienta avisó una transferencia
+         * @description Solo el admin (PAGOS_CONFIRMAR). Para cuando la clienta manda el comprobante por WhatsApp sin apretar "Ya transferí". Frena el vencimiento mientras la dueña revisa el banco; no aprueba el pago. A diferencia del aviso de la clienta, vale con la reserva vencida, mientras el pedido no esté cancelado. Sin cuerpo. Repetirlo no cambia nada.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Id del recurso. */
+                    id: components["parameters"]["IdRuta"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Aviso registrado, o sin cambios si ya estaba avisado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AvisoRegistrado"];
+                    };
+                };
+                400: components["responses"]["DatosInvalidos"];
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                404: components["responses"]["NoEncontrado"];
+                /** @description PEDIDO_NO_PAGABLE (no es por transferencia, o está cancelado o devuelto) o PEDIDO_YA_PAGADO. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/pedidos/{id}/pago-confirmado": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar que el dinero de una transferencia entró
+         * @description Solo el admin (PAGOS_CONFIRMAR). Es la única forma de aprobar una transferencia: el aviso de la clienta no alcanza. No hace falta que haya aviso. Solo pedidos por transferencia con el pago pendiente o rechazado y sin cancelar, aunque la reserva haya vencido. Tiene los mismos efectos que una aprobación de Mercado Pago: el pedido deja de vencer, queda en el historial con el usuario y se encola el mail de pago confirmado. Confirmar dos veces no es un error.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Id del recurso. */
+                    id: components["parameters"]["IdRuta"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ConfirmacionPagoEntrada"];
+                };
+            };
+            responses: {
+                /** @description Pago confirmado, o sin cambios si ya estaba confirmado */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ConfirmacionPagoResultado"];
+                    };
+                };
+                400: components["responses"]["DatosInvalidos"];
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                404: components["responses"]["NoEncontrado"];
+                /** @description PEDIDO_NO_PAGABLE (no es por transferencia, o está cancelado o devuelto). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/productos/{id}/imagenes": {
         parameters: {
             query?: never;
@@ -3239,6 +3353,35 @@ export interface components {
              * @default false
              */
             confirmaSinPago: boolean;
+        };
+        AvisoRegistrado: {
+            /** @description False si ya estaba avisado. */
+            registrado: boolean;
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /**
+             * @description Solo cuando registrado es false.
+             * @enum {string}
+             */
+            motivo?: "YA_INFORMADO";
+        };
+        ConfirmacionPagoEntrada: {
+            /**
+             * @description La dueña afirma que vio el dinero en el banco. Solo vale el booleano true.
+             * @enum {boolean}
+             */
+            verificadoEnBanco: true;
+        };
+        ConfirmacionPagoResultado: {
+            /** @description False si ya estaba confirmado. */
+            confirmado: boolean;
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /**
+             * @description Solo cuando confirmado es false.
+             * @enum {string}
+             */
+            motivo?: "YA_CONFIRMADO";
         };
         CancelacionResultado: {
             /** @description False si ya estaba cancelado. */
