@@ -291,7 +291,7 @@ export interface paths {
         put?: never;
         /**
          * Avisar que se hizo la transferencia ("Ya transferí")
-         * @description Para un pedido por transferencia con el pago pendiente o rechazado y la reserva vigente. Frena el vencimiento hasta que la dueña confirme el pago o cancele el pedido; no aprueba el pago. Sin cuerpo: el comprobante se manda por WhatsApp. Publico: el numero funciona como llave. Comparte el limite de 10 por hora por IP con la creacion de pedidos y con el pago.
+         * @description Para un pedido por transferencia con el pago pendiente o rechazado y la reserva vigente. Frena el vencimiento hasta que la dueña confirme el pago o cancele el pedido; no aprueba el pago. Sin cuerpo: el comprobante se manda por WhatsApp. Publico: el numero funciona como llave. Tiene su propio limite, 20 por hora por IP, separado del de crear y pagar.
          *     Repetir el aviso responde lo mismo y no cambia nada.
          */
         post: {
@@ -324,7 +324,7 @@ export interface paths {
                         "application/json": components["schemas"]["Error"];
                     };
                 };
-                /** @description Demasiados pedidos desde la misma direccion */
+                /** @description Demasiados avisos desde la misma direccion */
                 429: {
                     headers: {
                         [name: string]: unknown;
@@ -3052,6 +3052,20 @@ export interface components {
             avisos: components["schemas"]["AvisoCotizacion"][];
             totales: components["schemas"]["TotalesCotizacion"];
             envio: components["schemas"]["DetalleEnvio"];
+            /** @description Qué medios se pueden usar hoy y el total con cada uno, calculado acá (con su descuento y su envío). El checkout ofrece solo los que vienen con disponible en true y muestra estos totales sin calcular nada. */
+            mediosPago: {
+                mercadopago: components["schemas"]["MedioPagoCotizado"];
+                transferencia: components["schemas"]["MedioPagoCotizado"];
+            };
+        };
+        MedioPagoCotizado: {
+            /** @description False si el medio no está configurado en el servidor. No dice por qué: el motivo queda en el log. */
+            disponible: boolean;
+            /**
+             * @description Total con este medio, redondeado al peso. Null si no está disponible.
+             * @example 32850.00
+             */
+            total: string | null;
         };
         PedidoEntrada: {
             items: {
