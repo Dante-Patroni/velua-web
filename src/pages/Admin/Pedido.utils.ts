@@ -1,9 +1,9 @@
 import type { EstadoPedido, PedidoAdminDetalle } from "@/types";
 
-import type { IntencionPreparacion } from "./Pedido.action";
+import type { ErrorAccionPedido, IntencionPreparacion } from "./Pedido.action";
 
 /** Lo que hace falta del pedido para decidir qué botones mostrar. */
-export type DatosAcciones = Pick<PedidoAdminDetalle, "estadoPago" | "estadoPedido"> & {
+export type DatosAcciones = Pick<PedidoAdminDetalle, "estadoPago" | "estadoPedido" | "medioPago"> & {
   entrega: Pick<PedidoAdminDetalle["entrega"], "metodo">;
   pago: Pick<PedidoAdminDetalle["pago"], "tieneLinkMercadoPago" | "comprobanteInformadoEn">;
 };
@@ -21,6 +21,10 @@ export type AccionesPedido = {
   cancelacion: "disponible" | "mercado-pago" | null;
   /** True si la clienta avisó que transfirió: hay que confirmar que no llegó. */
   pideConfirmacionSinPago: boolean;
+  /** True si se puede registrar el aviso de una transferencia (todavía no hay). */
+  registrarAviso: boolean;
+  /** True si se puede confirmar que el dinero de una transferencia entró. */
+  confirmarPago: boolean;
 };
 
 /**
@@ -61,10 +65,63 @@ export function accionesDelPedido(pedido: DatosAcciones): AccionesPedido {
     cancelacion = pedido.pago.tieneLinkMercadoPago ? "mercado-pago" : "disponible";
   }
 
+  // Transferencia que todavía se puede pagar. La reserva vencida no importa:
+  // desde el panel se puede avisar y confirmar mientras no esté cancelado.
+  const transferenciaAbierta =
+    pedido.medioPago === "transferencia" &&
+    pedido.estadoPedido !== "cancelado" &&
+    (pedido.estadoPago === "pendiente" || pedido.estadoPago === "rechazado");
+
   return {
     avance,
     pideSeguimiento: avance === "enviar" && pedido.entrega.metodo === "envio",
     cancelacion,
     pideConfirmacionSinPago: cancelacion === "disponible" && pedido.pago.comprobanteInformadoEn !== null,
+    registrarAviso: transferenciaAbierta && pedido.pago.comprobanteInformadoEn === null,
+    confirmarPago: transferenciaAbierta,
   };
+}
+
+/** Los cuatro formularios del bloque de acciones, cada uno con su fetcher. */
+export type FormularioAccion = "avance" | "cancelacion" | "aviso" | "confirmacion";
+
+/** Orden fijo en que se muestran los errores sin botón. */
+const FORMULARIOS: readonly FormularioAccion[] = ["avance", "cancelacion", "aviso", "confirmacion"];
+
+/**
+ * @description Qué formularios se dibujan, según las acciones y el rol.
+ * Cancelar y lo de la transferencia son solo para admin.
+ * @param acciones Resultado de accionesDelPedido.
+ * @param esAdmin True si la sesión es de un admin.
+ * @returns Si cada formulario está en la pantalla.
+ */
+export function formulariosVisibles(
+  acciones: AccionesPedido,
+  esAdmin: boolean,
+): Record<FormularioAccion, boolean> {
+  return {
+    avance: acciones.avance !== null,
+    cancelacion: esAdmin && acciones.cancelacion === "disponible",
+    aviso: esAdmin && acciones.registrarAviso,
+    confirmacion: esAdmin && acciones.confirmarPago,
+  };
+}
+
+/**
+ * @description Errores que ya no tienen dónde mostrarse. Después de una action,
+ * react-router vuelve a pedir el pedido: si cambió (otra pestaña lo pagó o lo
+ * canceló), el formulario que falló desaparece, y su error con él. Estos se
+ * muestran arriba del bloque, para que nadie vea un cambio sin explicación.
+ * @param errores El último error de cada formulario, si hubo.
+ * @param visibles Qué formularios siguen en la pantalla.
+ * @returns Los errores de los formularios que ya no se ven, en orden fijo.
+ */
+export function erroresSinBoton(
+  errores: Partial<Record<FormularioAccion, ErrorAccionPedido>>,
+  visibles: Record<FormularioAccion, boolean>,
+): ErrorAccionPedido[] {
+  return FORMULARIOS.flatMap((formulario) => {
+    const error = errores[formulario];
+    return error && !visibles[formulario] ? [error] : [];
+  });
 }

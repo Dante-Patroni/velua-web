@@ -3,7 +3,9 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router-dom";
 import {
   cambiarPreparacion,
   cancelarPedido,
+  confirmarPago,
   obtenerPedidoAdmin,
+  registrarAviso,
 } from "@/lib/api/pedidosAdmin.api";
 import { ErrorApi } from "@/lib/apiFetch";
 import { leerIdRuta } from "@/lib/idRuta";
@@ -60,10 +62,11 @@ export async function cargarPedido({ params, request }: LoaderFunctionArgs): Pro
 }
 
 /**
- * @description Action del detalle: preparar, enviar, entregar o cancelar. Cada
- * botón manda un campo oculto `intencion`. Arma el cuerpo campo por campo, nunca
- * con el formulario entero. La API decide si el cambio vale; esconder botones
- * en la pantalla es solo comodidad.
+ * @description Action del detalle: preparar, enviar, entregar, cancelar,
+ * registrar el aviso de una transferencia o confirmar su pago. Cada botón manda
+ * un campo oculto `intencion`. Arma el cuerpo campo por campo, nunca con el
+ * formulario entero. La API decide si el cambio vale; esconder botones en la
+ * pantalla es solo comodidad. El usuario sale de la sesión, en la API.
  * @param args Argumentos de la action de react-router.
  * @returns null si salió bien (react-router vuelve a pedir el detalle), o el error.
  */
@@ -93,6 +96,21 @@ export async function accionPedido({ params, request }: ActionFunctionArgs) {
         // Booleano de verdad: la API no acepta el texto "true".
         confirmaSinPago: datos.get("confirmaSinPago") === "true",
       });
+      return null;
+    }
+
+    if (intencion === "registrarAviso") {
+      await registrarAviso(id);
+      return null;
+    }
+
+    if (intencion === "confirmarPago") {
+      // Sin la casilla marcada no sale ninguna petición: el contrato solo
+      // acepta verificadoEnBanco en true, y la API lo vuelve a exigir.
+      if (datos.get("verificadoEnBanco") !== "true") {
+        return { codigo: "DATOS_INVALIDOS", intencion } satisfies ErrorAccionPedido;
+      }
+      await confirmarPago(id, { verificadoEnBanco: true });
       return null;
     }
 

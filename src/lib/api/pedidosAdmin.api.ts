@@ -1,7 +1,10 @@
 import { apiFetch } from "@/lib/apiFetch";
 import type {
+    AvisoRegistrado,
     CancelacionEntrada,
     CancelacionResultado,
+    ConfirmacionPagoEntrada,
+    ConfirmacionPagoResultado,
     EstadoPago,
     EstadoPedido,
     ListadoPedidosAdmin,
@@ -87,4 +90,34 @@ export const cancelarPedido = (id: number, entrada: CancelacionEntrada) =>
     apiFetch<CancelacionResultado>(`/admin/pedidos/${id}/cancelacion`, {
         method: "POST",
         body: JSON.stringify(entrada),
+    });
+
+/**
+ * @description Registra que la clienta avisó que transfirió (por ejemplo, por
+ * WhatsApp, sin apretar "Ya transferí"). Solo admin. Frena el vencimiento del
+ * pedido; NO aprueba el pago. Va sin cuerpo.
+ * @param id Id del pedido, ya validado como entero positivo.
+ * @returns Si se registró y el número. `registrado: false` si ya estaba avisado.
+ * @throws {ErrorApi} PEDIDO_NO_PAGABLE o PEDIDO_YA_PAGADO (409); NO_ENCONTRADO;
+ *   401 sin sesión, 403 sin PAGOS_CONFIRMAR.
+ */
+export const registrarAviso = (id: number) =>
+    apiFetch<AvisoRegistrado>(`/admin/pedidos/${id}/aviso`, { method: "POST" });
+
+/**
+ * @description Confirma que el dinero de una transferencia entró. Solo admin.
+ * Es la única forma de aprobar una transferencia: le encola a la clienta el
+ * mail de pago confirmado y no se deshace desde el panel.
+ * @param id Id del pedido, ya validado como entero positivo.
+ * @param entrada `verificadoEnBanco: true`: la dueña revisó el banco. El tipo
+ *   del contrato no admite otro valor.
+ * @returns Si se confirmó y el número. `confirmado: false` si ya estaba aprobado.
+ * @throws {ErrorApi} DATOS_INVALIDOS (400); PEDIDO_NO_PAGABLE (409);
+ *   NO_ENCONTRADO; 401 sin sesión, 403 sin PAGOS_CONFIRMAR.
+ */
+export const confirmarPago = (id: number, entrada: ConfirmacionPagoEntrada) =>
+    apiFetch<ConfirmacionPagoResultado>(`/admin/pedidos/${id}/pago-confirmado`, {
+        method: "POST",
+        // Campo por campo: aunque llegue un objeto con más datos, solo viaja este.
+        body: JSON.stringify({ verificadoEnBanco: entrada.verificadoEnBanco }),
     });

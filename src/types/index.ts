@@ -53,6 +53,9 @@ export type PreparacionEntrada = Esquemas["PreparacionEntrada"];
 export type PreparacionResultado = Esquemas["PreparacionResultado"];
 export type CancelacionEntrada = Esquemas["CancelacionEntrada"];
 export type CancelacionResultado = Esquemas["CancelacionResultado"];
+export type AvisoRegistrado = Esquemas["AvisoRegistrado"];
+export type ConfirmacionPagoEntrada = Esquemas["ConfirmacionPagoEntrada"];
+export type ConfirmacionPagoResultado = Esquemas["ConfirmacionPagoResultado"];
 
 /** Respuesta del listado público de productos. */
 export type ListadoProductos = { datos: ProductoListado[]; meta: Meta };

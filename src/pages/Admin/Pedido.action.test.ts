@@ -1,7 +1,13 @@
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router-dom";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 
-import { cambiarPreparacion, cancelarPedido, obtenerPedidoAdmin } from "@/lib/api/pedidosAdmin.api";
+import {
+  cambiarPreparacion,
+  cancelarPedido,
+  confirmarPago,
+  obtenerPedidoAdmin,
+  registrarAviso,
+} from "@/lib/api/pedidosAdmin.api";
 import { ErrorApi } from "@/lib/apiFetch";
 import type { PedidoAdminDetalle } from "@/types";
 
@@ -10,7 +16,9 @@ import { accionPedido, cargarPedido } from "./Pedido.action";
 vi.mock("@/lib/api/pedidosAdmin.api", () => ({
   cambiarPreparacion: vi.fn(),
   cancelarPedido: vi.fn(),
+  confirmarPago: vi.fn(),
   obtenerPedidoAdmin: vi.fn(),
+  registrarAviso: vi.fn(),
 }));
 
 /** Arma los argumentos del loader con el id de la ruta ya decodificado. */
@@ -156,5 +164,83 @@ describe("accionPedido", () => {
     vi.mocked(cambiarPreparacion).mockRejectedValue(falla);
 
     await expect(accionPedido(envio({ intencion: "preparar" }))).rejects.toBe(falla);
+  });
+});
+
+describe("accionPedido: transferencia", () => {
+  beforeEach(() => {
+    vi.mocked(registrarAviso).mockReset();
+    vi.mocked(confirmarPago).mockReset();
+  });
+
+  test("registrarAviso llama a la API solo con el id, aunque el formulario traiga más", async () => {
+    await expect(
+      accionPedido(envio({ intencion: "registrarAviso", usuarioId: "999999", origen: "cliente" })),
+    ).resolves.toBeNull();
+
+    expect(registrarAviso).toHaveBeenCalledWith(12);
+    expect(vi.mocked(registrarAviso).mock.calls[0]).toHaveLength(1);
+    // Avisar nunca aprueba el pago.
+    expect(confirmarPago).not.toHaveBeenCalled();
+  });
+
+  test("confirmarPago con la casilla manda verificadoEnBanco true y nada más", async () => {
+    await expect(
+      accionPedido(
+        envio({
+          intencion: "confirmarPago",
+          verificadoEnBanco: "true",
+          usuarioId: "999999",
+          estadoPago: "aprobado",
+        }),
+      ),
+    ).resolves.toBeNull();
+
+    expect(confirmarPago).toHaveBeenCalledWith(12, { verificadoEnBanco: true });
+  });
+
+  test.each([
+    ["sin la casilla", {}],
+    ["con false", { verificadoEnBanco: "false" }],
+    ["con otro texto", { verificadoEnBanco: "si" }],
+  ])("confirmarPago %s no llama a la API", async (_caso, extra) => {
+    await expect(accionPedido(envio({ intencion: "confirmarPago", ...extra }))).resolves.toEqual({
+      codigo: "DATOS_INVALIDOS",
+      intencion: "confirmarPago",
+    });
+    expect(confirmarPago).not.toHaveBeenCalled();
+  });
+
+  test.each(["registrarAviso", "confirmarPago"])(
+    "%s con un id inválido no llama a la API",
+    async (intencion) => {
+      for (const id of ["../categorias", "1abc", "0"]) {
+        await expect(
+          accionPedido(envio({ intencion, verificadoEnBanco: "true" }, id)),
+          id,
+        ).resolves.toEqual({ codigo: "NO_ENCONTRADO", intencion });
+      }
+      expect(registrarAviso).not.toHaveBeenCalled();
+      expect(confirmarPago).not.toHaveBeenCalled();
+    },
+  );
+
+  test.each([
+    ["registrarAviso", "PEDIDO_YA_PAGADO"],
+    ["confirmarPago", "PEDIDO_NO_PAGABLE"],
+  ])("%s devuelve el %s de la API junto a su botón", async (intencion, codigo) => {
+    vi.mocked(registrarAviso).mockRejectedValue(new ErrorApi(codigo, 409));
+    vi.mocked(confirmarPago).mockRejectedValue(new ErrorApi(codigo, 409));
+
+    await expect(
+      accionPedido(envio({ intencion, verificadoEnBanco: "true" })),
+    ).resolves.toEqual({ codigo, details: undefined, intencion });
+  });
+
+  test("una intención desconocida no registra el aviso ni confirma el pago", async () => {
+    await accionPedido(envio({ intencion: "aprobar", verificadoEnBanco: "true" }));
+
+    expect(registrarAviso).not.toHaveBeenCalled();
+    expect(confirmarPago).not.toHaveBeenCalled();
   });
 });
