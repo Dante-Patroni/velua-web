@@ -132,13 +132,16 @@ export function Pedido() {
           </p>
         )}
 
-        {!vencido && transferenciaAvisada(pedido) && (
+        {/* Sin número de WhatsApp no hay a dónde mandar el comprobante: no se nombra WhatsApp ni se deja un enlace roto. */}
+        {!vencido && transferenciaAvisada(pedido) && (enlaceComprobante || pedido.transferencia) && (
           <div className="mt-6 flex flex-col items-start gap-3 rounded-2xl border border-borde bg-crema-calida p-4 md:p-5">
-            <p className="text-tinta">Si todavía no lo hiciste, mandanos el comprobante por WhatsApp.</p>
             {enlaceComprobante && (
-              <a href={enlaceComprobante} target="_blank" rel="noopener noreferrer" className={claseEnlaceAccion}>
-                Mandar el comprobante por WhatsApp
-              </a>
+              <>
+                <p className="text-tinta">Si todavía no lo hiciste, mandanos el comprobante por WhatsApp.</p>
+                <a href={enlaceComprobante} target="_blank" rel="noopener noreferrer" className={claseEnlaceAccion}>
+                  Mandar el comprobante por WhatsApp
+                </a>
+              </>
             )}
             {pedido.transferencia && (
               <details className="w-full">

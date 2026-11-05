@@ -6,9 +6,13 @@ import type { PedidoPublico } from "@/types";
 
 import { Pedido } from "./Pedido";
 
+const whatsapp = vi.hoisted(() => ({ numero: "5493584000000" }));
+
 vi.mock("@/lib/mappings", async (original) => ({
   ...(await original<typeof import("@/lib/mappings")>()),
-  WHATSAPP_NUMERO: "5493584000000",
+  get WHATSAPP_NUMERO() {
+    return whatsapp.numero;
+  },
 }));
 
 const datos = {
@@ -85,6 +89,21 @@ describe("página del pedido por transferencia", () => {
     expect(html).toContain(esperado);
     expect(html).toContain('rel="noopener noreferrer"');
     expect(html).toContain('target="_blank"');
+  });
+
+  it("sin número de WhatsApp no nombra WhatsApp ni arma un enlace, pero el aviso y los datos siguen", async () => {
+    whatsapp.numero = "";
+
+    try {
+      const html = await renderizar({ comprobanteInformado: true });
+
+      expect(html).toContain("Avisaste que transferiste");
+      expect(html).toContain("Ver los datos otra vez");
+      expect(html).not.toContain("wa.me");
+      expect(html).not.toContain("comprobante por WhatsApp");
+    } finally {
+      whatsapp.numero = "5493584000000";
+    }
   });
 
   it.each(["alias", "cbu", "titular"] as const)("muestra escapado un %s con HTML", async (campo) => {
