@@ -23,7 +23,7 @@ const CODIGOS_DE_LA_API = [
   "ULTIMA_VARIANTE_ACTIVA", "LIMITE_IMAGENES", "ARCHIVO_REQUERIDO",
   "TIPO_ARCHIVO_INVALIDO", "ARCHIVO_DEMASIADO_GRANDE", "ERROR_AL_SUBIR",
   "CATEGORIA_PADRE_INVALIDA", "CATEGORIA_CON_HIJAS", "CATEGORIA_CON_PRODUCTOS", "PRODUCTO_CON_VENTAS",
-  "CARRITO_DESACTUALIZADO", "CARRITO_SIN_ITEMS_VALIDOS", "ERROR_INTERNO", "ORIGEN_NO_PERMITIDO", "PEDIDO_NO_PAGABLE", "PEDIDO_VENCIDO", "PEDIDO_YA_PAGADO", "PAGO_EN_PROCESO", "PEDIDO_EN_REVISION", "PROCESADOR_NO_CONFIGURADO", "PROCESADOR_NO_DISPONIBLE", "STOCK_INSUFICIENTE", "TOTAL_CAMBIO", "ZONA_INVALIDA",
+  "CARRITO_DESACTUALIZADO", "CARRITO_SIN_ITEMS_VALIDOS", "ERROR_INTERNO", "ORIGEN_NO_PERMITIDO", "PEDIDO_NO_PAGABLE", "PEDIDO_VENCIDO", "PEDIDO_YA_PAGADO", "PAGO_EN_PROCESO", "PEDIDO_EN_REVISION", "PROCESADOR_NO_CONFIGURADO", "PROCESADOR_NO_DISPONIBLE", "MEDIO_PAGO_NO_DISPONIBLE", "STOCK_INSUFICIENTE", "TOTAL_CAMBIO", "ZONA_INVALIDA",
 ];
 
 describe("obtenerMensajeError", () => {
@@ -41,6 +41,18 @@ describe("obtenerMensajeError", () => {
     expect(obtenerMensajeError("CONFLICTO_DE_DATOS", "panel")).not.toBe(
       MENSAJES_ERROR.general.CONFLICTO_DE_DATOS,
     );
+  });
+
+  it("el límite del botón 'Ya transferí' tiene su mensaje propio, distinto del genérico", () => {
+    const mensaje = obtenerMensajeError("LIMITE_SUPERADO", "aviso");
+
+    expect(mensaje).toBe(MENSAJES_ERROR.aviso.LIMITE_SUPERADO);
+    expect(mensaje).not.toBe(MENSAJES_ERROR.general.LIMITE_SUPERADO);
+    expect(mensaje).toMatch(/WhatsApp/);
+  });
+
+  it("en el aviso, un código sin mensaje propio cae en el general", () => {
+    expect(obtenerMensajeError("ERROR_INTERNO", "aviso")).toBe(MENSAJES_ERROR.general.ERROR_INTERNO);
   });
 
   it("dice cosas distintas del stock según la pantalla", () => {

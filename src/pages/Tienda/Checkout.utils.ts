@@ -1,11 +1,60 @@
+import type { Cotizacion, PedidoEntrada } from "@/types";
+
+/** Medio de pago de un pedido, tal como lo define el contrato. */
+export type MedioPago = PedidoEntrada["medioPago"];
+
+/** Un medio que la API ofrece hoy, con el total que informa para él. */
+export type MedioOfrecido = { medio: MedioPago; total: string };
+
+/** Orden en que se ofrecen los medios en pantalla. */
+const ORDEN_MEDIOS: readonly MedioPago[] = ["mercadopago", "transferencia"];
+
+/**
+ * @description Lista los medios de pago que la API ofrece hoy, con el total de
+ * cada uno. Solo cuentan los que vienen con `disponible: true` y un total: nada
+ * se calcula acá. Sin cotización no se ofrece nada.
+ * @param cotizacion Última cotización, o null si todavía no hay.
+ * @returns Los medios disponibles, en el orden de la pantalla.
+ */
+export const mediosOfrecidos = (cotizacion: Pick<Cotizacion, "mediosPago"> | null): MedioOfrecido[] => {
+  if (!cotizacion) return [];
+
+  return ORDEN_MEDIOS.flatMap((medio) => {
+    const { disponible, total } = cotizacion.mediosPago[medio];
+
+    return disponible && total !== null ? [{ medio, total }] : [];
+  });
+};
+
+/**
+ * @description Decide qué medio queda elegido: el que la clienta marcó si la API
+ * lo ofrece; si no, el primero que se ofrezca. Mientras no hay cotización se
+ * respeta la elección, para no pedir una cotización con otro medio de más.
+ * @param elegido Medio que la clienta marcó (o el de por defecto).
+ * @param cotizacion Última cotización, o null si todavía no hay.
+ * @returns El medio a usar, o null si la API no ofrece ninguno.
+ */
+export const resolverMedioPago = (
+  elegido: MedioPago,
+  cotizacion: Pick<Cotizacion, "mediosPago"> | null,
+): MedioPago | null => {
+  if (!cotizacion) return elegido;
+
+  const ofrecidos = mediosOfrecidos(cotizacion);
+
+  return ofrecidos.some(({ medio }) => medio === elegido) ? elegido : (ofrecidos[0]?.medio ?? null);
+};
+
 /**
  * Códigos con los que la API avisa que el estado cambió desde que la clienta
- * miró el carrito: hay que volver a cotizar y mostrarle qué cambió.
+ * miró el carrito: hay que volver a cotizar y mostrarle qué cambió. Incluye
+ * MEDIO_PAGO_NO_DISPONIBLE: la cotización dirá qué medios quedan.
  */
 const CODIGOS_PARA_COTIZAR_DE_NUEVO: readonly string[] = [
   "CARRITO_DESACTUALIZADO",
   "TOTAL_CAMBIO",
   "STOCK_INSUFICIENTE",
+  "MEDIO_PAGO_NO_DISPONIBLE",
 ];
 
 /**

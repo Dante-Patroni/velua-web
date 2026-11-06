@@ -1,25 +1,29 @@
 import { useEffect, useState } from "react";
 import { Form, Link, useActionData, useLoaderData, useNavigation, useRevalidator } from "react-router-dom";
 
+import { DatosTransferencia } from "@/components/tienda/DatosTransferencia";
 import { NumeroPedido } from "@/components/tienda/NumeroPedido";
+import { YaTransferi } from "@/components/tienda/YaTransferi";
 import { Button } from "@/components/ui/Button";
 import { Precio } from "@/components/ui/Precio";
 import { formatearFechaHora, hayImporte } from "@/lib/formato";
 import {
   ETIQUETAS_ESTADO_PEDIDO,
-  TEXTOS_ESTADO_PAGO,
-  TEXTO_PEDIDO_VENCIDO,
   WHATSAPP_NUMERO,
   obtenerMensajeError,
 } from "@/lib/mappings";
 import { enlaceWhatsApp } from "@/lib/utils";
-import type { ResultadoPago, cargarPedido } from "./Pedido.action";
+import type { ResultadoAviso, ResultadoPago, cargarPedido } from "./Pedido.action";
 import {
   INTERVALO_CONSULTA_PEDIDO_MS,
   debeConsultarPedido,
   falloPorVencimiento,
   intentosAgotados,
+  mensajeTransferencia,
+  puedeAvisarTransferencia,
   puedePagarPedido,
+  textosDelPedido,
+  transferenciaAvisada,
 } from "./Pedido.utils";
 
 const claseEnlaceAccion =
@@ -38,7 +42,9 @@ const claseEnlaceAccion =
 export function Pedido() {
   const { pedido, error } = useLoaderData<typeof cargarPedido>();
   // react-router serializa el tipo y pierde el discriminante `ok`; se vuelve a afirmar el tipo real.
-  const resultadoPago = useActionData() as ResultadoPago | undefined;
+  const resultado = useActionData() as ResultadoPago | ResultadoAviso | undefined;
+  const resultadoPago = resultado && !("intencion" in resultado) ? resultado : undefined;
+  const falloAviso = resultado && "intencion" in resultado && resultado.ok === false ? resultado : null;
   const navegacion = useNavigation();
   const { revalidate } = useRevalidator();
   const [intentos, setIntentos] = useState(0);
@@ -85,9 +91,10 @@ export function Pedido() {
   }
 
   // La reserva vencida la informa la API al intentar pagar: no se adivina con el reloj del navegador.
-  const vencido = falloPorVencimiento(falloPago?.codigo);
-  const textos = vencido ? TEXTO_PEDIDO_VENCIDO : TEXTOS_ESTADO_PAGO[pedido.estadoPago];
+  const vencido = falloPorVencimiento(falloPago?.codigo) || falloPorVencimiento(falloAviso?.codigo);
+  const textos = textosDelPedido(pedido, vencido);
   const puedePagar = puedePagarPedido(pedido, falloPago?.codigo);
+  const enlaceComprobante = enlaceWhatsApp(WHATSAPP_NUMERO, mensajeTransferencia(pedido.numero));
   const enlaceAyuda = enlaceWhatsApp(WHATSAPP_NUMERO, `Hola, tengo una consulta por mi pedido ${pedido.numero}.`);
 
   return (
@@ -102,7 +109,7 @@ export function Pedido() {
 
         <NumeroPedido numero={pedido.numero} />
 
-        {pedido.estadoPago === "pendiente" && pedido.expiraEn && !vencido && (
+        {pedido.medioPago === "mercadopago" && pedido.estadoPago === "pendiente" && pedido.expiraEn && !vencido && (
           <p className="mt-2 text-sm text-texto-suave">
             Guardamos tus productos hasta el {formatearFechaHora(pedido.expiraEn)}.
           </p>
@@ -123,6 +130,40 @@ export function Pedido() {
           <p role="alert" className="mt-4 rounded-2xl border border-borde bg-crema-calida p-4 text-error">
             {obtenerMensajeError(falloPago.codigo, "checkout")}
           </p>
+        )}
+
+        {/* Sin número de WhatsApp no hay a dónde mandar el comprobante: no se nombra WhatsApp ni se deja un enlace roto. */}
+        {!vencido && transferenciaAvisada(pedido) && (enlaceComprobante || pedido.transferencia) && (
+          <div className="mt-6 flex flex-col items-start gap-3 rounded-2xl border border-borde bg-crema-calida p-4 md:p-5">
+            {enlaceComprobante && (
+              <>
+                <p className="text-tinta">Si todavía no lo hiciste, mandanos el comprobante por WhatsApp.</p>
+                <a href={enlaceComprobante} target="_blank" rel="noopener noreferrer" className={claseEnlaceAccion}>
+                  Mandar el comprobante por WhatsApp
+                </a>
+              </>
+            )}
+            {pedido.transferencia && (
+              <details className="w-full">
+                <summary className="cursor-pointer text-sm font-bold text-dorado-texto">Ver los datos otra vez</summary>
+                <div className="mt-3">
+                  <DatosTransferencia numero={pedido.numero} datos={pedido.transferencia} />
+                </div>
+              </details>
+            )}
+          </div>
+        )}
+
+        {!vencido && puedeAvisarTransferencia(pedido) && pedido.transferencia && (
+          <div className="mt-6">
+            <DatosTransferencia numero={pedido.numero} datos={pedido.transferencia} expiraEn={pedido.expiraEn} />
+            {falloAviso && (
+              <p role="alert" className="mt-4 rounded-2xl border border-borde bg-crema-calida p-4 text-error">
+                {obtenerMensajeError(falloAviso.codigo, "aviso")}
+              </p>
+            )}
+            <YaTransferi estado={navegacion.state} />
+          </div>
         )}
 
         {puedePagar && (

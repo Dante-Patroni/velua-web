@@ -176,6 +176,27 @@ export const TEXTOS_ESTADO_PAGO: Record<EstadoPago, { titulo: string; detalle: s
 };
 
 /**
+ * Qué se le dice a la clienta de un pedido por transferencia con el pago
+ * pendiente. Textos provisorios hasta que la dueña defina los finales (t12).
+ * `informado` nunca habla de pago confirmado: avisar no es que la dueña haya
+ * verificado el dinero.
+ */
+export const TEXTOS_TRANSFERENCIA = {
+  pendiente: {
+    titulo: "Falta tu transferencia",
+    detalle: "Transferí con los datos de abajo. Después tocá “Ya transferí” para que lo sepamos.",
+  },
+  informado: {
+    titulo: "Avisaste que transferiste",
+    detalle: "Vamos a revisar el banco y te confirmamos. Mientras tanto, guardamos tus productos.",
+  },
+  sinDatos: {
+    titulo: "Estamos esperando tu transferencia",
+    detalle: "Ahora no podemos mostrarte los datos para transferir. Escribinos por WhatsApp con tu número de pedido.",
+  },
+} as const;
+
+/**
  * Lo que se le dice a la clienta cuando el pedido sigue pendiente pero la
  * reserva ya venció: los productos dejaron de estar apartados y no se puede
  * pagar. El mismo texto que el código PEDIDO_VENCIDO de la API.
@@ -316,6 +337,8 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
       "No pudimos conectar con Mercado Pago, probá en unos minutos.",
     PROCESADOR_NO_CONFIGURADO:
       "El pago online no está disponible por ahora. Escribinos por WhatsApp.",
+    MEDIO_PAGO_NO_DISPONIBLE:
+      "Ese medio de pago no está disponible por ahora. Elegí otro o escribinos por WhatsApp.",
     ORIGEN_NO_PERMITIDO: "No pudimos completar la operación. Probá recargando la página.",
     ERROR_INTERNO: "Tuvimos un problema de nuestro lado. Probá de nuevo en unos minutos.",
     SEGUIMIENTO_REQUERIDO: "Falta cargar el código de seguimiento del envío.",
@@ -343,6 +366,8 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
   },
   checkout: {
     STOCK_INSUFICIENTE: "Alguien se adelantó. Revisá tu carrito antes de pagar.",
+    MEDIO_PAGO_NO_DISPONIBLE:
+      "Ese medio de pago dejó de estar disponible. Revisá las opciones y elegí otro para continuar.",
   },
   login: {
     DATOS_INVALIDOS: "Completá el mail y la contraseña.",
@@ -368,6 +393,16 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
     PEDIDO_NO_PAGABLE:
       "Este pedido ya no admite cambios en el pago: no es por transferencia, o está cancelado. Recargá la página para ver su estado.",
     PEDIDO_YA_PAGADO: "El pago de este pedido ya está confirmado.",
+  },
+
+  // "Ya transferí": el aviso de una transferencia desde la página del pedido.
+  aviso: {
+    LIMITE_SUPERADO:
+      "Recibimos muchos avisos desde tu conexión. Esperá unos minutos o escribinos por WhatsApp con tu número de pedido.",
+    PEDIDO_VENCIDO:
+      "Pasó el tiempo en que guardamos tus productos antes de que avisaras. Escribinos por WhatsApp con tu número de pedido.",
+    PEDIDO_YA_PAGADO: "Ya confirmamos tu pago: no hace falta que avises.",
+    PEDIDO_NO_PAGABLE: "Este pedido no admite el aviso de transferencia. Si tenés dudas, escribinos por WhatsApp.",
   },
 
   cuenta: {

@@ -6,6 +6,7 @@ import {
   formatearFechaHora,
   hayImporte,
   formatearPrecio,
+  montoParaCopiar,
 } from "./formato";
 
 // Intl separa el signo del número con un espacio duro (U+00A0).
@@ -79,4 +80,16 @@ describe("hayImporte", () => {
       expect(hayImporte(valor)).toBe(false);
     },
   );
+});
+
+describe("montoParaCopiar", () => {
+  it("copia sin decimales cuando son cero", () => {
+    expect(montoParaCopiar("23500.00")).toBe("23500");
+    expect(montoParaCopiar("999.00")).toBe("999");
+  });
+
+  it("si vinieran centavos, los copia con coma", () => {
+    expect(montoParaCopiar("23500.50")).toBe("23500,50");
+    expect(montoParaCopiar("999.05")).toBe("999,05");
+  });
 });

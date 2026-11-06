@@ -1,6 +1,6 @@
 import { apiFetch } from "@/lib/apiFetch";
 import { segmentoRuta } from "@/lib/segmentoRuta";
-import type { PagoIniciado, PedidoCreado, PedidoEntrada, PedidoPublico, ZonaEnvio } from "@/types";
+import type { AvisoTransferencia, PagoIniciado, PedidoCreado, PedidoEntrada, PedidoPublico, ZonaEnvio } from "@/types";
 
 /** Respuesta de GET /zonas-envio. */
 type ListaZonas = { datos: ZonaEnvio[] };
@@ -50,3 +50,15 @@ export const obtenerPedido = async (numero: string, signal?: AbortSignal) =>
  */
 export const iniciarPago = async (numero: string) =>
   apiFetch<PagoIniciado>(`/pedidos/${segmentoRuta(numero)}/pago`, { method: "POST" });
+
+/**
+ * @description "Ya transferí": avisa que la clienta hizo la transferencia de un
+ * pedido. Frena el vencimiento hasta que la dueña revise el banco; no aprueba el
+ * pago. No lleva cuerpo: el comprobante se manda por WhatsApp. Repetir el aviso
+ * responde lo mismo y no cambia nada.
+ * @param numero Número del pedido.
+ * @returns La confirmación del aviso.
+ * @throws {ErrorApi} NO_ENCONTRADO, PEDIDO_NO_PAGABLE, PEDIDO_YA_PAGADO, PEDIDO_VENCIDO o LIMITE_SUPERADO.
+ */
+export const informarTransferencia = (numero: string) =>
+  apiFetch<AvisoTransferencia>(`/pedidos/${segmentoRuta(numero)}/comprobante`, { method: "POST" });

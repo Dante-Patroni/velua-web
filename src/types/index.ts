@@ -28,6 +28,8 @@ export type PedidoEntrada = Esquemas["PedidoEntrada"];
 export type PedidoCreado = Esquemas["PedidoCreado"];
 export type PedidoPublico = Esquemas["PedidoPublico"];
 export type PagoIniciado = Esquemas["PagoIniciado"];
+export type AvisoTransferencia = Esquemas["AvisoTransferencia"];
+export type DatosTransferencia = NonNullable<PedidoPublico["transferencia"]>;
 export type EstadoPago = PedidoPublico["estadoPago"];
 export type EstadoPedido = PedidoPublico["estadoPedido"];
 

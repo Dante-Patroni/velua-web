@@ -6,6 +6,7 @@ import { crearPedido, listarZonasEnvio } from "@/lib/api/pedidos.api";
 import { ErrorApi } from "@/lib/apiFetch";
 import { destinoDePago, type DestinoPago } from "@/lib/pagos";
 import type { PedidoEntrada, ZonaEnvio } from "@/types";
+import type { MedioPago } from "./Checkout.utils";
 
 /** Lo que el loader deja disponible para el checkout. */
 export type DatosCheckout = { zonas: ZonaEnvio[] };
@@ -34,10 +35,19 @@ const texto = (datos: FormData, campo: string): string => {
 };
 
 /**
+ * @description Acepta solo los medios de pago que existen en el contrato.
+ * @param valor Texto del campo del formulario.
+ * @returns El medio de pago, o null si no es uno conocido.
+ */
+const leerMedioPago = (valor: string): MedioPago | null =>
+  valor === "mercadopago" || valor === "transferencia" ? valor : null;
+
+/**
  * @description Arma el pedido a partir del formulario del checkout. El carrito
  * viaja en un campo oculto con solo ids y cantidades (se vuelve a sanear), y el
- * total esperado es el que la clienta vio en pantalla. Solo Mercado Pago: la
- * transferencia espera su propio desarrollo. La validación de los datos de la
+ * total esperado es el que la clienta vio en pantalla. El medio de pago es
+ * Mercado Pago o transferencia; si está disponible lo decide la API al crear el
+ * pedido. La validación de los datos de la
  * clienta la hace la API, que responde por campo.
  * @param datos Campos del formulario.
  * @returns El pedido listo para enviar, o null si el formulario no tiene la forma esperada.
@@ -49,7 +59,10 @@ export const leerPedido = (datos: FormData): PedidoEntrada | null => {
 
   if (items.length === 0) return null;
   if (!/^\d+(\.\d{1,2})?$/.test(totalEsperado)) return null;
-  if (texto(datos, "medioPago") !== "mercadopago") return null;
+
+  const medioPago = leerMedioPago(texto(datos, "medioPago"));
+
+  if (!medioPago) return null;
 
   const cliente = {
     nombre: texto(datos, "nombre"),
@@ -59,7 +72,7 @@ export const leerPedido = (datos: FormData): PedidoEntrada | null => {
   };
 
   if (metodo === "retiro") {
-    return { items, cliente, entrega: { metodo }, medioPago: "mercadopago", totalEsperado };
+    return { items, cliente, entrega: { metodo }, medioPago, totalEsperado };
   }
 
   const zonaEnvioId = Number(texto(datos, "zonaEnvioId"));
@@ -81,7 +94,7 @@ export const leerPedido = (datos: FormData): PedidoEntrada | null => {
         cp: texto(datos, "cp"),
       },
     },
-    medioPago: "mercadopago",
+    medioPago,
     totalEsperado,
   };
 };
