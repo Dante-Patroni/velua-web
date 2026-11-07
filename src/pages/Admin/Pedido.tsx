@@ -17,7 +17,7 @@ import {
   ETIQUETAS_ORIGEN_EVENTO,
   obtenerMensajeError,
 } from "@/lib/mappings";
-import { accionesDelPedido, erroresSinBoton, formulariosVisibles } from "./Pedido.utils";
+import { accionesDelPedido, erroresSinBoton, formulariosVisibles, puedeVerCancelacion } from "./Pedido.utils";
 import { etiquetaEstadoEvento } from "./Pedidos.utils";
 
 /**
@@ -229,7 +229,7 @@ export function AccionesPedido({ pedido }: { pedido: PedidoAdminDetalle }) {
 
   const acciones = accionesDelPedido(pedido);
   const esAdmin = usuario.rol === "admin";
-  const mostrarCancelacion = esAdmin && acciones.cancelacion !== null;
+  const mostrarCancelacion = puedeVerCancelacion(acciones, esAdmin);
   const visibles = formulariosVisibles(acciones, esAdmin);
   const mostrarTransferencia = visibles.aviso || visibles.confirmacion;
   // Mientras viaja cualquier petición, ningún botón se puede apretar: ni el
@@ -448,7 +448,9 @@ export function Pedido() {
         </p>
       </header>
 
-      <AccionesPedido pedido={pedido} />
+      {/* La key reinicia los fetchers al pasar a otro pedido: el error de una acción
+          sobre un pedido no puede quedar a la vista en el siguiente. */}
+      <AccionesPedido key={pedido.id} pedido={pedido} />
       <DetallePedido pedido={pedido} />
     </div>
   );
