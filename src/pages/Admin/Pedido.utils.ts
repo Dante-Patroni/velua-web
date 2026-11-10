@@ -89,6 +89,19 @@ export type FormularioAccion = "avance" | "cancelacion" | "aviso" | "confirmacio
 const FORMULARIOS: readonly FormularioAccion[] = ["avance", "cancelacion", "aviso", "confirmacion"];
 
 /**
+ * @description Si el bloque de cancelar se dibuja: el formulario, o el botón
+ * deshabilitado con la explicación de Mercado Pago. Solo para admin. Es la única
+ * regla de rol de la cancelación: la pantalla y formulariosVisibles la leen de acá.
+ * Esconderlo es comodidad; el control real es el 403 de la API.
+ * @param acciones Resultado de accionesDelPedido.
+ * @param esAdmin True si la sesión es de un admin.
+ * @returns True si la sesión ve algo de la cancelación.
+ */
+export function puedeVerCancelacion(acciones: AccionesPedido, esAdmin: boolean): boolean {
+  return esAdmin && acciones.cancelacion !== null;
+}
+
+/**
  * @description Qué formularios se dibujan, según las acciones y el rol.
  * Cancelar y lo de la transferencia son solo para admin.
  * @param acciones Resultado de accionesDelPedido.
@@ -101,7 +114,7 @@ export function formulariosVisibles(
 ): Record<FormularioAccion, boolean> {
   return {
     avance: acciones.avance !== null,
-    cancelacion: esAdmin && acciones.cancelacion === "disponible",
+    cancelacion: puedeVerCancelacion(acciones, esAdmin) && acciones.cancelacion === "disponible",
     aviso: esAdmin && acciones.registrarAviso,
     confirmacion: esAdmin && acciones.confirmarPago,
   };

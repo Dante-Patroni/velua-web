@@ -5,6 +5,7 @@ import {
   accionesDelPedido,
   erroresSinBoton,
   formulariosVisibles,
+  puedeVerCancelacion,
   type DatosAcciones,
   type FormularioAccion,
 } from "./Pedido.utils";
@@ -130,6 +131,32 @@ describe("accionesDelPedido: transferencia", () => {
 
     expect(resultado.registrarAviso).toBe(false);
     expect(resultado.confirmarPago).toBe(false);
+  });
+});
+
+describe("puedeVerCancelacion", () => {
+  const disponible = accionesDelPedido(pedido({ medioPago: "transferencia", estadoPago: "pendiente" }));
+  const conMercadoPago = accionesDelPedido(
+    pedido({ estadoPago: "pendiente", pago: { tieneLinkMercadoPago: true, comprobanteInformadoEn: null } }),
+  );
+
+  test("admin ve la cancelación, disponible o bloqueada por Mercado Pago", () => {
+    expect(disponible.cancelacion).toBe("disponible");
+    expect(conMercadoPago.cancelacion).toBe("mercado-pago");
+    expect(puedeVerCancelacion(disponible, true)).toBe(true);
+    expect(puedeVerCancelacion(conMercadoPago, true)).toBe(true);
+  });
+
+  test("el operador no ve nada de la cancelación, tampoco el botón bloqueado", () => {
+    expect(puedeVerCancelacion(disponible, false)).toBe(false);
+    expect(puedeVerCancelacion(conMercadoPago, false)).toBe(false);
+  });
+
+  test("sin cancelación posible, no la ve nadie", () => {
+    const pagado = accionesDelPedido(pedido({ estadoPago: "aprobado" }));
+
+    expect(pagado.cancelacion).toBeNull();
+    expect(puedeVerCancelacion(pagado, true)).toBe(false);
   });
 });
 
