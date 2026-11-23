@@ -5,6 +5,7 @@ import { AuthProvider } from "@/auth/AuthContext";
 import type { authLoader } from "@/auth/authService";
 import { Button } from "@/components/ui/Button";
 import { ENLACES_ADMIN } from "@/lib/mappings";
+import { enlacesParaRol } from "./AdminLayout.utils";
 import { cn } from "@/lib/utils";
 
 /** Ruta de la action que cierra la sesión. */
@@ -40,7 +41,7 @@ export function AdminLayout() {
           </div>
           <nav aria-label="Panel" className="overflow-x-auto">
             <ul className="flex gap-1 px-2 py-2 md:flex-col md:px-2">
-              {ENLACES_ADMIN.map(({ ruta, texto }) => (
+              {enlacesParaRol(ENLACES_ADMIN, usuario.rol).map(({ ruta, texto }) => (
                 <li key={ruta}>
                   <NavLink
                     to={ruta}

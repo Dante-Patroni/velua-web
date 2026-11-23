@@ -93,6 +93,15 @@ describe("DetallePedido", () => {
     expect(html.split(ATAQUE_ESCAPADO).length - 1).toBe(3);
   });
 
+  test("una venta del panel sin email muestra 'Sin email', no null ni un hueco", () => {
+    const html = renderToStaticMarkup(
+      <DetallePedido pedido={detalle({ cliente: { ...detalle().cliente, email: null as unknown as string } })} />,
+    );
+
+    expect(html).toContain("Sin email");
+    expect(html).not.toContain("null");
+  });
+
   test("muestra los totales tal como vienen, sin recalcularlos", () => {
     // Total incoherente a propósito: si la pantalla sumara, no aparecería.
     const base = detalle();
