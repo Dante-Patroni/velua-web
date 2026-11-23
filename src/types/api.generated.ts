@@ -1004,6 +1004,153 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/ventas/cotizacion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cotizar una venta del panel
+         * @description Solo el admin (VENTAS_REGISTRAR). Calcula el total de una venta del panel con efectivo y transferencia, con el descuento y el envío de cada medio. **No crea ni reserva nada**: el stock se verifica al registrar la venta.
+         *
+         *     El total que el panel manda después como totalEsperado es mediosPago[medioElegido].total. totales.total sin medio de pago no lleva descuento: no es el total de ningún medio.
+         *
+         *     Sin medioPago, cada medio informa si está disponible. Con un medioPago deshabilitado por su configuración, 503.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VentaCotizacionEntrada"];
+                };
+            };
+            responses: {
+                /** @description Venta cotizada */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VentaCotizacion"];
+                    };
+                };
+                /** @description DATOS_INVALIDOS (con el campo), CARRITO_SIN_ITEMS_VALIDOS o ZONA_INVALIDA. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                /** @description MEDIO_PAGO_NO_DISPONIBLE (el medio pedido está deshabilitado por su configuración). */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/ventas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registrar una venta hecha fuera de la tienda
+         * @description Solo el admin (VENTAS_REGISTRAR). Crea un pedido con canal panel, con el mismo stock y el mismo historial que la tienda. El total lo calcula la API. En efectivo con cobradoEnEfectivo true, el pago nace aprobado; si no, queda pendiente, sin vencimiento. La transferencia se aprueba después con pago-confirmado.
+         *
+         *     Es idempotente: cada venta lleva un UUID en Idempotency-Key. Repetir la misma venta con la misma clave devuelve la original (200), sin descontar stock de nuevo. La misma clave con otra venta es CLAVE_REUTILIZADA.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Un UUID por venta. El panel lo genera una vez y lo repite en cada reintento. */
+                    "Idempotency-Key": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VentaPanelEntrada"];
+                };
+            };
+            responses: {
+                /** @description Reintento. Devuelve la venta original, con su estado actual */
+                200: {
+                    headers: {
+                        /** @description Siempre true en un reintento. */
+                        "Idempotent-Replayed"?: "true";
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VentaPanelResultado"];
+                    };
+                };
+                /** @description Venta registrada */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VentaPanelResultado"];
+                    };
+                };
+                400: components["responses"]["DatosInvalidos"];
+                401: components["responses"]["NoAutorizado"];
+                403: components["responses"]["SinPermiso"];
+                /** @description CLAVE_REUTILIZADA (la clave ya se usó con otra venta), TOTAL_CAMBIO, CARRITO_DESACTUALIZADO o STOCK_INSUFICIENTE. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description MEDIO_PAGO_NO_DISPONIBLE (el medio está deshabilitado por su configuración). */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/productos": {
         parameters: {
             query?: never;
@@ -3143,10 +3290,16 @@ export interface components {
             estadoPago?: "pendiente" | "aprobado" | "rechazado" | "devuelto" | "cancelado";
             /** @enum {string} */
             estadoPedido?: "nuevo" | "en_preparacion" | "enviado" | "entregado" | "cancelado";
-            /** @enum {string} */
-            medioPago?: "mercadopago" | "transferencia";
-            /** @enum {string} */
-            metodoEntrega?: "envio" | "retiro";
+            /**
+             * @description efectivo: solo en ventas registradas desde el panel.
+             * @enum {string}
+             */
+            medioPago?: "mercadopago" | "transferencia" | "efectivo";
+            /**
+             * @description en_mano: solo en ventas registradas desde el panel.
+             * @enum {string}
+             */
+            metodoEntrega?: "envio" | "retiro" | "en_mano";
             /** Format: date-time */
             expiraEn?: string | null;
             comprobanteInformado?: boolean;
@@ -3204,12 +3357,18 @@ export interface components {
              * @example 23500.00
              */
             total: string;
-            /** @enum {string} */
-            medioPago: "mercadopago" | "transferencia";
+            /**
+             * @description efectivo: solo en ventas registradas desde el panel.
+             * @enum {string}
+             */
+            medioPago: "mercadopago" | "transferencia" | "efectivo";
             estadoPago: components["schemas"]["EstadoPago"];
             estadoPedido: components["schemas"]["EstadoPedido"];
-            /** @enum {string} */
-            metodoEntrega: "envio" | "retiro";
+            /**
+             * @description en_mano: solo en ventas registradas desde el panel.
+             * @enum {string}
+             */
+            metodoEntrega: "envio" | "retiro" | "en_mano";
             /**
              * Format: date-time
              * @description Hasta cuándo queda apartado el stock. Si venció lo dice estadoPago: no usar el reloj del navegador.
@@ -3234,12 +3393,18 @@ export interface components {
              * @example 23500.00
              */
             total: string;
-            /** @enum {string} */
-            medioPago: "mercadopago" | "transferencia";
+            /**
+             * @description efectivo: solo en ventas registradas desde el panel.
+             * @enum {string}
+             */
+            medioPago: "mercadopago" | "transferencia" | "efectivo";
             estadoPago: components["schemas"]["EstadoPago"];
             estadoPedido: components["schemas"]["EstadoPedido"];
-            /** @enum {string} */
-            metodoEntrega: "envio" | "retiro";
+            /**
+             * @description en_mano: solo en ventas registradas desde el panel.
+             * @enum {string}
+             */
+            metodoEntrega: "envio" | "retiro" | "en_mano";
             /**
              * Format: date-time
              * @description Hasta cuándo queda apartado el stock. Si venció lo dice estadoPago: no usar el reloj del navegador.
@@ -3247,17 +3412,20 @@ export interface components {
             expiraEn: string | null;
             cliente: {
                 nombre: string;
-                /** Format: email */
-                email: string;
+                /**
+                 * Format: email
+                 * @description Null en una venta del panel sin email: mostrar "Sin email".
+                 */
+                email: string | null;
                 telefono: string;
                 documento: string | null;
             };
             entrega: {
                 /** @enum {string} */
-                metodo: "envio" | "retiro";
-                /** @description Nombre de la zona. Null si es para retirar. */
+                metodo: "envio" | "retiro" | "en_mano";
+                /** @description Nombre de la zona. Null si es para retirar o en mano. */
                 zona: string | null;
-                /** @description Null si es para retirar. La base no exige cada campo: mostrar un guion si alguno falta. */
+                /** @description Null si es para retirar o en mano. La base no exige cada campo: mostrar un guion si alguno falta. */
                 direccion: {
                     calle: string | null;
                     numero: string | null;
@@ -3382,6 +3550,96 @@ export interface components {
              * @enum {string}
              */
             motivo?: "YA_CONFIRMADO";
+        };
+        /** @description No lleva precio ni usuario: el total lo calcula la API y el usuario sale de la sesión. */
+        VentaPanelEntrada: {
+            /** @description Sin variantes repetidas: una línea por variante. */
+            items: {
+                varianteId: number;
+                cantidad: number;
+            }[];
+            cliente: {
+                /** @example Lucía Fernández */
+                nombre: string;
+                /** @example 358 412-3344 */
+                telefono: string;
+                /**
+                 * Format: email
+                 * @description Opcional. Sin email no se manda ningún mail.
+                 */
+                email?: string | null;
+                documento?: string | null;
+            };
+            /** @description Con envio, zonaEnvioId y la direccion completa son obligatorios. Con retiro o en_mano, mandar una zona o una direccion es un error. */
+            entrega: {
+                /** @enum {string} */
+                metodo: "envio" | "retiro" | "en_mano";
+                zonaEnvioId?: number | null;
+                direccion?: {
+                    calle?: string;
+                    numero?: string;
+                    extra?: string | null;
+                    ciudad?: string;
+                    provincia?: string;
+                    cp?: string;
+                } | null;
+            };
+            /** @enum {string} */
+            medioPago: "efectivo" | "transferencia";
+            /** @description Solo los booleanos true o false. Con true (solo con efectivo), el pago nace aprobado. Sin el campo o con false, queda pendiente. */
+            cobradoEnEfectivo?: boolean;
+            /**
+             * @description El total que mostró la cotización. Si no coincide con el real, se rechaza con TOTAL_CAMBIO.
+             * @example 15300.00
+             */
+            totalEsperado: string;
+            notas?: string | null;
+        };
+        /** @description El carrito de la venta, con la misma forma que en POST /admin/ventas. No lleva precio: lo calcula la API. */
+        VentaCotizacionEntrada: {
+            /** @description Sin variantes repetidas: una línea por variante. */
+            items: {
+                varianteId: number;
+                cantidad: number;
+            }[];
+            /** @description Con envio, zonaEnvioId es obligatorio. Con retiro o en_mano, mandar una zona es un error. */
+            entrega: {
+                /** @enum {string} */
+                metodo: "envio" | "retiro" | "en_mano";
+                zonaEnvioId?: number | null;
+            };
+            /**
+             * @description Opcional. Sin él, mediosPago trae el total de cada medio.
+             * @enum {string|null}
+             */
+            medioPago?: "efectivo" | "transferencia" | null;
+        };
+        VentaCotizacion: {
+            items: components["schemas"]["ItemCotizado"][];
+            /** @description Vacío si el carrito quedó tal como lo mandaron. */
+            avisos: components["schemas"]["AvisoCotizacion"][];
+            totales: components["schemas"]["TotalesCotizacion"];
+            envio: components["schemas"]["DetalleEnvio"];
+            /** @description El total de cada medio del panel, calculado acá con su descuento y su envío. El panel manda como totalEsperado el del medio elegido. */
+            mediosPago: {
+                efectivo: components["schemas"]["MedioPagoCotizado"];
+                transferencia: components["schemas"]["MedioPagoCotizado"];
+            };
+        };
+        VentaPanelResultado: {
+            /** @example 42 */
+            id: number;
+            /** @example VEL-4K7Q2X */
+            numero: string;
+            /** @example 15300.00 */
+            total: string;
+            /**
+             * @description En un reintento, el estado actual del pedido.
+             * @example aprobado
+             */
+            estadoPago: string;
+            /** @enum {string} */
+            medioPago: "efectivo" | "transferencia";
         };
         CancelacionResultado: {
             /** @description False si ya estaba cancelado. */

@@ -7,12 +7,17 @@ import type {
   EstadoPago,
   EstadoPedido,
   MotivoAviso,
+  EntregaPanel,
   EventoPedido,
   MedioPago,
+  MedioPagoPanel,
   MetodoEntrega,
 } from "@/types";
 
 type Enlace = { ruta: string; texto: string };
+
+/** Enlace del panel. `soloAdmin` lo esconde al operador; el permiso real lo valida la API. */
+export type EnlaceAdmin = Enlace & { soloAdmin?: boolean };
 
 /** Columna de ayuda del pie de la tienda. */
 export const ENLACES_AYUDA: readonly Enlace[] = [
@@ -31,8 +36,9 @@ export const ENLACES_LEGALES: readonly Enlace[] = [
 ];
 
 /** Navegación del panel. */
-export const ENLACES_ADMIN: readonly Enlace[] = [
+export const ENLACES_ADMIN: readonly EnlaceAdmin[] = [
   { ruta: "/admin", texto: "Pedidos" },
+  { ruta: "/admin/ventas/nueva", texto: "Registrar venta", soloAdmin: true },
   { ruta: "/admin/productos", texto: "Productos" },
   { ruta: "/admin/categorias", texto: "Categorías" },
   { ruta: "/admin/mi-cuenta", texto: "Mi cuenta" },
@@ -139,6 +145,36 @@ export const MENSAJES_AVISO: Record<MotivoAviso, (aviso: AvisoCotizacion) => str
 };
 
 /**
+ * Avisos de la cotización de una venta del panel. Le hablan a la dueña, no a la
+ * clienta, y no dicen "lo quitamos": en el panel la API no corrige la venta, así
+ * que hay que arreglarla antes de registrar. La cotización del panel sí trae el
+ * motivo real y el nombre del producto.
+ */
+export const MENSAJES_AVISO_VENTA: Record<MotivoAviso, (aviso: AvisoCotizacion) => string> = {
+  VARIANTE_INEXISTENTE: () => "Una de las variantes elegidas ya no existe. Quitala de la venta.",
+  VARIANTE_INACTIVA: (aviso) =>
+    `${nombreEnAviso(aviso)}: esa variante está desactivada. Quitala de la venta.`,
+  PRODUCTO_INACTIVO: (aviso) =>
+    `${nombreEnAviso(aviso)} está despublicado. Quitalo de la venta.`,
+  PROXIMAMENTE: (aviso) => {
+    const fecha = formatearDiaMes(aviso.disponibleDesde);
+
+    return fecha
+      ? `${nombreEnAviso(aviso)} sale el ${fecha}: todavía no se puede vender. Quitalo de la venta.`
+      : `${nombreEnAviso(aviso)} todavía no salió a la venta. Quitalo de la venta.`;
+  },
+  SIN_STOCK: (aviso) => `${nombreEnAviso(aviso)} no tiene stock. Quitalo de la venta.`,
+  AJUSTADO_POR_STOCK: (aviso) =>
+    aviso.disponible === undefined
+      ? `No alcanza el stock de ${nombreEnAviso(aviso)}. Bajá la cantidad.`
+      : `De ${nombreEnAviso(aviso)} hay ${aviso.disponible} en stock. Bajá la cantidad.`,
+  AJUSTADO_POR_TOPE: (aviso) =>
+    aviso.maximo === undefined
+      ? `${nombreEnAviso(aviso)} supera el máximo por venta. Bajá la cantidad.`
+      : `De ${nombreEnAviso(aviso)} se pueden vender hasta ${aviso.maximo} por venta. Bajá la cantidad.`,
+};
+
+/**
  * Dominios a los que se puede mandar a la clienta a pagar. El link viene de
  * nuestra API, pero antes de redirigir se comprueba que sea https y de Mercado
  * Pago: la redirección saca a la clienta del sitio y no debe poder apuntar a
@@ -227,16 +263,42 @@ export const ETIQUETAS_ESTADO_PAGO: Record<EstadoPago, string> = {
   devuelto: "Devuelto",
 };
 
-/** Cómo se nombra cada medio de pago. */
+/**
+ * Cómo se nombra cada medio de pago. `efectivo` es de las ventas del panel; el
+ * contrato ya lo lista, así que TypeScript marca el que falte.
+ */
 export const ETIQUETAS_MEDIO_PAGO: Record<MedioPago, string> = {
   mercadopago: "Mercado Pago",
   transferencia: "Transferencia",
+  efectivo: "Efectivo",
 };
 
-/** Cómo se nombra cada método de entrega. */
+/**
+ * Cómo se nombra cada método de entrega. `en_mano` es de las ventas del panel;
+ * el contrato ya lo lista, así que TypeScript marca el que falte.
+ */
 export const ETIQUETAS_ENTREGA: Record<MetodoEntrega, string> = {
   envio: "Envío",
   retiro: "Retiro",
+  en_mano: "En mano",
+};
+
+/** Medios de cobro de una venta del panel, en el orden en que se ofrecen. */
+export const MEDIOS_VENTA: readonly MedioPagoPanel[] = ["efectivo", "transferencia"];
+
+/** Cómo se entrega una venta del panel, en el orden en que se ofrecen. */
+export const ENTREGAS_VENTA: readonly EntregaPanel[] = ["en_mano", "retiro", "envio"];
+
+/** Qué dice cada medio de cobro al elegirlo en "Registrar venta". */
+export const TEXTOS_MEDIO_VENTA: Record<MedioPagoPanel, { titulo: string; detalle: string }> = {
+  efectivo: {
+    titulo: "Efectivo",
+    detalle: "Se cobra en mano. Si ya cobraste, marcalo abajo y el pago queda aprobado.",
+  },
+  transferencia: {
+    titulo: "Transferencia",
+    detalle: "Queda pendiente hasta que confirmes la transferencia desde el pedido.",
+  },
 };
 
 /**
@@ -326,6 +388,8 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
       "Ninguno de los productos de tu carrito está disponible.",
     STOCK_INSUFICIENTE: "No hay stock suficiente.",
     TOTAL_CAMBIO: "El total cambió desde la última vez que lo viste. Revisalo antes de pagar.",
+    CLAVE_REUTILIZADA:
+      "Esa operación ya se había enviado con otros datos. Revisá si quedó registrada antes de repetirla.",
     ZONA_INVALIDA: "No pudimos reconocer la zona de envío. Revisala y probá de nuevo.",
     PEDIDO_NO_PAGABLE: "Este pedido no se puede pagar desde acá. Si tenés dudas, escribinos por WhatsApp.",
     PEDIDO_VENCIDO: "Tu pedido venció: pasó el tiempo en que guardamos tus productos. Podés armarlo de nuevo desde el catálogo.",
@@ -403,6 +467,21 @@ export const MENSAJES_ERROR: { general: Record<CodigoError, string> } & Record<
       "Pasó el tiempo en que guardamos tus productos antes de que avisaras. Escribinos por WhatsApp con tu número de pedido.",
     PEDIDO_YA_PAGADO: "Ya confirmamos tu pago: no hace falta que avises.",
     PEDIDO_NO_PAGABLE: "Este pedido no admite el aviso de transferencia. Si tenés dudas, escribinos por WhatsApp.",
+  },
+
+  // "Registrar venta": la dueña cargando una venta hecha fuera de la tienda.
+  venta: {
+    STOCK_INSUFICIENTE: "No alcanza el stock de alguno de los productos. Revisá las cantidades.",
+    TOTAL_CAMBIO:
+      "El total cambió mientras cargabas la venta (precio, descuento o envío). Mirá el total nuevo y volvé a registrar.",
+    CARRITO_DESACTUALIZADO:
+      "Algún producto cambió de precio o de stock, o dejó de venderse. Revisá la venta.",
+    CARRITO_SIN_ITEMS_VALIDOS: "Ninguno de los productos elegidos se puede vender.",
+    MEDIO_PAGO_NO_DISPONIBLE: "Ese medio de cobro no está disponible por ahora. Elegí otro.",
+    CLAVE_REUTILIZADA:
+      "Esta venta ya se había enviado con otros datos. Mirá en Pedidos si quedó registrada; si no está, empezá una venta nueva.",
+    ZONA_INVALIDA: "La zona de envío no es válida. Elegila de nuevo.",
+    SIN_PERMISO: "Solo el administrador puede registrar ventas.",
   },
 
   cuenta: {

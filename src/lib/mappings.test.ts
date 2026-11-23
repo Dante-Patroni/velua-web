@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 import { ErrorApi } from "./apiFetch";
 import {
   ETIQUETAS_ESTADO_PEDIDO,
+  ETIQUETAS_ENTREGA,
+  ETIQUETAS_MEDIO_PAGO,
   MENSAJES_AVISO,
+  MENSAJES_AVISO_VENTA,
   MENSAJES_ERROR,
   TEXTOS_ESTADO_PAGO,
   MENSAJE_ERROR_POR_DEFECTO,
@@ -23,7 +26,7 @@ const CODIGOS_DE_LA_API = [
   "ULTIMA_VARIANTE_ACTIVA", "LIMITE_IMAGENES", "ARCHIVO_REQUERIDO",
   "TIPO_ARCHIVO_INVALIDO", "ARCHIVO_DEMASIADO_GRANDE", "ERROR_AL_SUBIR",
   "CATEGORIA_PADRE_INVALIDA", "CATEGORIA_CON_HIJAS", "CATEGORIA_CON_PRODUCTOS", "PRODUCTO_CON_VENTAS",
-  "CARRITO_DESACTUALIZADO", "CARRITO_SIN_ITEMS_VALIDOS", "ERROR_INTERNO", "ORIGEN_NO_PERMITIDO", "PEDIDO_NO_PAGABLE", "PEDIDO_VENCIDO", "PEDIDO_YA_PAGADO", "PAGO_EN_PROCESO", "PEDIDO_EN_REVISION", "PROCESADOR_NO_CONFIGURADO", "PROCESADOR_NO_DISPONIBLE", "MEDIO_PAGO_NO_DISPONIBLE", "STOCK_INSUFICIENTE", "TOTAL_CAMBIO", "ZONA_INVALIDA",
+  "CARRITO_DESACTUALIZADO", "CARRITO_SIN_ITEMS_VALIDOS", "ERROR_INTERNO", "ORIGEN_NO_PERMITIDO", "PEDIDO_NO_PAGABLE", "PEDIDO_VENCIDO", "PEDIDO_YA_PAGADO", "PAGO_EN_PROCESO", "PEDIDO_EN_REVISION", "PROCESADOR_NO_CONFIGURADO", "PROCESADOR_NO_DISPONIBLE", "MEDIO_PAGO_NO_DISPONIBLE", "STOCK_INSUFICIENTE", "TOTAL_CAMBIO", "CLAVE_REUTILIZADA", "ZONA_INVALIDA",
 ];
 
 describe("obtenerMensajeError", () => {
@@ -221,4 +224,73 @@ describe("estados del pedido", () => {
     expect(AYUDA_OLVIDE_CONTRASENA).not.toMatch(/Dante|Pablo|Veronica/i);
   });
 });
+});
+
+describe("Registrar venta (contexto venta)", () => {
+  it("CLAVE_REUTILIZADA tiene mensaje propio, sin mostrar el código", () => {
+    const mensaje = obtenerMensajeError("CLAVE_REUTILIZADA", "venta");
+
+    expect(mensaje).not.toBe(MENSAJE_ERROR_POR_DEFECTO);
+    expect(mensaje).not.toContain("CLAVE_REUTILIZADA");
+  });
+
+  it.each(["TOTAL_CAMBIO", "CARRITO_DESACTUALIZADO", "MEDIO_PAGO_NO_DISPONIBLE", "STOCK_INSUFICIENTE"])(
+    "%s le habla a la dueña, no a la clienta",
+    (codigo) => {
+      const mensaje = obtenerMensajeError(codigo, "venta");
+
+      expect(mensaje).not.toBe(obtenerMensajeError(codigo, "general"));
+      expect(mensaje).not.toContain(codigo);
+      expect(mensaje).not.toMatch(/tu carrito|antes de pagar/i);
+    },
+  );
+
+  it("un código desconocido cae al mensaje por defecto, no al código", () => {
+    expect(obtenerMensajeError("CODIGO_NUEVO_DE_LA_API", "venta")).toBe(MENSAJE_ERROR_POR_DEFECTO);
+  });
+
+  it("los códigos que la venta no redefine caen al contexto general", () => {
+    expect(obtenerMensajeError("DATOS_INVALIDOS", "venta")).toBe(MENSAJES_ERROR.general.DATOS_INVALIDOS);
+  });
+
+  it("los medios y entregas de una venta del panel tienen etiqueta", () => {
+    expect(ETIQUETAS_MEDIO_PAGO.efectivo).toBe("Efectivo");
+    expect(ETIQUETAS_ENTREGA.en_mano).toBe("En mano");
+  });
+});
+
+describe("MENSAJES_AVISO_VENTA", () => {
+  const MOTIVOS = [
+    "VARIANTE_INEXISTENTE",
+    "VARIANTE_INACTIVA",
+    "PRODUCTO_INACTIVO",
+    "PROXIMAMENTE",
+    "SIN_STOCK",
+    "AJUSTADO_POR_STOCK",
+    "AJUSTADO_POR_TOPE",
+  ] as const;
+
+  it("tiene un mensaje para cada motivo del contrato", () => {
+    expect(Object.keys(MENSAJES_AVISO_VENTA).sort()).toEqual([...MOTIVOS].sort());
+  });
+
+  it.each(MOTIVOS)("%s nombra el problema sin mostrar el código y sin hablarle a la clienta", (motivo) => {
+    const texto = MENSAJES_AVISO_VENTA[motivo]({ varianteId: 1, motivo, producto: "Éclat Doré" });
+
+    expect(texto.length).toBeGreaterThan(10);
+    expect(texto).not.toContain(motivo);
+    expect(texto).not.toMatch(/canasta|lo quitamos/i);
+  });
+
+  it("AJUSTADO_POR_STOCK dice cuántas unidades hay", () => {
+    const texto = MENSAJES_AVISO_VENTA.AJUSTADO_POR_STOCK({
+      varianteId: 1, motivo: "AJUSTADO_POR_STOCK", producto: "Éclat Doré", disponible: 3,
+    });
+
+    expect(texto).toContain("3");
+  });
+
+  it("un motivo sin nombre de producto no muestra undefined", () => {
+    expect(MENSAJES_AVISO_VENTA.SIN_STOCK({ varianteId: 1, motivo: "SIN_STOCK" })).not.toContain("undefined");
+  });
 });

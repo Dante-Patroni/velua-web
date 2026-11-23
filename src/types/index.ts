@@ -57,6 +57,14 @@ export type AvisoRegistrado = Esquemas["AvisoRegistrado"];
 export type ConfirmacionPagoEntrada = Esquemas["ConfirmacionPagoEntrada"];
 export type ConfirmacionPagoResultado = Esquemas["ConfirmacionPagoResultado"];
 
+// Ventas en persona (panel)
+export type VentaPanelEntrada = Esquemas["VentaPanelEntrada"];
+export type VentaPanelResultado = Esquemas["VentaPanelResultado"];
+export type VentaCotizacionEntrada = Esquemas["VentaCotizacionEntrada"];
+export type VentaCotizacion = Esquemas["VentaCotizacion"];
+export type MedioPagoPanel = VentaPanelEntrada["medioPago"];
+export type EntregaPanel = VentaPanelEntrada["entrega"]["metodo"];
+
 /** Respuesta del listado público de productos. */
 export type ListadoProductos = { datos: ProductoListado[]; meta: Meta };
 
