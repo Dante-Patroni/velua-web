@@ -46,3 +46,11 @@ explícito: cuando una se aprueba, se mueve al plan y se borra de acá.
   resuelve con `GET /productos?categoria=<slug-padre>`; falta decidir la URL
   (por ejemplo `/jabones?ver=todos`) y el diseño. Mientras las colecciones estén
   en el primer nivel, nadie lo vería.
+
+## Transferencia
+
+- **Textos que mandan a WhatsApp sin número configurado.** `TEXTOS_TRANSFERENCIA.sinDatos`
+  (`lib/mappings.ts`) dice "Escribinos por WhatsApp con tu número de pedido"
+  aunque `VITE_WHATSAPP` no esté definido. Hay que revisar, para la t12, que
+  los mensajes que nombran WhatsApp solo se muestren cuando hay número, como ya
+  hace el resto del flujo (t09).

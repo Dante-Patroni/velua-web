@@ -85,7 +85,7 @@ export function DetallePedido({ pedido }: { pedido: PedidoAdminDetalle }) {
       <Bloque titulo="Clienta">
         <dl>
           <Dato etiqueta="Nombre" valor={cliente.nombre} />
-          <Dato etiqueta="Email" valor={cliente.email} />
+          <Dato etiqueta="Email" valor={cliente.email || "Sin email"} />
           <Dato etiqueta="Teléfono" valor={cliente.telefono} />
           <Dato etiqueta="DNI" valor={oGuion(cliente.documento)} />
         </dl>

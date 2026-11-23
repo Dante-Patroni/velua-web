@@ -46,6 +46,7 @@ export type CodigoErrorApi =
   | "MEDIO_PAGO_NO_DISPONIBLE"
   | "STOCK_INSUFICIENTE"
   | "TOTAL_CAMBIO"
+  | "CLAVE_REUTILIZADA"
   | "ZONA_INVALIDA"
   | "SESION_REVOCADA"
   | "CONTRASENA_ACTUAL_INCORRECTA"
@@ -61,4 +62,4 @@ export type CodigoErrorCliente = "ERROR_DE_RED" | "ERROR_DESCONOCIDO";
 export type CodigoError = CodigoErrorApi | CodigoErrorCliente;
 
 /** Pantalla o flujo donde se muestra el error. Define el tono del mensaje. */
-export type ContextoError = "general" | "tienda" | "login" | "panel" | "ficha" | "checkout" | "cuenta" | "aviso";
+export type ContextoError = "general" | "tienda" | "login" | "panel" | "ficha" | "checkout" | "cuenta" | "aviso" | "venta";
